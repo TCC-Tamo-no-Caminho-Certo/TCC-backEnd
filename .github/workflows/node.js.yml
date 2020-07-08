@@ -34,5 +34,6 @@ jobs:
     - name: Stop pm2
       run: pm2 stop nodedeploy
       
+    
     - name: Start pm2
       run: pm2 start dist/server.js --name nodedeploy
