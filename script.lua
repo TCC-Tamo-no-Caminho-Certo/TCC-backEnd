@@ -1,5 +1,8 @@
 print("[LuaBuildEvents] Starting Backend Post Pull\n");
 
+require("lua.system");
+require("lua.io");
+
 function executeProcess(exec, args)
     print("Executing repository script...\n");
     processStartInfo = ProcessStartInfo.New(exec, args);
