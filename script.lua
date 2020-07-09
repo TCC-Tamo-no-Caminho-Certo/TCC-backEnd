@@ -24,6 +24,18 @@ if Directory.exists(distPath) == false then
   Directory.createDirectory(distPath)
 end
 
+-- Delete old data
+oldFiles = Directory.getFiles(distPath, "*.*", SearchOption.AllDirectories)
+for key,value in ipairs(oldFiles) do
+  print("Deleting file: " .. value .. "\n")
+  File.delete(value)
+end
+oldDirectories = Directory.getDirectories(distPath, "*", SearchOption.TopDirectoryOnly)
+for key,value in ipairs(oldDirectories) do
+  print("Deleting directory: " .. value .. "\n")
+  Directory.delete(value, true)
+end
+
 -- Create directories
 outputDirectory = Path.combine(Directory.getCurrentDirectory(), "src");
 outputDirectories = Directory.getDirectories(outputDirectory, "*", SearchOption.AllDirectories)
