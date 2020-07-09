@@ -17,8 +17,33 @@ end
 print("Running 'npm install'...\n");
 executeProcess("npm", "install");
 
---print("Running 'npm build'...");
---executeProcess("npm", "run build");
+-- Create base directory
+distPath = "/home/backend/dist"
+outputPath = "/home/backend/lbe/dev_backend/src/"
+if Directory.exists(distPath) == false then
+  Directory.createDirectory(distPath)
+end
+
+-- Create directories
+outputDirectory = Path.combine(Directory.getCurrentDirectory(), "src");
+outputDirectories = Directory.getDirectories(outputDirectory, "*", SearchOption.AllDirectories)
+for key,value in ipairs(outputDirectories) do
+  directoryReplace = value:gsub(outputPath, "")
+  fixedDirectory = Path.combine(distPath, directoryReplace)
+  if Directory.exists(fixedDirectory) == false then
+    print("Creating directory: " .. fixedDirectory .. "\n")
+    Directory.createDirectory(fixedDirectory)
+  end
+end
+
+-- Copy files
+outputFiles = Directory.getFiles(outputDirectory, "*.*", SearchOption.AllDirectories)
+for key,value in ipairs(outputFiles) do
+  fileNameReplace = value:gsub(outputPath, "")
+  fixedFileName = Path.combine(distPath, fileNameReplace)
+  print("Copying file: " .. fixedFileName .. "\n")
+  File.copy(value, fixedFileName, true)
+end
 
 --print("Running 'pm2 stop nodedeploy'...");
 --executeProcess("pm2", "stop nodedeploy");
