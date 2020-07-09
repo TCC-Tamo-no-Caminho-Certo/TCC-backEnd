@@ -45,10 +45,10 @@ for key,value in ipairs(outputFiles) do
   File.copy(value, fixedFileName, true)
 end
 
---print("Running 'pm2 stop nodedeploy'...");
---executeProcess("pm2", "stop nodedeploy");
+print("Running 'pm2 stop nodedeploy'...");
+executeProcess("pm2", "stop nodedeploy");
 
---print("Running 'pm2 start dist/server.js --name nodedeploy'...");
---executeProcess("pm2", "start dist/server.js --name nodedeploy");
+print("Running 'pm2 start /home/backend/lbe/dev_backend/src/server.js --name nodedeploy'...");
+executeProcess("pm2", "start /home/backend/lbe/dev_backend/src/server.js --name nodedeploy");
 
 print("[LuaBuildEvents] Finishing Backend Post Pull\n");
