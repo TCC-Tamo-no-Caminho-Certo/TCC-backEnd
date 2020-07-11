@@ -1,16 +1,27 @@
-const db = require('../database')
-const Data = require('./dataModel')
+import { Transaction } from 'knex'
+import db from '../database'
 
+export interface AddressObj {
+  city: string
+  address: string
+  zip_code: string
+}
 
-module.exports = class Address extends Data {
-  constructor({ city, address, zip_code }) {
-    super()
+export default class Address {
+  city: string
+  address: string
+  zip_code: string
+
+  /**
+   * Create an address.
+   */
+  constructor({ city, address, zip_code }: AddressObj) {
     this.city = city
     this.address = address
     this.zip_code = zip_code
   }
 
-  async insert(transaction) {
+  async insert(transaction: Transaction) {
     const trx = transaction || await db.transaction()
 
     const hasAddress = await Address.exist(this.address)
@@ -26,22 +37,22 @@ module.exports = class Address extends Data {
       .insert({ address: this.address, zip_code: this.zip_code, city_id })
       .then(row => row[0])
 
-    transaction ? null : await trx.commit()
+    await trx.commit()
 
     return addressID
   }
 
-  static async update() {
+  update = {
   }
 
   static async delete() {
   }
 
-  static async exist(address) {
-    const addressID = await db('address')
+  static async exist(address: string) {
+    const address_id = await db('address')
       .select('id_address')
       .where({ address })
       .then(row => row[0] ? row[0].id_address : null)
-    return addressID
+    return address_id
   }
 }

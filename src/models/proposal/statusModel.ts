@@ -1,19 +1,15 @@
-const Data = require('../../models/dataModel')
-const db = require('../../database')
+import db from '../../database'
+import { Transaction } from 'knex'
 
-module.exports = class Status extends Data {
+export default class Status {
   constructor() {
-    super()
   }
 
   async insert() {
 
   }
 
-  static update() {
-    return {
-
-    }
+  update = {
   }
 
   static async delete() {
@@ -25,7 +21,7 @@ module.exports = class Status extends Data {
   }
 
   static get = {
-    async id(name, transaction) {
+    async id(name: string, transaction?: Transaction) {
       const trx = transaction || db
       const id = await trx('status')
         .select('id_status')

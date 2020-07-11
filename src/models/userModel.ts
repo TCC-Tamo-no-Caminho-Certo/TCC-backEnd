@@ -1,34 +1,30 @@
-const forgetMail = require('../resources/nodemailer/forgetPassword')
-const Address = require('./addressModel')
-const jwt = require('jsonwebtoken')
-const db = require('../database')
-const argon = require('argon2')
+import forgetMail from '../services/nodemailer/forgetPassword'
+import Address, { AddressObj } from './addressModel'
+import jwt from 'jsonwebtoken'
+import db from '../database'
+import argon from 'argon2'
 
+export interface UserObj {
+  name: string
+  sur_name: string
+  phone: string
+  email: string
+  password: string
+  role: string
+}
 
-module.exports = class User extends Address {
+export default class User extends Address {
+  name: string
+  sur_name: string
+  phone: string
+  email: string
+  password: string
+  role: string
   /**
-   * @typedef user
-   * @property {string} name
-   * @property {string} sur_name
-   * @property {string} [phone]
-   * @property {string} email
-   * @property {string} password
-   * @property {string} role
+   * Create an user.
    */
 
-  /**
-   * @typedef address
-   * @property {string} city
-   * @property {string} address
-   * @property {string} zip_code
-   */
-
-  /**
-   * Create a user.
-   * @param {user} user
-   * @param {address} address
-   */
-  constructor(user = { name, sur_name, phone, email, password, role }, address = { city, address, zip_code }) {
+  constructor(user: UserObj, address: AddressObj) {
     super(address)
     this.name = user.name
     this.sur_name = user.sur_name
@@ -87,13 +83,13 @@ module.exports = class User extends Address {
       role: this.role
     }
 
-    const sessionToken = jwt.sign(payload, process.env.JWT_PRIVATE_KEY, { expiresIn: '24h', algorithm: 'RS256' })
+    const access_token = jwt.sign(payload, (<string>process.env.JWT_PRIVATE_KEY), { expiresIn: '24h', algorithm: 'RS256' })
 
-    return { id: user_id, sessionToken }
+    return { id: user_id, access_token }
   }
 
   static update = {
-    async password(id_user, password) {
+    async password(id_user: number, password: string) {
       await db('user').update({ password }).where({ id_user })
     },
   }
@@ -102,15 +98,15 @@ module.exports = class User extends Address {
 
   }
 
-  static async exist(email) {
-    const userID = await db('user')
+  static async exist(email: string) {
+    const user_id = await db('user')
       .select('id_user')
       .where({ email })
       .then(row => row[0] ? row[0].id_user : null)
-    return userID
+    return user_id
   }
 
-  static async login(email, password) {
+  static async login(email: string, password: string) {
     const user = await db('user')
       .innerJoin('role_user', 'user.id_user', 'role_user.user_id')
       .innerJoin('role', 'role_user.role_id', 'role.id_role')
@@ -124,43 +120,42 @@ module.exports = class User extends Address {
     if (!await argon.verify(`${user.password}`, `${password}`))
       return { Error: 'Wrong password' }
 
-
     const payload = {
       id: user.id_user,
       role: user.role
     }
 
-    const sessionToken = jwt.sign(payload, process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '24h' })
+    const access_token = jwt.sign(payload, (<string>process.env.JWT_PRIVATE_KEY), { algorithm: 'RS256', expiresIn: '24h' })
 
 
-    return sessionToken
+    return { access_token }
   }
 
-  static async forgotPassword(email) {
+  static async forgotPassword(email: string) {
     const id = await User.exist(email)
 
     if (!id) return { Error: 'User don`t exist!' }
 
-    const token = jwt.sign({ id }, process.env.JWT_RESET_SECRET, { expiresIn: '1h' })
+    const ResetPasswordToken = jwt.sign({ id }, (<string>process.env.JWT_RESET_SECRET), { expiresIn: '1h' })
 
     // await forgetMail({ email }, err => { if (err) { Error: 'Couldn`t send email!' } })// have to send a link with the token above
 
-    return token // have to pop this up later
+    return { ResetPasswordToken } // have to pop this up later
   }
 
-  static async resetPassword(token, password) {
-    const id = jwt.verify(token, process.env.JWT_RESET_SECRET, (err, decoded) => {
+  static async resetPassword(token: string, password: string) {
+
+    const id = (<any>jwt.verify(token, (<string>process.env.JWT_RESET_SECRET), (err, decoded) => {
       if (err) return err
-      return decoded.id
-    })
+      return (<any>decoded).id
+    }))
 
     if (typeof id === 'object')
-      return id.expiredAt ? { Error: 'Token expired!' } : { Error: 'Invalid token signature!' }
-
+      return id ? { Error: 'Token expired!' } : { Error: 'Invalid token signature!' }
 
     const hash = await argon.hash(password)
 
-    await User.update.password(id, hash)
+    await User.update.password((<number>id), hash)
 
     return { id, hash }
   }
