@@ -1,8 +1,9 @@
-import db from '../../database'
-import { Transaction } from 'knex'
-import Status from './statusModel'
+import ArisError from '../../models/arisErrorModel'
 import Category from './categoryModel'
 import Artefact from './artefactModel'
+import Status from './statusModel'
+import { Transaction } from 'knex'
+import db from '../../database'
 
 interface Filters {
   ids?: number[]
@@ -14,7 +15,7 @@ interface Filters {
   categories?: string[]
 }
 
-export interface ProposalObj {
+export interface ArisProposal {
   title: string
   version: number
   status: string
@@ -39,7 +40,7 @@ export default class Proposal extends Artefact {
   /**
    * Create a proposal.
    */
-  constructor({ title, version, status, categories, user_id }: ProposalObj) {
+  constructor({ title, version, status, categories, user_id }: ArisProposal) {
     super()
     this.title = title
     this.version = version
@@ -48,45 +49,7 @@ export default class Proposal extends Artefact {
     this.user_id = user_id
   }
 
-  /**
-   * Inserts the proposal in the database.
-   */
-  async insert() {
-    const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
-
-    const trx = await db.transaction()
-
-
-    const proposal_id = await trx('proposal').insert({
-      title: this.title,
-      version: this.version,
-      created_at: date,
-      updated_at: date
-    }).then(row => row[0])
-
-    const status_id = await Status.get.id(this.status, trx)
-    if (!status_id) {
-      trx.rollback()
-      return <any>{ Error: 'Status does`t exists!' }
-    }
-
-    const categories_ids = await Category.get.ids(this.categories, trx)
-    if (categories_ids.length !== this.categories.length) {
-      trx.rollback()
-      return <any>{ Error: `A category provided does't exists!` }
-    }
-
-    await trx('status_proposal').insert({ status_id, proposal_id })
-    await trx('category_proposal').insert(categories_ids.map(category_id => { return { category_id, proposal_id } }))
-    await trx('user_proposal').insert({ user_id: this.user_id, proposal_id, permission: 0 })
-
-
-    await trx.commit()
-
-    return proposal_id
-  }
-
-  static update = {
+  static _update = {
     async titleAndVersion(id_proposal: number, title: string, version: number, transaction?: Transaction) {
       const trx = transaction || db
       const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -107,14 +70,52 @@ export default class Proposal extends Artefact {
   }
 
   /**
+   * Inserts the proposal in the database.
+   */
+  async insert() {
+    const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+
+    const trx = await db.transaction()
+
+    const proposal_id = await trx('proposal').insert({
+      title: this.title,
+      version: this.version,
+      created_at: date,
+      updated_at: date
+    }).then(row => row[0])
+
+    const status_id = await Status.get.id(this.status, trx)
+    if (!status_id) {
+      trx.rollback()
+      throw new ArisError('Status does`t exists!', 400)
+    }
+
+    const categories_ids = await Category.get.ids(this.categories, trx)
+    if (categories_ids.length !== this.categories.length) {
+      trx.rollback()
+      throw new ArisError(`A category provided does't exists!`, 400)
+    }
+
+    await trx('status_proposal').insert({ status_id, proposal_id })
+    await trx('category_proposal').insert(categories_ids.map(category_id => { return { category_id, proposal_id } }))
+    await trx('user_proposal').insert({ user_id: this.user_id, proposal_id, permission: 0 })
+
+    await trx.commit()
+
+
+    return proposal_id
+  }
+
+  /**
  * Updates a proposal.
  */
-  static async updateAll({ title, version, status, categories, proposal_id }: UpdateProposalObj) {
+  static async update({ title, version, status, categories, proposal_id }: UpdateProposalObj) {
     const trx = await db.transaction()
 
     title || version ?
-      await Proposal.update.titleAndVersion(proposal_id, title, version, trx) :
-      await Proposal.update.time(proposal_id, trx)
+      await Proposal._update.titleAndVersion(proposal_id, title, version, trx) :
+      await Proposal._update.time(proposal_id, trx)
 
 
     if (status) {
@@ -122,7 +123,7 @@ export default class Proposal extends Artefact {
 
       if (!status_id) {
         await trx.rollback()
-        return <any>{ Error: 'Status does`t exists!' }
+        throw new ArisError('Status does`t exists!', 400)
       }
 
       await trx('status_proposal').update({ status_id }).where({ proposal_id })
@@ -134,7 +135,7 @@ export default class Proposal extends Artefact {
 
       if (categories_id.length !== categories.length) {
         await trx.rollback()
-        return <any>{ Error: `A category provided does't exists!` }
+        throw new ArisError(`A category provided does't exists!`, 400)
       }
 
       await trx('category_proposal').del().where({ proposal_id })
@@ -143,7 +144,6 @@ export default class Proposal extends Artefact {
     }
 
     await trx.commit()
-    return true
   }
 
   /**

@@ -1,6 +1,3 @@
-// For a detailed explanation regarding each configuration property, visit:
-// https://jestjs.io/docs/en/configuration.html
-
 module.exports = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -21,7 +18,15 @@ module.exports = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: ['src/**', '!src/server.js', '!src/database/**', '!src/config/**'],
+  collectCoverageFrom: [
+    'src/**',
+    '!src/server.ts',
+    '!src/app.ts',
+    '!src/database/**',
+    '!src/services/**',
+    '!src/config/**',
+    '!src/uploads/**'
+  ],
 
   // The directory where Jest should output its coverage files
   coverageDirectory: './__tests__/coverage',
@@ -91,7 +96,7 @@ module.exports = {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  // preset: undefined,
+  preset: 'ts-jest',
 
   // Run tests from one or more projects
   // projects: undefined,
@@ -142,7 +147,7 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-    "**/__tests__/**/*.test.js?(x)",
+    "**/__tests__/**/*.test.ts?(x)",
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped

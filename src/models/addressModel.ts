@@ -1,13 +1,13 @@
 import { Transaction } from 'knex'
 import db from '../database'
 
-export interface AddressObj {
+export interface ArisAddress {
   city: string
   address: string
   zip_code: string
 }
 
-export default class Address {
+export default abstract class Address {
   city: string
   address: string
   zip_code: string
@@ -15,13 +15,13 @@ export default class Address {
   /**
    * Create an address.
    */
-  constructor({ city, address, zip_code }: AddressObj) {
+  constructor({ city, address, zip_code }: ArisAddress) {
     this.city = city
     this.address = address
     this.zip_code = zip_code
   }
 
-  async insert(transaction: Transaction) {
+  async insert(transaction?: Transaction) {
     const trx = transaction || await db.transaction()
 
     const hasAddress = await Address.exist(this.address)
@@ -33,13 +33,13 @@ export default class Address {
       .where({ city: this.city })
       .then(row => row[0].id_city)
 
-    const addressID = await trx('address')
+    const address_id = await trx('address')
       .insert({ address: this.address, zip_code: this.zip_code, city_id })
       .then(row => row[0])
 
-    await trx.commit()
+    transaction ? null : await trx.commit()
 
-    return addressID
+    return address_id
   }
 
   update = {
@@ -49,7 +49,7 @@ export default class Address {
   }
 
   static async exist(address: string) {
-    const address_id = await db('address')
+    const address_id: number = await db('address')
       .select('id_address')
       .where({ address })
       .then(row => row[0] ? row[0].id_address : null)

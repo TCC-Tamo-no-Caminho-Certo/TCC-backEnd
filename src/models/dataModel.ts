@@ -1,4 +1,4 @@
-import joi, { SchemaMap } from '@hapi/joi'
+import joi from '@hapi/joi'
 
 
 export default class Data {
@@ -41,69 +41,55 @@ export default class Data {
 
   static validate(data: Object, type: keyof typeof schema_list) {
 
-    interface schemaList {
-      user_register: SchemaMap
-      user_login: SchemaMap
-      address: SchemaMap
-      proposal_get: SchemaMap
-      proposal_post: SchemaMap
-      proposal_patch: SchemaMap
-      email: SchemaMap
-    }
-
-    const schema_list: schemaList = {
-      user_register: {
-        email: joi.string()
-          .alphanum()
-          .email()
-          .required(),
+    const schema_list = {
+      user_register: joi.object({
+        email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com'] } }).required(),
         name: joi.string().required(),
         sur_name: joi.string().required(),
-        password: joi.string()
-          .min(6)
-          .required(),
-        role: joi.string().required()
-      },
-      user_login: {
-        email: joi.string()
-          .email()
-          .required(),
-        password: joi.string()
-          .required()
-      },
-      address: {
-        city: joi.string()
-          .required(),
-        address: joi.string()
-          .required(),
-        zip_code: joi.string()
-          .required()
-      },
-      proposal_get: {
-        titles: joi.array().items(joi.string()),
-        version: joi.array().items(joi.number()),
-        status: joi.array().items(joi.string()),
-        categories: joi.array().items(joi.string())
-      },
-      proposal_post: {
-        titles: joi.string().required(),
+        phone: joi.string(),
+        password: joi.string().required(),
+        role: joi.string().equal('professor', 'student', 'customer').required()
+      }),
+      user_login: joi.object({
+        email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com'] } }).required(),
+        password: joi.string().required()
+      }),
+      address: joi.object({
+        city: joi.string().required(),
+        address: joi.string().required(),
+        zip_code: joi.string().required()
+      }),
+      proposal_get: joi.object({
+        ids: joi.array().items(joi.number()).allow(null),
+        titles: joi.array().items(joi.string()).allow(null),
+        version: joi.array().items(joi.number()).allow(null),
+        status: joi.array().items(joi.string()).allow(null),
+        categories: joi.array().items(joi.string()).allow(null),
+        users: joi.array().items(joi.number()).allow(null),
+        created_at: joi.array().items(joi.string()).allow(null),
+        updated_at: joi.array().items(joi.string()).allow(null)
+      }),
+      proposal_post: joi.object({
+        title: joi.string().required(),
         version: joi.number().required(),
         status: joi.string().required(),
         categories: joi.array().items(joi.string()).required()
-      },
-      proposal_patch: {
-        titles: joi.string(),
-        version: joi.number(),
-        status: joi.string(),
-        categories: joi.array().items(joi.string())
-      },
-      email: {
+      }),
+      proposal_patch: joi.object({
+        title: joi.string().allow(null),
+        version: joi.number().allow(null),
+        status: joi.string().allow(null),
+        categories: joi.array().items(joi.string()).allow(null)
+      }),
+      email: joi.object({
         email: joi.string()
-          .email()
+          .email({ minDomainSegments: 2, tlds: { allow: ['com'] } })
           .required()
-      }
+      })
     }
 
-    return joi.object(schema_list[type]).validate(data, { abortEarly: false })
+    const validation = schema_list[type].validate(data, { abortEarly: false })
+
+    if (validation.error) throw validation.error
   }
 }

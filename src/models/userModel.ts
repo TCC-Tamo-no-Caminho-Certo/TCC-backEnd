@@ -1,10 +1,12 @@
 import forgetMail from '../services/nodemailer/forgetPassword'
-import Address, { AddressObj } from './addressModel'
+import Address, { ArisAddress } from './addressModel'
+import ArisError from './arisErrorModel'
 import jwt from 'jsonwebtoken'
 import db from '../database'
 import argon from 'argon2'
 
-export interface UserObj {
+
+export interface ArisUser {
   name: string
   sur_name: string
   phone: string
@@ -16,7 +18,7 @@ export interface UserObj {
 export default class User extends Address {
   name: string
   sur_name: string
-  phone: string
+  phone?: string
   email: string
   password: string
   role: string
@@ -24,7 +26,7 @@ export default class User extends Address {
    * Create an user.
    */
 
-  constructor(user: UserObj, address: AddressObj) {
+  constructor(user: ArisUser, address: ArisAddress) {
     super(address)
     this.name = user.name
     this.sur_name = user.sur_name
@@ -42,7 +44,7 @@ export default class User extends Address {
 
     const hasUser = await User.exist(this.email)
 
-    if (hasUser) return { Error: 'User already exists' }
+    if (hasUser) throw new ArisError('User already exists', 400)
 
 
     const trx = await db.transaction()
@@ -55,7 +57,7 @@ export default class User extends Address {
       .then(row => row[0] ? row[0].id_role : null)
     if (!role_id) {
       trx.destroy()
-      return { Error: `Role provided does't exists!` }
+      throw new ArisError(`Role provided does't exists!`, 400)
     }
 
     const hash = await argon.hash(this.password)
@@ -74,18 +76,10 @@ export default class User extends Address {
 
     await trx('role_user').insert({ role_id, user_id })
 
-
     await trx.commit()
 
 
-    const payload = {
-      id: user_id,
-      role: this.role
-    }
-
-    const access_token = jwt.sign(payload, (<string>process.env.JWT_PRIVATE_KEY), { expiresIn: '24h', algorithm: 'RS256' })
-
-    return { id: user_id, access_token }
+    return user_id
   }
 
   static update = {
@@ -98,35 +92,19 @@ export default class User extends Address {
 
   }
 
-  static async exist(email: string) {
-    const user_id = await db('user')
-      .select('id_user')
-      .where({ email })
-      .then(row => row[0] ? row[0].id_user : null)
-    return user_id
-  }
-
   static async login(email: string, password: string) {
-    const user = await db('user')
-      .innerJoin('role_user', 'user.id_user', 'role_user.user_id')
-      .innerJoin('role', 'role_user.role_id', 'role.id_role')
-      .select('user.id_user', 'user.password', { role: 'role.title' })
+    const user = await db('user_view')
+      .select('id', 'password', 'role')
       .where({ email })
       .then(row => row[0] ? row[0] : null)
 
     if (!user)
-      return { Error: 'User don`t exists' }
+      throw new ArisError('User don`t exists', 403)
 
     if (!await argon.verify(`${user.password}`, `${password}`))
-      return { Error: 'Wrong password' }
+      throw new ArisError('Wrong password', 403)
 
-    const payload = {
-      id: user.id_user,
-      role: user.role
-    }
-
-    const access_token = jwt.sign(payload, (<string>process.env.JWT_PRIVATE_KEY), { algorithm: 'RS256', expiresIn: '24h' })
-
+    const access_token = User.generateAccessToken(user.id, user.role)
 
     return { access_token }
   }
@@ -134,9 +112,10 @@ export default class User extends Address {
   static async forgotPassword(email: string) {
     const id = await User.exist(email)
 
-    if (!id) return { Error: 'User don`t exist!' }
+    if (!id)
+      throw new ArisError('User don`t exist!', 403)
 
-    const ResetPasswordToken = jwt.sign({ id }, (<string>process.env.JWT_RESET_SECRET), { expiresIn: '1h' })
+    const ResetPasswordToken = jwt.sign({ id }, <string>process.env.JWT_RESET_SECRET, { expiresIn: '1h' })
 
     // await forgetMail({ email }, err => { if (err) { Error: 'Couldn`t send email!' } })// have to send a link with the token above
 
@@ -145,18 +124,33 @@ export default class User extends Address {
 
   static async resetPassword(token: string, password: string) {
 
-    const id = (<any>jwt.verify(token, (<string>process.env.JWT_RESET_SECRET), (err, decoded) => {
+    const id = <any>jwt.verify(token, <string>process.env.JWT_RESET_SECRET, (err, decoded) => {
       if (err) return err
       return (<any>decoded).id
-    }))
+    })
 
     if (typeof id === 'object')
-      return id ? { Error: 'Token expired!' } : { Error: 'Invalid token signature!' }
+      throw new ArisError(id.expiredAt ? 'Token expired!' : 'Invalid token signature!', 401)
 
     const hash = await argon.hash(password)
 
-    await User.update.password((<number>id), hash)
+    await User.update.password(<number>id, hash)
 
     return { id, hash }
   }
+
+  static async exist(email: string) {
+    const user_id = await db('user')
+      .select('id_user')
+      .where({ email })
+      .then(row => row[0] ? row[0].id_user : null)
+    return user_id
+  }
+
+  static generateAccessToken(id: number, role: string) {
+    const payload = { id, role }
+
+    return jwt.sign(payload, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '24h' })
+  }
+
 }

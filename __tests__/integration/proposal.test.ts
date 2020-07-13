@@ -1,27 +1,17 @@
-const jwt = require('jsonwebtoken')
-const db = require('../../src/database')
-const request = require('supertest')
-const app = require('../../src/app')
+import app from '../../src/app'
+import db from '../../src/database'
+import request from 'supertest'
+import jwt from 'jsonwebtoken'
 
 const professorToken = jwt.sign({
   id: 0,
-  role: {
-    student: false,
-    professor: true,
-    proponent: false,
-    customer: false,
-  }
-}, process.env.JWT_SECRET, { expiresIn: '30d' })
+  role: 'professor'
+}, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '30d' })
 
 const studentToken = jwt.sign({
   id: 0,
-  role: {
-    student: true,
-    professor: false,
-    proponent: false,
-    customer: false,
-  }
-}, process.env.JWT_SECRET, { expiresIn: '30d' })
+  role: 'student'
+}, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '30d' })
 
 describe('Session', () => {
 
@@ -31,7 +21,8 @@ describe('Session', () => {
       .get('/session/proposal/1')
 
     expect(response.status).toBe(401)
-    expect(response.body.Error).toBe('No token provided!')
+    expect(response.body.Success).toBe(false)
+    expect(response.body.Message).toBe('No token provided!')
   })
 
   test('Shouldn´t allow access providing a invalid token', async () => {
@@ -41,7 +32,8 @@ describe('Session', () => {
       .set('Authorization', 'Bearer ' + 'invalid')
 
     expect(response.status).toBe(401)
-    expect(response.body.Error).toBe('Invalid token!')
+    expect(response.body.Success).toBe(false)
+    expect(response.body.Message).toBe('Invalid token!')
   })
 
   test('Shouldn´t allow access providing a token without Bearer', async () => {
@@ -51,7 +43,8 @@ describe('Session', () => {
       .set('Authorization', studentToken)
 
     expect(response.status).toBe(401)
-    expect(response.body.Error).toBe('Token error!')
+    expect(response.body.Success).toBe(false)
+    expect(response.body.Message).toBe('Token error!')
   })
 
   test('Shouldn´t allow access providing a token malformated', async () => {
@@ -61,34 +54,36 @@ describe('Session', () => {
       .set('Authorization', 'wrong ' + studentToken)
 
     expect(response.status).toBe(401)
-    expect(response.body.Error).toBe('Token malformated!')
+    expect(response.body.Success).toBe(false)
+    expect(response.body.Message).toBe('Token malformated!')
   })
 
   test('Shouldn´t allow access for users that isn´t professors', async () => {
 
     const response = await request(app)
-      .get('/session/proposal/1')
+      .delete('/session/proposal/1')
       .set('Authorization', 'Bearer ' + studentToken)
 
-    expect(response.status).toBe(401)
-    expect(response.body.Error).toBe('User is not a professor!')
+    expect(response.status).toBe(403)
+    expect(response.body.Success).toBe(false)
+    expect(response.body.Message).toBe('User is not a professor!')
   })
 
   test('Should allow access for professor', async () => {
 
     const response = await request(app)
-      .get('/session/proposal/1')
+      .delete('/session/proposal/1')
       .set('Authorization', 'Bearer ' + professorToken)
 
-    expect(response.status).toBe(200)
+    expect(response.body.Message).not.toBe('User is not a professor!')
   })
 
 })
 
 describe('Proposal', () => {
 
-  let proposal_id
-  let token
+  let proposal_id: number
+  let token: string
 
   beforeAll(async () => {
     const response = await request(app)
@@ -105,13 +100,12 @@ describe('Proposal', () => {
         role: "professor"
       })
 
-    token = response.body.sessionToken
-
+    token = response.body.access_token
   })
 
   afterAll(async () => {
     const id = await db('user').select('id_user').where({ email: "test@hotmail.com" }).then(row => row[0].id_user)
-    await db('role').del().where({ user_id: id })
+    await db('role_user').del().where({ user_id: id })
     await db('user').del().where({ id_user: id })
     await db('address').del().where({ address: 'test', zip_code: 'test' })
   })
@@ -123,13 +117,14 @@ describe('Proposal', () => {
       .post('/session/proposal')
       .send({
         title: "test_test",
-        version: "3",
+        version: 3,
         status: "wrong",
         categories: ["computer engineering"]
       })
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(400)
+    expect(response.body.Success).toBe(false)
     expect(response.body).toHaveProperty("Error")
   })
 
@@ -138,13 +133,14 @@ describe('Proposal', () => {
       .post('/session/proposal')
       .send({
         title: "test_test",
-        version: "3",
+        version: 3,
         status: "open",
         categories: ["wrong"]
       })
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(400)
+    expect(response.body.Success).toBe(false)
     expect(response.body).toHaveProperty("Error")
   })
 
@@ -153,15 +149,16 @@ describe('Proposal', () => {
       .post('/session/proposal')
       .send({
         title: "test_test",
-        version: "3",
+        version: 3,
         status: "open",
         categories: ["computer engineering", "production engineering"]
       })
       .set('Authorization', 'Bearer ' + token)
 
-    proposal_id = await db('proposal').select('id_proposal').where({ title: 'test_test', version: '3' }).then(row => row[0].id_proposal)
+    proposal_id = await db('proposal').select('id_proposal').where({ title: 'test_test', version: 3 }).then(row => row[0].id_proposal)
 
     expect(response.status).toBe(200)
+    expect(response.body.Success).toBe(true)
   })
 
 
@@ -172,6 +169,7 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + professorToken)
 
     expect(response.status).toBe(200)
+    expect(response.body.Success).toBe(true)
     expect(response.body).toHaveProperty("list")
   })
 
@@ -190,16 +188,16 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + professorToken)
 
     expect(response.status).toBe(200)
+    expect(response.body.Success).toBe(true)
     expect(response.body.list).not.toBe('Didn´t find any proposal')
-    expect(response.body.list.length).toBe(1)
   })
 
   test('should return a JSON of the proposals with all filter', async () => {
     const response = await request(app)
       .get('/session/proposal/1')
       .send({
-        ids: ["4", "5"],
-        users: ["1"],
+        ids: [4, 5],
+        users: [1],
         titles: ["updated", "something"],
         created_at: ["2020-05-09", "2020-05-09"],
         updated_at: ["2020-05-09", "2020-05-10"],
@@ -209,18 +207,19 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + professorToken)
 
     expect(response.status).toBe(200)
-    expect(response.body.list).not.toBe('Didn´t find any proposal')
+    expect(response.body.Success).toBe(true)
   })
 
   test('should return didn´t find any proposal', async () => {
     const response = await request(app)
       .get('/session/proposal/1')
       .send({
-        users: ["-1"]
+        users: [-1]
       })
       .set('Authorization', 'Bearer ' + professorToken)
 
     expect(response.status).toBe(200)
+    expect(response.body.Success).toBe(true)
     expect(response.body.list).toBe('Didn´t find any proposal')
   })
 
@@ -232,30 +231,33 @@ describe('Proposal', () => {
       .patch('/session/proposal/' + `${proposal_id}`)
       .send({
         title: "test_test",
-        version: '1.5',
+        version: 1.5,
         status: "open",
         categories: ["computer engineering"]
       })
       .set('Authorization', 'Bearer ' + professorToken)
 
     expect(response.status).toBe(400)
-    expect(response.body).toHaveProperty("Error")
+    expect(response.body.Success).toBe(false)
+    expect(response.body.Error).toBe('Not the owner of the proposal, or proposal not found!')
   })
 
-  test('shouldn´t update a proposal with wrong id', async () => {
+  test('shouldn´t update a proposal with wrong proposal id', async () => {
 
     const response = await request(app)
       .patch('/session/proposal/' + `${0}`)
       .send({
         title: "test_test",
-        version: '1.5',
+        version: 1.5,
         status: "open",
         categories: ["computer engineering"]
       })
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(400)
-    expect(response.body).toHaveProperty("Error")
+    expect(response.body.Success).toBe(false)
+    expect(response.body.Error).toBe('Not the owner of the proposal, or proposal not found!')
+
   })
 
   test('shouldn´t update with wrong status', async () => {
@@ -271,6 +273,7 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(400)
+    expect(response.body.Success).toBe(false)
     expect(response.body.Error).toBe('Status does`t exists!')
   })
 
@@ -287,6 +290,7 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(400)
+    expect(response.body.Success).toBe(false)
     expect(response.body.Error).toBe(`A category provided does't exists!`)
   })
 
@@ -296,13 +300,14 @@ describe('Proposal', () => {
       .patch('/session/proposal/' + `${proposal_id}`)
       .send({
         title: "test_test",
-        version: "1",
+        version: 1,
         status: "closed",
         categories: ["computer engineering", "biology"]
       })
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(200)
+    expect(response.body.Success).toBe(true)
     expect(response.body.categories.length).toBe(2)
   })
 
@@ -312,14 +317,15 @@ describe('Proposal', () => {
       .patch('/session/proposal/' + `${proposal_id}`)
       .send({
         title: null,
-        version: '1.5',
+        version: 1.5,
         status: "closed",
         categories: ["computer engineering", "biology"]
       })
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(200)
-    expect(response.body.version).toBe('1.5')
+    expect(response.body.Success).toBe(true)
+    expect(response.body.version).toBe(1.5)
   })
 
   test('should update without change a proposal providing no credentials', async () => {
@@ -335,9 +341,10 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(200)
+    expect(response.body.Success).toBe(true)
     expect(response.body.title).toBe('Not updated')
-    expect(response.body.version).toBe('Not updated')
     expect(response.body.status).toBe('Not updated')
+    expect(response.body.version).toBe('Not updated')
     expect(response.body.categories).toBe('Not updated')
   })
 
@@ -350,6 +357,7 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + professorToken)
 
     expect(response.status).toBe(400)
+    expect(response.body.Success).toBe(false)
     expect(response.body).toHaveProperty("Error")
   })
 
@@ -360,6 +368,7 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(400)
+    expect(response.body.Success).toBe(false)
     expect(response.body).toHaveProperty("Error")
   })
 
@@ -370,6 +379,7 @@ describe('Proposal', () => {
       .set('Authorization', 'Bearer ' + token)
 
     expect(response.status).toBe(200)
+    expect(response.body.Success).toBe(true)
   })
 
 })

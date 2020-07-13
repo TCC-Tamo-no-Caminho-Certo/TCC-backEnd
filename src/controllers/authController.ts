@@ -1,6 +1,7 @@
 import express, { Request, Response, Application } from 'express'
-import User from '../../models/userModel'
-import Data from '../../models/dataModel'
+import ArisError from '../models/arisErrorModel'
+import User from '../models/userModel'
+import Data from '../models/dataModel'
 const route = express.Router()
 
 
@@ -18,12 +19,8 @@ route.post('/register', async (req: Request, res: Response) => {
 
         const user = new User(user_info, address_info)
 
-        const result = await user.insert()
-
-        if (result.Error) return res.status(400).send({ Success: false, Message: 'Registration unauthorized!', Error: result })
-
-
-        const { id, access_token } = result
+        const id = await user.insert()
+        const access_token = User.generateAccessToken(id, user.role)
 
         return res.status(200).send({
             Success: true,
@@ -38,27 +35,20 @@ route.post('/register', async (req: Request, res: Response) => {
 
     } catch (error) {
 
-        if (error.isJoi) {
-
-            const error_list: any = {}
-            error.details.forEach((error_element: any) => {
-                error_list.path = error_element.message
-            })
-            res.status(400).send({ Success: false, Message: 'Login unauthorized!', Error: error_list })
-
-        } else {
-
+        const result = ArisError.errorHandler(error, 'Registration unauthorized!')
+        
+        if (!result) {
             console.log(error)
-            res.status(500).send({ Success: false, Message: 'Registration failed!' })
-
+            return res.status(500).send({ Success: false, Message: 'Registration failed!' })
         }
+        return res.status(result.status).send(result.send)
 
     }
 })
 
 route.get('/login', async (req: Request, res: Response) => {
     const basic = req.headers.authorization
-    if (!basic) return res.status(403).send({ Success: false, Message: 'Basic auth not provided!' })
+    if (!basic) throw new ArisError('Basic auth not provided!', 400)
 
     const [, hash] = basic.split(' ')
     const [email, password] = Buffer.from(hash, 'base64')
@@ -71,56 +61,41 @@ route.get('/login', async (req: Request, res: Response) => {
 
         const result = await User.login(email, password)
 
-        if (result.Error) return res.status(403).send({ Success: false, Message: 'Login unauthorized!', Error: result })
-
-
         return res.status(200).send({ Success: true, Message: 'Login authorized!', ...result })
 
     } catch (error) {
 
-        if (error.isJoi) {
+        const result = ArisError.errorHandler(error, 'Login unauthorized!')
 
-            const error_list: any = {}
-            error.details.forEach((error_element: any) => {
-                error_list.path = error_element.message
-            })
-            res.status(400).send({ Success: false, Message: 'Login unauthorized!', Error: error_list })
-
-        } else {
-
+        if (!result) {
             console.log(error)
-            res.status(500).send({ Success: false, Message: 'Login failed!' })
-
+            return res.status(500).send({ Success: false, Message: 'Login failed!' })
         }
+        return res.status(result.status).send(result.send)
 
     }
 })
 
 route.get('/forgot-password', async (req: Request, res: Response) => {
-    const { email } = req.body
+    const email = req.query.email
 
     try {
 
         Data.validate({ email }, 'email')
 
-        const result = await User.forgotPassword(email)
-
-        if (result.Error) return res.status(403).send(result)
+        const result = await User.forgotPassword(<string>email)
 
         return res.status(200).send({ Success: true, Message: 'Email sended!', ...result })
 
     } catch (error) {
 
-        if (error.isJoi) {
+        const result = ArisError.errorHandler(error, 'Unauthorized to change password!')
 
-            res.status(400).send({ Success: false, Message: 'Unauthorized to change password!', Error: error.details.message })
-
-        } else {
-
+        if (!result) {
             console.log(error)
-            res.status(500).send({ Success: false, Message: 'Failed on sending email!' })
-
+            return res.status(500).send({ Success: false, Message: 'Failed on sending reset password email!' })
         }
+        return res.status(result.status).send(result.send)
 
     }
 
@@ -133,14 +108,17 @@ route.patch('/reset-password', async (req: Request, res: Response) => {
 
         const result = await User.resetPassword(token, password)
 
-        if (result.Error) return res.status(403).send(result)
-
         return res.status(200).send({ Success: true, Message: 'Password changed!', ...result })
 
     } catch (error) {
 
-        console.log(error)
-        res.status(500).send({ Error: 'Change password failed!' })
+        const result = ArisError.errorHandler(error, 'Unauthorized to change password!')
+
+        if (!result) {
+            console.log(error)
+            return res.status(500).send({ Success: false, Message: 'Change password failed!' })
+        }
+        return res.status(result.status).send(result.send)
 
     }
 })
