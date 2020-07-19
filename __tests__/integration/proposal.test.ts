@@ -239,7 +239,7 @@ describe('Proposal', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.Success).toBe(false)
-    expect(response.body.Error).toBe('Not the owner of the proposal, or proposal not found!')
+    expect(response.body.Error).toBe('Not the owner of the proposal!')
   })
 
   test('shouldn´t update a proposal with wrong proposal id', async () => {
@@ -256,7 +256,7 @@ describe('Proposal', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.Success).toBe(false)
-    expect(response.body.Error).toBe('Not the owner of the proposal, or proposal not found!')
+    expect(response.body.Error).toBe('Proposal not found!')
 
   })
 

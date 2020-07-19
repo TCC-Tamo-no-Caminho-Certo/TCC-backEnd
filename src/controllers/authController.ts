@@ -13,30 +13,25 @@ route.post('/register', async (req: Request, res: Response) => {
         const user_info = { name, sur_name, phone, email, password, role }
         const address_info = { city, address, zip_code }
 
-
         Data.validate(user_info, 'user_register')
         Data.validate(address_info, 'address')
 
-        const user = new User(user_info, address_info)
+        const user = new User({ ...user_info, ...address_info })
 
-        const id = await user.insert()
-        const access_token = User.generateAccessToken(id, user.role)
+        await user.insert()
+        const access_token = user.generateAccessToken()
 
         return res.status(200).send({
             Success: true,
             Message: 'Registration complete!',
-            id,
-            name,
-            sur_name,
-            email,
-            phone,
+            user,
             access_token
         })
 
     } catch (error) {
 
         const result = ArisError.errorHandler(error, 'Registration unauthorized!')
-        
+
         if (!result) {
             console.log(error)
             return res.status(500).send({ Success: false, Message: 'Registration failed!' })
@@ -51,17 +46,16 @@ route.get('/login', async (req: Request, res: Response) => {
     if (!basic) throw new ArisError('Basic auth not provided!', 400)
 
     const [, hash] = basic.split(' ')
-    const [email, password] = Buffer.from(hash, 'base64')
-        .toString()
-        .split(':')
+    const [email, password] = Buffer.from(hash, 'base64').toString().split(':')
 
     try {
 
         Data.validate({ email, password }, 'user_login')
 
-        const result = await User.login(email, password)
+        const user = await User.getUser(email)
+        const access_token = await user.login(password)
 
-        return res.status(200).send({ Success: true, Message: 'Login authorized!', ...result })
+        return res.status(200).send({ Success: true, Message: 'Login authorized!', access_token })
 
     } catch (error) {
 
@@ -81,11 +75,11 @@ route.get('/forgot-password', async (req: Request, res: Response) => {
 
     try {
 
-        Data.validate({ email }, 'email')
+        Data.validate({ email }, 'forgot_password')
 
-        const result = await User.forgotPassword(<string>email)
+        const ResetPasswordToken = await User.forgotPassword(<string>email)
 
-        return res.status(200).send({ Success: true, Message: 'Email sended!', ...result })
+        return res.status(200).send({ Success: true, Message: 'Email sended!', ResetPasswordToken })
 
     } catch (error) {
 

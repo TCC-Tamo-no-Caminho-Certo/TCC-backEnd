@@ -6,34 +6,39 @@ import db from '../database'
 import argon from 'argon2'
 
 
-export interface ArisUser {
-  name: string
-  sur_name: string
-  phone: string
-  email: string
-  password: string
-  role: string
-}
-
-export default class User extends Address {
+export interface ArisUser extends ArisAddress {
+  id_user?: number
   name: string
   sur_name: string
   phone?: string
   email: string
   password: string
   role: string
+}
+
+export default class User extends Address {
+  id_user: number
+  name: string
+  sur_name: string
+  phone?: string
+  email: string
+  password: string
+  role: string
+  created_at?: string
+  updated_at?: string
   /**
    * Create an user.
    */
 
-  constructor(user: ArisUser, address: ArisAddress) {
-    super(address)
-    this.name = user.name
-    this.sur_name = user.sur_name
-    this.phone = user.phone
-    this.email = user.email
-    this.password = user.password
-    this.role = user.role
+  constructor({ id_user, name, sur_name, email, password, role, phone, address, city, zip_code }: ArisUser) {
+    super({ address, city, zip_code })
+    this.id_user = id_user ? id_user : 0 //Gives a temporary id when creating a new user
+    this.name = name
+    this.sur_name = sur_name
+    this.phone = phone
+    this.email = email
+    this.password = password
+    this.role = role
   }
 
   /**
@@ -41,15 +46,16 @@ export default class User extends Address {
    */
   async insert() {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    this.created_at = date
+    this.updated_at = date
 
     const hasUser = await User.exist(this.email)
-
     if (hasUser) throw new ArisError('User already exists', 400)
 
 
     const trx = await db.transaction()
 
-    const address_id = await super.insert(trx)
+    await super.insert(trx)
 
     const role_id = await trx('role')
       .select('id_role')
@@ -61,17 +67,18 @@ export default class User extends Address {
     }
 
     const hash = await argon.hash(this.password)
+    this.password = hash
 
     const user_id = await trx('user').insert({
       name: this.name,
       sur_name: this.sur_name,
       email: this.email,
-      password: hash,
+      password: this.password,
       phone: this.phone,
       active: true,
       created_at: date,
       updated_at: date,
-      address_id
+      address_id: this.id_address
     }).then(row => row[0])
 
     await trx('role_user').insert({ role_id, user_id })
@@ -79,34 +86,30 @@ export default class User extends Address {
     await trx.commit()
 
 
-    return user_id
+    this.id_user = user_id
   }
 
-  static update = {
-    async password(id_user: number, password: string) {
-      await db('user').update({ password }).where({ id_user })
-    },
-  }
+  async login(password_provided: string) {
 
-  static async delete() {
-
-  }
-
-  static async login(email: string, password: string) {
-    const user = await db('user_view')
-      .select('id', 'password', 'role')
-      .where({ email })
-      .then(row => row[0] ? row[0] : null)
-
-    if (!user)
-      throw new ArisError('User don`t exists', 403)
-
-    if (!await argon.verify(`${user.password}`, `${password}`))
+    if (!await argon.verify(`${this.password}`, `${password_provided}`))
       throw new ArisError('Wrong password', 403)
 
-    const access_token = User.generateAccessToken(user.id, user.role)
+    const access_token = this.generateAccessToken()
 
-    return { access_token }
+    return access_token
+  }
+
+  static update() {
+  }
+
+  async delete() {
+
+  }
+
+  generateAccessToken() {
+    const payload = { id: this.id_user, role: this.role }
+
+    return jwt.sign(payload, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '24h' })
   }
 
   static async forgotPassword(email: string) {
@@ -119,38 +122,38 @@ export default class User extends Address {
 
     // await forgetMail({ email }, err => { if (err) { Error: 'Couldn`t send email!' } })// have to send a link with the token above
 
-    return { ResetPasswordToken } // have to pop this up later
+    return ResetPasswordToken // have to pop this up later
   }
 
   static async resetPassword(token: string, password: string) {
 
-    const id = <any>jwt.verify(token, <string>process.env.JWT_RESET_SECRET, (err, decoded) => {
+    const id_user = <any>jwt.verify(token, <string>process.env.JWT_RESET_SECRET, (err, decoded) => {
       if (err) return err
       return (<any>decoded).id
     })
 
-    if (typeof id === 'object')
-      throw new ArisError(id.expiredAt ? 'Token expired!' : 'Invalid token signature!', 401)
+    if (typeof id_user === 'object')
+      throw new ArisError(id_user.expiredAt ? 'Token expired!' : 'Invalid token signature!', 401)
 
     const hash = await argon.hash(password)
 
-    await User.update.password(<number>id, hash)
+    await db('user').update({ password: hash }).where({ id_user })
 
-    return { id, hash }
+    return { id: id_user, hash }
   }
 
   static async exist(email: string) {
-    const user_id = await db('user')
+    const user_id: number = await db('user')
       .select('id_user')
       .where({ email })
       .then(row => row[0] ? row[0].id_user : null)
     return user_id
   }
 
-  static generateAccessToken(id: number, role: string) {
-    const payload = { id, role }
-
-    return jwt.sign(payload, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '24h' })
+  static async getUser(email: string) {
+    const user_info: ArisUser = await db('user_view').select().where({ email }).then(row => row[0] ? row[0] : null)
+    if (!user_info) throw new ArisError('User don`t exists!', 403)
+    return new User(user_info)
   }
 
 }

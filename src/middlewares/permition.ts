@@ -6,3 +6,10 @@ export function professor(req: Request, res: Response, next: NextFunction) {
   if (!professor) return res.status(403).send({ Success: false, Message: 'User is not a professor!' })
   next()
 }
+
+export function admin(req: Request, res: Response, next: NextFunction) {
+  const admin = req.body.role === 'admin'
+
+  if (!admin) return res.status(403).send({ Success: false, Message: 'User is not an admin!' })
+  next()
+}

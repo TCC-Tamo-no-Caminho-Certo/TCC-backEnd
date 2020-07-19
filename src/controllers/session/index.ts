@@ -1,6 +1,13 @@
+import proposalController from './proposal/proposalController'
+import categoryController from './proposal/categoryController'
+import statusController from './proposal/statusController'
+import auth from '../../middlewares/auth'
 import { Application } from 'express'
-import proposalController from './proposalController'
 
 export default (app: Application) => {
-  proposalController(app)
+  app.use('/session', auth,
+    proposalController,
+    categoryController,
+    statusController
+  )
 }

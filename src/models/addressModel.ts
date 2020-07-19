@@ -2,12 +2,14 @@ import { Transaction } from 'knex'
 import db from '../database'
 
 export interface ArisAddress {
+  id_address?: number
   city: string
   address: string
   zip_code: string
 }
 
 export default abstract class Address {
+  id_address: number
   city: string
   address: string
   zip_code: string
@@ -15,7 +17,8 @@ export default abstract class Address {
   /**
    * Create an address.
    */
-  constructor({ city, address, zip_code }: ArisAddress) {
+  constructor({ id_address, city, address, zip_code }: ArisAddress) {
+    this.id_address = id_address ? id_address : 0
     this.city = city
     this.address = address
     this.zip_code = zip_code
@@ -26,26 +29,29 @@ export default abstract class Address {
 
     const hasAddress = await Address.exist(this.address)
 
-    if (hasAddress) return hasAddress
+    if (hasAddress) {
+      this.id_address = hasAddress
+      return
+    }
 
     const city_id = await trx('city')
       .select('id_city')
       .where({ city: this.city })
       .then(row => row[0].id_city)
 
-    const address_id = await trx('address')
+    const id = await trx('address')
       .insert({ address: this.address, zip_code: this.zip_code, city_id })
       .then(row => row[0])
 
-    transaction ? null : await trx.commit()
+    transaction || await trx.commit()
 
-    return address_id
+    this.id_address = id
   }
 
   update = {
   }
 
-  static async delete() {
+  async delete() {
   }
 
   static async exist(address: string) {

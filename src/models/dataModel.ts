@@ -1,9 +1,40 @@
 import joi from '@hapi/joi'
 
 
+interface User {
+  user_id: number
+  permission: string
+}
+
+interface Status {
+  name: string
+  icon: string
+  description: string
+}
+
+interface Category {
+  name: string
+  icon: string
+  description: string
+}
+
+interface ProposalList {
+  id_proposal: number
+  created_at: string
+  updated_at: string
+  title: string
+  version: number
+  status: Status
+  categories: Category[]
+  users: User[]
+  artefact_name: string
+  path: string
+  hash_verification: string
+  artefact_description: string
+}
 export default class Data {
   static processing(proposals: any[]) {
-    let list = []
+    const list: ProposalList[] = []
     let count = 0
     let k = 0
 
@@ -13,23 +44,48 @@ export default class Data {
         continue
       }
 
-      list[k] = { ...proposals[i] }
-      list[k].category_name = [proposals[i].category_name]
-      list[k].category_icon = [proposals[i].category_icon]
-      list[k].users = [proposals[i].users]
+      list[k] = {
+        id_proposal: proposals[i].id_proposal,
+        created_at: proposals[i].created_at,
+        updated_at: proposals[i].updated_at,
+        title: proposals[i].title,
+        version: proposals[i].version,
+        status: {
+          name: proposals[i].status_name,
+          icon: proposals[i].status_icon,
+          description: proposals[i].status_description
+        },
+        categories: [{
+          name: proposals[i].category_name,
+          icon: proposals[i].category_icon,
+          description: proposals[i].category_description
+        }],
+        users: [{
+          user_id: proposals[i].user_id,
+          permission: proposals[i].permission
+        }],
+        artefact_name: proposals[i].artefact_name,
+        path: proposals[i].path,
+        hash_verification: proposals[i].hash_verification,
+        artefact_description: proposals[i].artefact_description
+      }
 
       for (let j = i + 1; j < proposals.length; j++) {
-        if (proposals[i].id === proposals[j].id) {
+        if (proposals[i].id_proposal === proposals[j].id_proposal) {
           ++count
 
-          if (!list[k].category_name.some((category: string) => category === proposals[j].category_name))
-            list[k].category_name.push(proposals[j].category_name)
+          if (!list[k].categories.some((category: Category) => category.name === proposals[j].category_name))
+            list[k].categories.push({
+              name: proposals[j].category_name,
+              icon: proposals[j].category_icon,
+              description: proposals[j].category_description,
+            })
 
-          if (!list[k].category_icon.some((category: string) => category === proposals[j].category_icon))
-            list[k].category_icon.push(proposals[j].category_icon)
-
-          if (!list[k].users.some((id: number) => id === proposals[j].users))
-            list[k].users.push(proposals[j].users)
+          if (!list[k].users.some((user: User) => user.user_id === proposals[j].user_id))
+            list[k].users.push({
+              user_id: proposals[j].user_id,
+              permission: proposals[j].permission
+            })
         }
       }
 
@@ -46,13 +102,18 @@ export default class Data {
         email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com'] } }).required(),
         name: joi.string().required(),
         sur_name: joi.string().required(),
-        phone: joi.string(),
+        phone: joi.string().allow(null),
         password: joi.string().required(),
-        role: joi.string().equal('professor', 'student', 'customer').required()
+        role: joi.string().equal('professor', 'student', 'customer', 'admin').required()
       }),
       user_login: joi.object({
         email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com'] } }).required(),
         password: joi.string().required()
+      }),
+      forgot_password: joi.object({
+        email: joi.string()
+          .email({ minDomainSegments: 2, tlds: { allow: ['com'] } })
+          .required()
       }),
       address: joi.object({
         city: joi.string().required(),
@@ -81,12 +142,28 @@ export default class Data {
         status: joi.string().allow(null),
         categories: joi.array().items(joi.string()).allow(null)
       }),
-      email: joi.object({
-        email: joi.string()
-          .email({ minDomainSegments: 2, tlds: { allow: ['com'] } })
-          .required()
+      category_post: joi.object({
+        name: joi.string().required(),
+        icon: joi.string().required(),
+        description: joi.string().required()
+      }),
+      category_patch: joi.object({
+        name: joi.string().allow(null),
+        icon: joi.string().allow(null),
+        description: joi.string().allow(null)
+      }),
+      status_post: joi.object({
+        name: joi.string().required(),
+        icon: joi.string().required(),
+        description: joi.string().required()
+      }),
+      status_patch: joi.object({
+        name: joi.string().allow(null),
+        icon: joi.string().allow(null),
+        description: joi.string().allow(null)
       })
     }
+
 
     const validation = schema_list[type].validate(data, { abortEarly: false })
 
