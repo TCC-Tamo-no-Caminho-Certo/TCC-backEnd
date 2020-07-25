@@ -6,4 +6,4 @@ status = run("rm", "-rfv /home/rgd/deploy/backend/")
 --setStatus(status)
 --status = run("cp", "-rv ./build/ /home/rgd/deploy/frontend/")
 --setStatus(status)
--- 1.0
+-- 1.1
