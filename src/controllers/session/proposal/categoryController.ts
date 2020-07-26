@@ -14,8 +14,8 @@ route.get('/category', async (req: Request, res: Response) => {
 
   } catch (error) {
 
-    console.log(error)
-    return res.status(500).send({ Success: false, Message: 'Fetch failed!' })
+    const result = ArisError.errorHandler(error, 'Fetch')
+    return res.status(result.status).send(result.send)
 
   }
 })
@@ -35,12 +35,7 @@ route.post('/category', admin, async (req: Request, res: Response) => {
 
   } catch (error) {
 
-    const result = ArisError.errorHandler(error, 'Creation unauthorized!')
-
-    if (!result) {
-      console.log(error)
-      return res.status(500).send({ Success: false, Message: 'Creation failled!' })
-    }
+    const result = ArisError.errorHandler(error, 'Creation')
     return res.status(result.status).send(result.send)
 
   }
@@ -69,12 +64,7 @@ route.patch('/category/:id', admin, async (req: Request, res: Response) => {
 
   } catch (error) {
 
-    const result = ArisError.errorHandler(error, 'Update unauthorized!')
-
-    if (!result) {
-      console.log(error)
-      return res.status(500).send({ Success: false, Message: 'Update failled!' })
-    }
+    const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)
 
   }
@@ -97,8 +87,8 @@ route.delete('/category/:id', admin, async (req: Request, res: Response) => {
 
   } catch (error) {
 
-    console.log(error)
-    return res.status(500).send({ Success: false, Message: 'Delete failled!' })
+    const result = ArisError.errorHandler(error, 'Delete')
+    return res.status(result.status).send(result.send)
 
   }
 })

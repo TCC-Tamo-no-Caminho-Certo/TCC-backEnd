@@ -1,5 +1,4 @@
-import joi from '@hapi/joi'
-
+import joi from 'joi'
 
 interface User {
   user_id: number
@@ -55,15 +54,19 @@ export default class Data {
           icon: proposals[i].status_icon,
           description: proposals[i].status_description
         },
-        categories: [{
-          name: proposals[i].category_name,
-          icon: proposals[i].category_icon,
-          description: proposals[i].category_description
-        }],
-        users: [{
-          user_id: proposals[i].user_id,
-          permission: proposals[i].permission
-        }],
+        categories: [
+          {
+            name: proposals[i].category_name,
+            icon: proposals[i].category_icon,
+            description: proposals[i].category_description
+          }
+        ],
+        users: [
+          {
+            user_id: proposals[i].user_id,
+            permission: proposals[i].permission
+          }
+        ],
         artefact_name: proposals[i].artefact_name,
         path: proposals[i].path,
         hash_verification: proposals[i].hash_verification,
@@ -78,7 +81,7 @@ export default class Data {
             list[k].categories.push({
               name: proposals[j].category_name,
               icon: proposals[j].category_icon,
-              description: proposals[j].category_description,
+              description: proposals[j].category_description
             })
 
           if (!list[k].users.some((user: User) => user.user_id === proposals[j].user_id))
@@ -96,30 +99,49 @@ export default class Data {
   }
 
   static validate(data: Object, type: keyof typeof schema_list) {
-
     const schema_list = {
-      user_register: joi.object({
-        email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com'] } }).required(),
+      base_user_register: joi.object({
+        email: joi.string().email().required(),
         name: joi.string().required(),
         sur_name: joi.string().required(),
-        phone: joi.string().allow(null),
-        password: joi.string().required(),
-        role: joi.string().equal('professor', 'student', 'customer', 'admin').required()
-      }),
-      user_login: joi.object({
-        email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com'] } }).required(),
         password: joi.string().required()
       }),
-      forgot_password: joi.object({
-        email: joi.string()
-          .email({ minDomainSegments: 2, tlds: { allow: ['com'] } })
-          .required()
+
+      complete_user_register: joi.object({
+        phone: joi.string().allow(null),
+        role: joi.string().equal('professor', 'student', 'customer', 'admin').required()
       }),
+
+      user_patch: joi.object({
+        name: joi.string().allow(null),
+        sur_name: joi.string().allow(null),
+        phone: joi.string().allow(null)
+      }),
+
+      user_login: joi.object({
+        email: joi.string().email().required(),
+        password: joi.string().required()
+      }),
+
+      user_address_patch: joi
+        .object({
+          city: joi.string(),
+          address: joi.string(),
+          zip_code: joi.string()
+        })
+        .with('address', 'city')
+        .with('address', 'zip_code'),
+
+      forgot_password: joi.object({
+        email: joi.string().email().required()
+      }),
+
       address: joi.object({
         city: joi.string().required(),
         address: joi.string().required(),
         zip_code: joi.string().required()
       }),
+
       proposal_get: joi.object({
         ids: joi.array().items(joi.number()).allow(null),
         titles: joi.array().items(joi.string()).allow(null),
@@ -130,40 +152,45 @@ export default class Data {
         created_at: joi.array().items(joi.string()).allow(null),
         updated_at: joi.array().items(joi.string()).allow(null)
       }),
+
       proposal_post: joi.object({
         title: joi.string().required(),
         version: joi.number().required(),
         status: joi.string().required(),
         categories: joi.array().items(joi.string()).required()
       }),
+
       proposal_patch: joi.object({
         title: joi.string().allow(null),
         version: joi.number().allow(null),
         status: joi.string().allow(null),
         categories: joi.array().items(joi.string()).allow(null)
       }),
+
       category_post: joi.object({
         name: joi.string().required(),
         icon: joi.string().required(),
         description: joi.string().required()
       }),
+
       category_patch: joi.object({
         name: joi.string().allow(null),
         icon: joi.string().allow(null),
         description: joi.string().allow(null)
       }),
+
       status_post: joi.object({
         name: joi.string().required(),
         icon: joi.string().required(),
         description: joi.string().required()
       }),
+
       status_patch: joi.object({
         name: joi.string().allow(null),
         icon: joi.string().allow(null),
         description: joi.string().allow(null)
       })
     }
-
 
     const validation = schema_list[type].validate(data, { abortEarly: false })
 

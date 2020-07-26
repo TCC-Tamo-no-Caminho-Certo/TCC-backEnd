@@ -1,17 +1,17 @@
-import app from '../../src/app'
 import db from '../../src/database'
 import request from 'supertest'
+import app from '../../src/app'
 import jwt from 'jsonwebtoken'
 
 const professorToken = jwt.sign({
   id: 0,
   role: 'professor'
-}, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '30d' })
+}, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '1d' })
 
 const studentToken = jwt.sign({
   id: 0,
   role: 'student'
-}, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '30d' })
+}, <string>process.env.JWT_PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '1d' })
 
 describe('Session', () => {
 

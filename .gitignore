@@ -1,6 +1,8 @@
+.env.development
 node_modules
 yarn.lock
-.env
 coverage
 
 /dist
+/build/**
+!/build/app.js

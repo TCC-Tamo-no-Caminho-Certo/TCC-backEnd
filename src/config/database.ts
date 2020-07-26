@@ -1,6 +1,5 @@
-require('dotenv').config({
-    path: 'src/config/.env'
-})
+import dotenv from 'dotenv'
+dotenv.config({ path: 'src/config/.env.development' })
 
 export default {
     client: 'mysql2',

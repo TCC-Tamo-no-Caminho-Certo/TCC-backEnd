@@ -3,7 +3,7 @@ module.exports = {
   // automock: false,
 
   // Stop running tests after `n` failures
-  bail: true,
+  bail: false,
 
   // Respect "browser" field in package.json when resolving modules
   // browser: false,
@@ -25,7 +25,8 @@ module.exports = {
     '!src/database/**',
     '!src/services/**',
     '!src/config/**',
-    '!src/uploads/**'
+    '!src/uploads/**',
+    '!**/index.ts'
   ],
 
   // The directory where Jest should output its coverage files

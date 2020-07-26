@@ -16,7 +16,7 @@ describe('Authentication', () => {
 
 
 
-    test('Should receive JWT when created a user with valid credentials', async () => {
+    test('Should created a user with valid credentials', async () => {
         const response = await request(app)
             .post('/register')
             .send({
@@ -33,7 +33,6 @@ describe('Authentication', () => {
 
         expect(response.status).toBe(200)
         expect(response.body.Success).toBe(true)
-        expect(response.body).toHaveProperty("access_token")
     })
 
     test('Shouldn´t created a user with an already existing address', async () => {
@@ -144,14 +143,13 @@ describe('Authentication', () => {
         expect(response.body).toHaveProperty("Error")
     })
 
-    test('Should receive JWT when login with valid credentials', async () => {
+    test('Should login with valid credentials', async () => {
         const response = await request(app)
             .get('/login')
             .auth("test@hotmail.com", "test", { type: "basic" })
 
         expect(response.status).toBe(200)
         expect(response.body.Success).toBe(true)
-        expect(response.body).toHaveProperty("access_token")
     })
 
 

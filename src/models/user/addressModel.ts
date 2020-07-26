@@ -1,5 +1,5 @@
 import { Transaction } from 'knex'
-import db from '../database'
+import db from '../../database'
 
 export interface ArisAddress {
   id_address?: number
@@ -8,7 +8,7 @@ export interface ArisAddress {
   zip_code: string
 }
 
-export default abstract class Address {
+export default class Address {
   id_address: number
   city: string
   address: string
