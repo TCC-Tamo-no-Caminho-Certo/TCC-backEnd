@@ -2,7 +2,6 @@
 node_modules
 yarn.lock
 coverage
+build
 
 /dist
-/build/**
-!/build/app.js
