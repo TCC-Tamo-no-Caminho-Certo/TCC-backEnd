@@ -6,7 +6,7 @@ import Data from '../../../models/dataModel'
 const route = express.Router()
 
 
-route.get('/status', async (req: Request, res: Response) => {
+route.post('/get', async (req: Request, res: Response) => {
   try {
 
     const status = await Status.get.allStatus()
@@ -20,7 +20,7 @@ route.get('/status', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/status', admin, async (req: Request, res: Response) => {
+route.post('/post', admin, async (req: Request, res: Response) => {
 
   const { name, icon, description } = req.body
 
@@ -41,7 +41,7 @@ route.post('/status', admin, async (req: Request, res: Response) => {
   }
 })
 
-route.patch('/status/:id', admin, async (req: Request, res: Response) => {
+route.post('/update/:id', admin, async (req: Request, res: Response) => {
 
   const { name, icon, description } = req.body
   const status_id = parseInt(req.params.id)
@@ -70,7 +70,7 @@ route.patch('/status/:id', admin, async (req: Request, res: Response) => {
   }
 })
 
-route.delete('/status/:id', admin, async (req: Request, res: Response) => {
+route.post('/delete/:id', admin, async (req: Request, res: Response) => {
 
   const status_id = parseInt(req.params.id)
 
