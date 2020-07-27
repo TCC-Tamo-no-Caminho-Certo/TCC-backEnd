@@ -2,6 +2,7 @@ import BaseUser from '../models/user/baseUserModel'
 import ArisError from '../models/arisErrorModel'
 import User from '../models/user/userModel'
 import Data from '../models/dataModel'
+import auth from '../middlewares/auth'
 
 import express, { Request, Response, Application } from 'express'
 const route = express.Router()
@@ -42,6 +43,15 @@ route.post('/login', async (req: Request, res: Response) => {
     return res.status(200).send({ Success: true, Message: 'Login authorized!', access_token })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Login')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+route.get('/validate-session', auth, async (req: Request, res: Response) => {
+  try {
+    return res.status(200).send({ Success: true, Message: 'Session validated!' })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Validate session')
     return res.status(result.status).send(result.send)
   }
 })

@@ -6,7 +6,7 @@ import Data from '../../../models/dataModel'
 const route = express.Router()
 
 
-route.get('/category', async (req: Request, res: Response) => {
+route.post('/get', async (req: Request, res: Response) => {
   try {
 
     const categories = await Category.get.allCategories()
@@ -20,7 +20,7 @@ route.get('/category', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/category', admin, async (req: Request, res: Response) => {
+route.post('/post', admin, async (req: Request, res: Response) => {
 
   const { name, icon, description } = req.body
 
@@ -41,7 +41,7 @@ route.post('/category', admin, async (req: Request, res: Response) => {
   }
 })
 
-route.patch('/category/:id', admin, async (req: Request, res: Response) => {
+route.post('/update/:id', admin, async (req: Request, res: Response) => {
 
   const { name, icon, description } = req.body
   const category_id = parseInt(req.params.id)
@@ -70,7 +70,7 @@ route.patch('/category/:id', admin, async (req: Request, res: Response) => {
   }
 })
 
-route.delete('/category/:id', admin, async (req: Request, res: Response) => {
+route.post('/delete/:id', admin, async (req: Request, res: Response) => {
 
   const category_id = parseInt(req.params.id)
 

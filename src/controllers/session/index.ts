@@ -8,13 +8,11 @@ import { Application } from 'express'
 export default (app: Application) => {
   app.use('/session', auth)
 
-  app.use('/session/proposal',
-    proposalController,
-    categoryController,
-    statusController
-  )
+  app
+    .use('/session/proposal', proposalController)
+    .use('/session/proposal/category', categoryController)
+    .use('/session/proposal/status', statusController)
 
-  app.use('/session/user',
-    userController
-  )
+  app.use('/session/user', userController)
+  console.log(app.stack)
 }
