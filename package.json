@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./build/server.js",
-    "dev": "tsnd --ignore-watch node_modules ./src/server.ts",
+    "dev": "$env:NODE_ENV = 'dev' & tsnd --ignore-watch node_modules ./src/server.ts",
     "knex:seed": "knex --knexfile knexfile.ts seed:run",
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
     "test": "jest --runInBand --detectOpenHandles"

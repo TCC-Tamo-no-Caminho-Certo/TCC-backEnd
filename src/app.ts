@@ -19,5 +19,4 @@ app.use('/uploads', express.static(path.resolve(__dirname, '..', 'uploads')))
 import controllers from './controllers'
 controllers(app)
 
-
 export default app

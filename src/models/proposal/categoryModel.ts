@@ -60,10 +60,7 @@ export default class Category {
       update++
     }
 
-    if (update)
-      await db('category')
-        .update(update_list)
-        .where({ id_category: this.id_category })
+    if (update) await db('category').update(update_list).where({ id_category: this.id_category })
   }
 
   async delete() {

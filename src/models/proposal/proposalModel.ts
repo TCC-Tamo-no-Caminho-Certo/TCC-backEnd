@@ -39,17 +39,11 @@ export default class Proposal {
   status: string
   categories: string[]
   user_id: number
+
   /**
    * Creates a proposal.
    */
-  constructor({
-    id_proposal,
-    title,
-    version,
-    status,
-    categories,
-    user_id
-  }: ArisProposal) {
+  constructor({ id_proposal, title, version, status, categories, user_id }: ArisProposal) {
     this.id_proposal = id_proposal ? id_proposal : 0 //Gives a temporary id when creating a new proposal
     this.title = title
     this.version = version
@@ -59,23 +53,12 @@ export default class Proposal {
   }
 
   private _update = {
-    async titleAndVersion(
-      id_proposal: number,
-      title: string,
-      version: number,
-      transaction?: Transaction
-    ) {
+    async titleAndVersion(id_proposal: number, title: string, version: number, transaction?: Transaction) {
       const trx = transaction || db
       const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
       await trx('proposal')
-        .update(
-          title && version
-            ? { title, version, updated_at: date }
-            : title
-            ? { title, updated_at: date }
-            : { version, updated_at: date }
-        )
+        .update(title && version ? { title, version, updated_at: date } : title ? { title, updated_at: date } : { version, updated_at: date })
         .where({ id_proposal })
     },
 
@@ -137,19 +120,11 @@ export default class Proposal {
    * Updates a proposal.
    */
   async update({ title, version, status, categories }: UpdateProposalObj) {
-    if (!(await this.isOwner()))
-      throw new ArisError('Not the owner of the proposal!', 400)
+    if (!(await this.isOwner())) throw new ArisError('Not the owner of the proposal!', 400)
 
     const trx = await db.transaction()
 
-    title || version
-      ? await this._update.titleAndVersion(
-          this.id_proposal,
-          title,
-          version,
-          trx
-        )
-      : await this._update.time(this.id_proposal, trx)
+    title || version ? await this._update.titleAndVersion(this.id_proposal, title, version, trx) : await this._update.time(this.id_proposal, trx)
 
     if (status) {
       const status_id = await Status.get.id(status)
@@ -159,9 +134,7 @@ export default class Proposal {
         throw new ArisError('Status does`t exists!', 400)
       }
 
-      await trx('status_proposal')
-        .update({ status_id })
-        .where({ proposal_id: this.id_proposal })
+      await trx('status_proposal').update({ status_id }).where({ proposal_id: this.id_proposal })
     }
 
     if (categories) {
@@ -172,9 +145,7 @@ export default class Proposal {
         throw new ArisError(`A category provided does't exists!`, 400)
       }
 
-      await trx('category_proposal')
-        .del()
-        .where({ proposal_id: this.id_proposal })
+      await trx('category_proposal').del().where({ proposal_id: this.id_proposal })
 
       for (let i in categories_id)
         await trx('category_proposal').insert({
@@ -190,17 +161,14 @@ export default class Proposal {
    * Deletes a proposal.
    */
   async delete() {
-    if (!(await this.isOwner()))
-      throw new ArisError('Not the owner of the proposal!', 400)
+    if (!(await this.isOwner())) throw new ArisError('Not the owner of the proposal!', 400)
 
     const trx = await db.transaction()
 
     await trx('artefact').del().where({ proposal_id: this.id_proposal })
     await trx('user_proposal').del().where({ proposal_id: this.id_proposal })
     await trx('status_proposal').del().where({ proposal_id: this.id_proposal })
-    await trx('category_proposal')
-      .del()
-      .where({ proposal_id: this.id_proposal })
+    await trx('category_proposal').del().where({ proposal_id: this.id_proposal })
     await trx('proposal').del().where({ id_proposal: this.id_proposal })
 
     await trx.commit()
@@ -210,16 +178,9 @@ export default class Proposal {
    * Check if is the owner of the proposal.
    */
   async isOwner() {
-    const owner = await db('user_proposal')
-      .select('user_id', 'permission')
-      .where({ proposal_id: this.id_proposal })
+    const owner = await db('user_proposal').select('user_id', 'permission').where({ proposal_id: this.id_proposal })
 
-    if (
-      !owner.some(
-        user => user.user_id === this.user_id && user.permission === 'owner'
-      )
-    )
-      return false
+    if (!owner.some(user => user.user_id === this.user_id && user.permission === 'owner')) return false
 
     return true
   }
@@ -233,27 +194,13 @@ export default class Proposal {
         .select('id_proposal')
         .distinct('id_proposal')
         .where(builder => {
-          filters.ids && filters.ids[0]
-            ? builder.whereIn('id_proposal', filters.ids)
-            : null
-          filters.users && filters.users[0]
-            ? builder.whereIn('user_id', filters.users)
-            : null
-          filters.titles && filters.titles[0]
-            ? builder.whereIn('title', filters.titles)
-            : null
-          filters.status && filters.status[0]
-            ? builder.whereIn('status_name', filters.status)
-            : null
-          filters.created_at && filters.created_at[0]
-            ? builder.whereIn('created_at', filters.created_at)
-            : null
-          filters.updated_at && filters.updated_at[0]
-            ? builder.whereIn('updated_at', filters.updated_at)
-            : null
-          filters.categories && filters.categories[0]
-            ? builder.whereIn('category_name', filters.categories)
-            : null
+          filters.ids && filters.ids[0] ? builder.whereIn('id_proposal', filters.ids) : null
+          filters.users && filters.users[0] ? builder.whereIn('user_id', filters.users) : null
+          filters.titles && filters.titles[0] ? builder.whereIn('title', filters.titles) : null
+          filters.status && filters.status[0] ? builder.whereIn('status_name', filters.status) : null
+          filters.created_at && filters.created_at[0] ? builder.whereIn('created_at', filters.created_at) : null
+          filters.updated_at && filters.updated_at[0] ? builder.whereIn('updated_at', filters.updated_at) : null
+          filters.categories && filters.categories[0] ? builder.whereIn('category_name', filters.categories) : null
         })
         .offset((page - 1) * 5)
         .limit(5)

@@ -82,8 +82,7 @@ export default class User extends BaseUser {
   async delete() {}
 
   static async completeRegister(base_user: BaseUser | User, address_info: ArisAddress, role: string, phone?: string) {
-    if (!(base_user.role === 'base user') ? true : false)
-      throw new ArisError('This account isn`t of type base user!', 403)
+    if (!(base_user.role === 'base user') ? true : false) throw new ArisError('This account isn`t of type base user!', 403)
 
     const trx = await db.transaction()
 

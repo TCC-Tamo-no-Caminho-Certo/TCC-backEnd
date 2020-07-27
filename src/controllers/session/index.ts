@@ -14,5 +14,4 @@ export default (app: Application) => {
     .use('/session/proposal/status', statusController)
 
   app.use('/session/user', userController)
-  console.log(app.stack)
 }
