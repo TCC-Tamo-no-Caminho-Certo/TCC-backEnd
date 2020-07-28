@@ -1,5 +1,6 @@
 import BaseUser from '../models/user/baseUserModel'
 import ArisError from '../models/arisErrorModel'
+import captcha from '../middlewares/recaptch'
 import User from '../models/user/userModel'
 import Data from '../models/dataModel'
 import auth from '../middlewares/auth'
@@ -16,7 +17,7 @@ route.get('/validate-session', auth, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/register', async (req: Request, res: Response) => {
+route.post('/register', captcha, async (req: Request, res: Response) => {
   const { name, sur_name, email, birthday, password } = req.body
   const user_info = { name, sur_name, email, birthday, password }
 
@@ -40,7 +41,7 @@ route.post('/register', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/login', async (req: Request, res: Response) => {
+route.post('/login', captcha, async (req: Request, res: Response) => {
   const { email, password } = req.body
 
   try {

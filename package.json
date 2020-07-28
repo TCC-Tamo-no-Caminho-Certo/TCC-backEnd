@@ -5,11 +5,11 @@
   "main": "./src/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node ./build/server.js",
+    "start": "cross-env NODE_ENV=production node ./build/server.js",
     "dev": "cross-env NODE_ENV=dev tsnd --ignore-watch node_modules ./src/server.ts",
     "knex:seed": "knex --knexfile knexfile.ts seed:run",
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
-    "test": "jest --runInBand --detectOpenHandles"
+    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles"
   },
   "repository": {
     "type": "git",
