@@ -1,27 +1,30 @@
 {
   "name": "backend",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "aris backend",
   "main": "./src/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "cross-env NODE_ENV=production node ./build/server.js",
-    "dev": "cross-env NODE_ENV=dev tsnd --ignore-watch node_modules ./src/server.ts",
+    "start": "node ./build/server.js",
+    "dev": "nodemon --exec \"npm run pre-build && ts-node ./src/server.ts\"",
+    "dev-tsnd": "$env:NODE_ENV = 'dev' & tsnd --ignore-watch node_modules ./src/server.ts",
     "knex:seed": "knex --knexfile knexfile.ts seed:run",
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
-    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles"
+    "test": "jest --runInBand --detectOpenHandles",
+    "pre-build": "dotnet ./lbe/LuaBuildEvents.dll ./lbe/script/pre-build.lua"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andrelms/aris_studying.git"
+    "url": "git+https://github.com/SteamsLab/dev_backend.git"
   },
   "author": "Gabriel Nori",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/andrelms/aris_studying/issues"
+    "url": "https://github.com/SteamsLab/dev_backend/issues"
   },
-  "homepage": "https://github.com/andrelms/aris_studying#readme",
+  "homepage": "https://github.com/SteamsLab/dev_backend#readme",
   "dependencies": {
+    "@types/redis": "^2.8.25",
     "argon2": "^0.26.2",
     "axios": "^0.19.2",
     "compression": "^1.7.4",
@@ -33,7 +36,8 @@
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.2",
     "mysql2": "^2.1.0",
-    "nodemailer": "^6.4.10"
+    "nodemailer": "^6.4.10",
+    "redis": "^3.0.2"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.10.4",
@@ -47,9 +51,9 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/nodemailer": "^6.4.0",
     "@types/supertest": "^2.0.10",
-    "cross-env": "^7.0.2",
     "dotenv": "^8.2.0",
     "jest": "^25.5.4",
+    "nodemon": "^2.0.4",
     "supertest": "^4.0.2",
     "ts-jest": "^26.1.3",
     "ts-node": "^8.10.2",

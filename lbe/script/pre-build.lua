@@ -1,0 +1,1 @@
+require("lbe.script.build-versioning")

@@ -1,0 +1,6 @@
+{
+  "events": {},
+  "ignore": ["src/version.generated.ts", "logs/*", ".lbe/*", ".rgd/*", "src/config/version.yml"],
+  "watch": ["src"],
+  "ext": "ts"
+}
