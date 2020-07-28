@@ -104,7 +104,8 @@ export default class Data {
         email: joi.string().email().required(),
         name: joi.string().required(),
         sur_name: joi.string().required(),
-        password: joi.string().required()
+        password: joi.string().required(),
+        birthday: joi.string().regex(new RegExp(/^[12][8901]\d{2}-[01]\d-[0123]\d$/)).required()
       }),
 
       complete_user_register: joi.object({

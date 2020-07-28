@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./build/server.js",
-    "dev": "$env:NODE_ENV = 'dev' & tsnd --ignore-watch node_modules ./src/server.ts",
+    "dev": "cross-env NODE_ENV=dev tsnd --ignore-watch node_modules ./src/server.ts",
     "knex:seed": "knex --knexfile knexfile.ts seed:run",
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
     "test": "jest --runInBand --detectOpenHandles"
@@ -47,6 +47,7 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/nodemailer": "^6.4.0",
     "@types/supertest": "^2.0.10",
+    "cross-env": "^7.0.2",
     "dotenv": "^8.2.0",
     "jest": "^25.5.4",
     "supertest": "^4.0.2",

@@ -4,7 +4,7 @@ import helmet from 'helmet'
 import cors from 'cors'
 import path from 'path'
 
-dotenv.config({ path: 'src/config/.env.development' })
+dotenv.config({ path: process.env.NODE_ENV === 'dev' ? 'src/config/.env.development' : 'src/config/.env' })
 
 import express from 'express'
 

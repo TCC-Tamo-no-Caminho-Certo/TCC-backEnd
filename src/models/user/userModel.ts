@@ -27,8 +27,8 @@ export default class User extends BaseUser {
   /**
    * Creates an user.
    */
-  constructor({ id_user, name, sur_name, email, password, role, phone, address_id }: ArisUser) {
-    super({ id_user, name, sur_name, email, password })
+  constructor({ id_user, name, sur_name, email, birthday, password, role, phone, address_id }: ArisUser) {
+    super({ id_user, name, sur_name, email, birthday, password })
     this.phone = phone
     this.role = role
     this.address_id = address_id ? address_id : 0

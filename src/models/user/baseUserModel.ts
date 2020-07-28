@@ -16,6 +16,7 @@ export interface ArisBaseUser {
   name: string
   sur_name: string
   email: string
+  birthday: string
   password: string
 }
 
@@ -24,6 +25,7 @@ export default class BaseUser {
   name: string
   sur_name: string
   email: string
+  birthday: string
   password: string
   role: string
   created_at?: string
@@ -32,11 +34,12 @@ export default class BaseUser {
   /**
    * Creates a base user.
    */
-  constructor({ id_user, name, sur_name, email, password }: ArisBaseUser) {
+  constructor({ id_user, name, sur_name, email, birthday, password }: ArisBaseUser) {
     this.id_user = id_user ? id_user : 0 //Gives a temporary id when creating a new user
     this.name = name
     this.sur_name = sur_name
     this.email = email
+    this.birthday = birthday
     this.password = password
     this.role = 'base user'
   }
@@ -64,6 +67,7 @@ export default class BaseUser {
         name: this.name,
         sur_name: this.sur_name,
         email: this.email,
+        birthday: this.birthday,
         password: this.password,
         active: true,
         created_at: date,
