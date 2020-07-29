@@ -5,13 +5,13 @@
   "main": "./src/server.js",
   "scripts": {
     "build": "tsc",
+    "pre-build": "dotnet ./lbe/LuaBuildEvents.dll ./lbe/script/pre-build.lua",
     "start": "node ./build/server.js",
     "dev": "nodemon --exec \"npm run pre-build && ts-node ./src/server.ts\"",
-    "dev-tsnd": "$env:NODE_ENV = 'dev' & tsnd --ignore-watch node_modules ./src/server.ts",
+    "dev-ts": "tsnd --ignore-watch node_modules ./src/server.ts",
     "knex:seed": "knex --knexfile knexfile.ts seed:run",
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
-    "test": "jest --runInBand --detectOpenHandles",
-    "pre-build": "dotnet ./lbe/LuaBuildEvents.dll ./lbe/script/pre-build.lua"
+    "test": "jest --runInBand --detectOpenHandles"
   },
   "repository": {
     "type": "git",
@@ -24,11 +24,9 @@
   },
   "homepage": "https://github.com/SteamsLab/dev_backend#readme",
   "dependencies": {
-    "@types/redis": "^2.8.25",
     "argon2": "^0.26.2",
     "axios": "^0.19.2",
     "compression": "^1.7.4",
-    "cookie-session": "^1.4.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "helmet": "^3.23.3",
@@ -42,7 +40,6 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.10.4",
     "@types/compression": "^1.7.0",
-    "@types/cookie-session": "^2.0.41",
     "@types/cors": "^2.8.6",
     "@types/express": "^4.17.6",
     "@types/helmet": "0.0.47",
@@ -50,6 +47,7 @@
     "@types/joi": "^14.3.4",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/nodemailer": "^6.4.0",
+    "@types/redis": "^2.8.25",
     "@types/supertest": "^2.0.10",
     "dotenv": "^8.2.0",
     "jest": "^25.5.4",

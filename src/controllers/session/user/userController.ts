@@ -7,7 +7,6 @@ const route = express.Router()
 
 route.get('/logout', async (req: Request, res: Response) => {
   try {
-    req.session = null
     return res.json('redirect http://dev.steamslab.com/')
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Logout')

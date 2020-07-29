@@ -18,6 +18,13 @@ export interface ServerConfig {
   endpoints: EndpointConfig[];
 }
 
+export interface ConnectionConfig {
+  host: string;
+  username: string;
+  password: string | undefined;
+  database: string;
+}
+
 export interface PoolConfig {
   max: number;
   min: number;
@@ -28,12 +35,8 @@ export interface MigrationsConfig {
 }
 
 export interface DatabaseConfig {
-  driver: string;
-  host: string;
-  port: number;
-  database: string;
-  username: string;
-  password: string | undefined;
+  client: string;
+  connection: ConnectionConfig;
   pool: PoolConfig;
   migrations: MigrationsConfig;
 }
@@ -81,12 +84,13 @@ class ConfigManager implements Config {
   };
 
   database: DatabaseConfig = {
-    driver: "mysql2",
-    host: "127.0.0.1",
-    port: 3306,
-    database: "steamslab",
-    username: "root",
-    password: "root",
+    client: "mysql2",
+    connection: {
+      host: "127.0.0.1",
+      username: "root",
+      password: "root",
+      database: "steamslab",
+    },
     pool: {
       max: 10,
       min: 0,
@@ -96,7 +100,7 @@ class ConfigManager implements Config {
     },
   };
 
-  redis:RedisConfig = {
+  redis: RedisConfig = {
     use: false,
     host: "127.0.0.1",
     port: 6379,
@@ -116,57 +120,11 @@ class ConfigManager implements Config {
     filename: "./latest.log",
   };
 
-  defaultConfig: Config = {
-    server: {
-      root: "%CurrentDirectory%/../www",
-      endpoints: [
-        {
-          enabled: true,
-          host: "127.0.0.1",
-          port: 8080,
-          useSSL: false,
-          options: {},
-        },
-      ],
-    },
-    database: {
-      driver: "mysql2",
-      host: "127.0.0.1",
-      port: 3306,
-      database: "steamslab",
-      username: "root",
-      password: "root",
-      pool: {
-        max: 10,
-        min: 0,
-      },
-      migrations: {
-        directory: "../database/migrations",
-      },
-    },
-    redis: {
-      use: false,
-      host: "127.0.0.1",
-      port: 6379,
-      database: 1,
-      password: null,
-    },
-    mail: {
-      host: "smtp.steamslab.com",
-      port: 465,
-      username: "username",
-      password: null,
-    },
-    logging: {
-      path: "./logs/",
-      filename: "./latest.log",
-    },
-  };
-
   loadConfig(filename: string): void {
     if (!fs.existsSync(filename)) {
-      fs.writeFileSync(filename, JSON.stringify(this.defaultConfig), "utf8");
+      fs.writeFileSync(filename, JSON.stringify(this), "utf8");
     }
+    
     let text = fs.readFileSync(filename, "utf8");
     let config: Config = JSON.parse(text);
     this.server = config.server;
