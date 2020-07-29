@@ -29,14 +29,10 @@ export interface PoolConfig {
   max: number
   min: number
 }
-export interface MigrationsConfig {
-  directory: string
-}
 export interface DatabaseConfig {
   client: string
   connection: ConnectionConfig
   pool: PoolConfig
-  migrations: MigrationsConfig
 }
 
 // Redis
@@ -99,9 +95,6 @@ class ConfigManager {
     pool: {
       max: 10,
       min: 0
-    },
-    migrations: {
-      directory: '../database/migrations'
     }
   }
 

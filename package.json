@@ -11,6 +11,8 @@
     "dev-ts": "tsnd --ignore-watch node_modules ./src/server.ts",
     "knex:seed": "knex --knexfile knexfile.ts seed:run",
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
+    "knex:rollback": "knex --knexfile knexfile.ts migrate:rollback",
+    "knex:rollback-all": "knex --knexfile knexfile.ts migrate:rollback --all",
     "test": "jest --runInBand --detectOpenHandles"
   },
   "repository": {
