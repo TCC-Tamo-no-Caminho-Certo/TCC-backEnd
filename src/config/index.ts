@@ -4,7 +4,6 @@ export interface OptionsConfig {
   key?: string;
   certificate?: string;
 }
-
 export interface EndpointConfig {
   enabled: boolean;
   host: string;
@@ -12,7 +11,6 @@ export interface EndpointConfig {
   useSSL: boolean;
   options: OptionsConfig;
 }
-
 export interface ServerConfig {
   root: string;
   endpoints: EndpointConfig[];
@@ -24,16 +22,13 @@ export interface ConnectionConfig {
   password: string | undefined;
   database: string;
 }
-
 export interface PoolConfig {
   max: number;
   min: number;
 }
-
 export interface MigrationsConfig {
   directory: string;
 }
-
 export interface DatabaseConfig {
   client: string;
   connection: ConnectionConfig;
@@ -49,6 +44,11 @@ export interface RedisConfig {
   password?: string | null;
 }
 
+export interface JWT {
+  privateKey: string;
+  publicKey: string;
+}
+
 export interface MailConfig {
   host: string;
   port: number;
@@ -61,15 +61,7 @@ export interface LoggingConfig {
   filename: string;
 }
 
-export interface Config {
-  server: ServerConfig;
-  database: DatabaseConfig;
-  redis: RedisConfig;
-  mail: MailConfig;
-  logging: LoggingConfig;
-}
-
-class ConfigManager implements Config {
+class ConfigManager {
   server: ServerConfig = {
     root: "%CurrentDirectory%/../www",
     endpoints: [
@@ -108,6 +100,13 @@ class ConfigManager implements Config {
     password: null,
   };
 
+  jwt: JWT = {
+    privateKey: "",
+    publicKey: "",
+  };
+
+  captchaKey: string = "";
+
   mail: MailConfig = {
     host: "smtp.steamslab.com",
     port: 465,
@@ -124,12 +123,14 @@ class ConfigManager implements Config {
     if (!fs.existsSync(filename)) {
       fs.writeFileSync(filename, JSON.stringify(this), "utf8");
     }
-    
+
     let text = fs.readFileSync(filename, "utf8");
-    let config: Config = JSON.parse(text);
+    let config: ConfigManager = JSON.parse(text);
     this.server = config.server;
     this.database = config.database;
     this.redis = config.redis;
+    this.jwt = config.jwt;
+    this.captchaKey = config.captchaKey;
     this.mail = config.mail;
     this.logging = config.logging;
   }
