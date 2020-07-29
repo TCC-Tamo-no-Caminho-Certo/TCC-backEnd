@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import config from '../config'
 import jwt from 'jsonwebtoken'
 
 export default (req: Request, res: Response, next: NextFunction) => {
@@ -14,7 +15,7 @@ export default (req: Request, res: Response, next: NextFunction) => {
 
   if (!/^Bearer$/i.test(bearer)) return res.status(401).json({ Success: false, Message: 'Token malformated!' })
 
-  jwt.verify(token, <string>process.env.JWT_PUBLIC_KEY, { algorithms: ['RS256'] }, (err, decoded) => {
+  jwt.verify(token, config.jwt.publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
     if (err)
       return err.name === 'TokenExpiredError'
         ? res.status(401).json({ Success: false, Message: 'Token expired!' })

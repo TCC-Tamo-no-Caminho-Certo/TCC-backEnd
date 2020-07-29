@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
+import config from '../config'
 import axios from 'axios'
 
-export default process.env.NODE_ENV === 'production'
+export default config.environment === 'production'
   ? async function (req: Request, res: Response, next: NextFunction) {
-      const secret = <string>process.env.CAPTCHA_KEY
+      const secret = config.captchaKey
 
       if (!req.body.captcha) return res.status(403).send({ Success: false, Message: 'No captcha token provided!' })
 

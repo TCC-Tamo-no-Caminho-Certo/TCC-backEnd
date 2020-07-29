@@ -1,6 +1,7 @@
 import forgetMail from '../../services/nodemailer/forgetPassword'
 import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
+import config from '../../config'
 import db from '../../database'
 import Role from './roleModel'
 import jwt from 'jsonwebtoken'
@@ -119,7 +120,7 @@ export default class BaseUser {
   generateAccessToken() {
     const payload = { id: this.id_user, role: this.role }
 
-    return jwt.sign(payload, <string>process.env.JWT_PRIVATE_KEY, {
+    return jwt.sign(payload, config.jwt.privateKey, {
       algorithm: 'RS256',
       expiresIn: '24h'
     })
@@ -129,7 +130,7 @@ export default class BaseUser {
     const id = await BaseUser.exist(email)
     if (!id) throw new ArisError('User don`t exist!', 403)
 
-    const ResetPasswordToken = jwt.sign({ id }, <string>process.env.JWT_RESET_SECRET, { expiresIn: '1h' })
+    const ResetPasswordToken = jwt.sign({ id }, config.jwt.resetSecret, { expiresIn: '1h' })
 
     // await forgetMail({ email }, err => { if (err) { Error: 'Couldn`t send email!' } })// have to send a link with the token above
 
@@ -137,7 +138,7 @@ export default class BaseUser {
   }
 
   static async resetPassword(token: string, password: string) {
-    const id_user = <any>jwt.verify(token, <string>process.env.JWT_RESET_SECRET, (err, decoded) => {
+    const id_user = <any>jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
       if (err) return err
       return (<any>decoded).id
     })
