@@ -1,17 +1,23 @@
-import path from 'path'
+import path from "path";
+const configLocation = ".config/server.json";
+const configPath = path.join(path.dirname(__filename), configLocation);
+
+import config from "./src/config";
+config.loadConfig(configPath);
 
 module.exports = {
-
-  client: "mysql2",
+  client: config.database.driver,
   connection: {
-    filename: path.resolve(__dirname, 'src', 'database')
+      host: config.database.host,
+      user: config.database.username,
+      password: config.database.password,
+      database: config.database.database
   },
   migrations: {
-    directory: path.resolve(__dirname, 'src', 'database', 'migrations')
+    directory: path.resolve(__dirname, "src", "database", "migrations"),
   },
   seeds: {
-    directory: path.resolve(__dirname, 'src', 'database', 'seeds')
+    directory: path.resolve(__dirname, "src", "database", "seeds"),
   },
-  useNullAsDefault: true
-
-}
+  useNullAsDefault: true,
+};

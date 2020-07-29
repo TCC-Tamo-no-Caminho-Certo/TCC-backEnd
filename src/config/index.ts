@@ -33,7 +33,7 @@ export interface DatabaseConfig {
   port: number;
   database: string;
   username: string;
-  password: string | null;
+  password: string | undefined;
   pool: PoolConfig;
   migrations: MigrationsConfig;
 }
@@ -84,7 +84,7 @@ class ConfigManager implements Config {
     driver: "mysql2",
     host: "127.0.0.1",
     port: 3306,
-    database: "arislabs",
+    database: "steamslab",
     username: "root",
     password: "root",
     pool: {
@@ -133,7 +133,7 @@ class ConfigManager implements Config {
       driver: "mysql2",
       host: "127.0.0.1",
       port: 3306,
-      database: "arislabs",
+      database: "steamslab",
       username: "root",
       password: "root",
       pool: {

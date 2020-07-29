@@ -1,5 +1,3 @@
-import { EndpointConfig } from "./config";
-
 /**
  *  App Configuration
  */
@@ -7,6 +5,9 @@ import { EndpointConfig } from "./config";
 import path from "path";
 const configLocation = "../.config/server.json";
 const configPath = path.join(path.dirname(__filename), configLocation);
+
+import config from "./config";
+config.loadConfig(configPath);
 
 /**
  * Required External Modules
@@ -17,14 +18,14 @@ import https from "https";
 import version from "./version.generated";
 import logger from "./services/logger";
 import redis from "./services/redis";
-import config from "./config";
 import cors from "cors";
+import compression from "compression";
+import controllers from "./controllers";
+import { EndpointConfig } from "./config";
 
 /**
  * Initialize External Modules
  */
-
-config.loadConfig(configPath);
 
 logger.initializeLogger(config.logging.path, config.logging.filename);
 logger.info(
@@ -60,12 +61,15 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+// Só habilitar em produção
+// app.use(compression());
 app.use(
   "/",
   express.static(
     path.resolve(config.server.root.replace("%CurrentDirectory%", __dirname))
   )
 );
+controllers(app);
 
 /**
  * Server Activation
@@ -84,3 +88,5 @@ config.server.endpoints.forEach((endpoint: EndpointConfig) => {
     }
   }
 });
+
+export default app;
