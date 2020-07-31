@@ -1,12 +1,12 @@
--- Version 1.2
+-- Version 1.2.1
 
-function executeWithStatus(filename, args) then
+function executeWithStatus(filename, args)
     status = run(filename, args)
     setStatus(status)
     return status != 0
 end
 
-function runScript() then
+function runScript()
     if branch == "development" then
         if executeWithStatus("npm", "--no-color install") then return end
         if executeWithStatus("rm", "-rfv ./build/") then return end
