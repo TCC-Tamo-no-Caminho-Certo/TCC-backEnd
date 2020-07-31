@@ -2,13 +2,13 @@
   "name": "backend",
   "version": "0.1.0",
   "description": "aris backend",
-  "main": "./src/server.js",
+  "main": "./src/server.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "webpack --config webpack.config.js",
     "pre-build": "dotnet ./lbe/LuaBuildEvents.dll ./lbe/script/pre-build.lua",
-    "start": "node ./build/server.js",
-    "dev": "nodemon --exec \"npm run pre-build && ts-node ./src/server.ts\"",
-    "dev-ts": "tsnd --ignore-watch node_modules ./src/server.ts",
+    "start": "node ./build/bundle.js --config-.config/server.json",
+    "dev": "nodemon --exec \"npm run pre-build && ts-node ./src/server.ts --config-.config/server.json\"",
+    "dev-ts": "tsnd --ignore-watch node_modules ./src/server.ts --config-.config/server.json",
     "knex:seed": "knex --knexfile knexfile.ts seed:run",
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
     "knex:rollback": "knex --knexfile knexfile.ts migrate:rollback",
@@ -56,8 +56,12 @@
     "nodemon": "^2.0.4",
     "supertest": "^4.0.2",
     "ts-jest": "^26.1.4",
+    "ts-loader": "^8.0.1",
     "ts-node": "^8.10.2",
     "ts-node-dev": "^1.0.0-pre.56",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "webpack-node-externals": "^2.5.0"
   }
 }
