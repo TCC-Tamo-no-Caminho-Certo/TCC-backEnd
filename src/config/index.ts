@@ -154,7 +154,6 @@ processArgs.forEach(arg => {
     configPath = path.resolve(arg);
   }
 });
-console.log(configPath);
 
 const configManager: ConfigManager = new ConfigManager();
 configManager.loadConfig(configPath);
