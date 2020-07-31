@@ -1,32 +1,31 @@
--- Version 1.1
-if branch == "development" then
-    status = run("npm", "--no-color install")
+-- Version 1.2
+
+function executeWithStatus(filename, args) then
+    status = run(filename, args)
     setStatus(status)
-    status = run("rm", "-rfv ./build/")
-    setStatus(status)
-    status = run("npm", "--no-color run build")
-    setStatus(status)
-    status = run("npm", "--no-color run knex:migrate")
-    setStatus(status)
-    status = run("npm", "--no-color run knex:seed")
-    setStatus(status)
-    status = run("rm", "-rfv /home/rgd/deploy/dev/backend/")
-    setStatus(status)
-    status = run("cp", "-rv ./build/ /home/rgd/deploy/dev/backend/")
-    setStatus(status)
-elseif branch == "master" then
-    status = run("npm", "--no-color install")
-    setStatus(status)
-    status = run("rm", "-rfv ./build/")
-    setStatus(status)
-    status = run("npm", "--no-color run build")
-    setStatus(status)
-    status = run("npm", "--no-color run knex:migrate")
-    setStatus(status)
-    status = run("npm", "--no-color run knex:seed")
-    setStatus(status)
-    status = run("rm", "-rfv /home/rgd/deploy/dist/backend/")
-    setStatus(status)
-    status = run("cp", "-rv ./build/ /home/rgd/deploy/dist/backend/")
-    setStatus(status)
+    return status != 0
 end
+
+function runScript() then
+    if branch == "development" then
+        if executeWithStatus("npm", "--no-color install") then return end
+        if executeWithStatus("rm", "-rfv ./build/") then return end
+        if executeWithStatus("npm", "--no-color run build") then return end
+        if executeWithStatus("npm", "--no-color run knex:migrate") then return end
+        if executeWithStatus("npm", "--no-color run knex:seed") then return end
+        if executeWithStatus("rm", "-rfv /home/rgd/deploy/dev/backend/") then return end
+        if executeWithStatus("cp", "-rv ./build/ /home/rgd/deploy/dev/backend/") then return end
+        if executeWithStatus("ln", "-s ./node_modules/ /home/rgd/deploy/dev/backend/node_modules") then return end
+    elseif branch == "master" then
+        if executeWithStatus("npm", "--no-color install") then return end
+        if executeWithStatus("rm", "-rfv ./build/") then return end
+        if executeWithStatus("npm", "--no-color run build") then return end
+        if executeWithStatus("npm", "--no-color run knex:migrate") then return end
+        if executeWithStatus("npm", "--no-color run knex:seed") then return end
+        if executeWithStatus("rm", "-rfv /home/rgd/deploy/dist/backend/") then return end
+        if executeWithStatus("cp", "-rv ./build/ /home/rgd/deploy/dist/backend/") then return end
+        if executeWithStatus("ln", "-s ./node_modules/ /home/rgd/deploy/dist/backend/node_modules") then return end
+    end
+end
+
+runScript()
