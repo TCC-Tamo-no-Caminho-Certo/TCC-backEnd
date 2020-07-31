@@ -4,27 +4,27 @@ export async function up(knex: knex) {
   return knex.schema
     .createTable('country', table => {
       table.increments('id_country').primary()
-      table.string('country', 45).notNullable().unique()
+      table.string('name', 45).notNullable().unique()
     })
     .then(() =>
-      knex.schema.createTable('state', table => {
-        table.increments('id_state').primary()
-        table.string('state', 45).notNullable()
+      knex.schema.createTable('district', table => {
+        table.increments('id_district').primary()
+        table.string('name', 45).notNullable()
         table.integer('country_id').unsigned().references('id_country').inTable('country').notNullable()
       })
     )
     .then(() =>
       knex.schema.createTable('city', table => {
         table.increments('id_city').primary()
-        table.string('city', 60).notNullable()
-        table.integer('state_id').unsigned().references('id_state').inTable('state').notNullable()
+        table.string('name', 60).notNullable()
+        table.integer('district_id').unsigned().references('id_district').inTable('district').notNullable()
       })
     )
     .then(() =>
       knex.schema.createTable('address', table => {
         table.increments('id_address').primary()
         table.string('address', 50).notNullable()
-        table.string('zip_code', 45).notNullable()
+        table.string('postal_code', 45).notNullable()
         table.integer('city_id').unsigned().references('id_city').inTable('city').notNullable()
       })
     )
@@ -34,18 +34,18 @@ export async function up(knex: knex) {
         SELECT
             a.id_address,
             a.address,
-            a.zip_code,
-            c.city,
-            s.state,
-            co.country
+            a.postal_code,
+            ci.name AS 'city',
+            d.name AS 'district',
+            co.name AS 'country'
         FROM
             address a
                 LEFT JOIN
-            city c ON a.city_id = c.id_city
+            city ci ON a.city_id = ci.id_city
                 LEFT JOIN
-            state s ON c.state_id = s.id_state
+            district d ON ci.district_id = d.id_district
                 LEFT JOIN
-            country co ON s.country_id = co.id_country;
+            country co ON d.country_id = co.id_country;
       `)
     )
 }

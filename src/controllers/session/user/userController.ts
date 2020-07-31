@@ -15,8 +15,8 @@ route.get('/logout', async (req: Request, res: Response) => {
 })
 
 route.post('/complete-register', async (req: Request, res: Response) => {
-  const { _user_id, city, address, zip_code, phone, role } = req.body
-  const address_info = { city, address, zip_code }
+  const { _user_id, city, address, postal_code, phone, role } = req.body
+  const address_info = { city, address, postal_code }
   const user_info = { phone, role }
 
   try {
@@ -35,8 +35,8 @@ route.post('/complete-register', async (req: Request, res: Response) => {
 })
 
 route.post('/update', async (req: Request, res: Response) => {
-  const { _user_id, name, sur_name, phone, city, address, zip_code } = req.body
-  const address_info = { city, address, zip_code }
+  const { _user_id, name, sur_name, phone, city, address, postal_code } = req.body
+  const address_info = { city, address, postal_code }
   const user_info = { name, sur_name, phone }
 
   try {

@@ -68,9 +68,9 @@ export async function up(knex: knex) {
             r.title AS 'role',
             a.id_address AS 'address_id',
             a.address,
-            a.zip_code,
+            a.postal_code,
             a.city,
-            a.state,
+            a.district,
             a.country
         FROM
             user u

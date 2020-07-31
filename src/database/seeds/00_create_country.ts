@@ -1,6 +1,6 @@
 import knex from 'knex'
 
-const data = [{ country: 'Brasil' }]
+const data = [{ name: 'Brasil' }]
 const insert: any[] = []
 
 export async function seed(knex: knex) {

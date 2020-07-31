@@ -5,23 +5,23 @@ export interface ArisAddress {
   id_address?: number
   city: string
   address: string
-  zip_code: string
+  postal_code: string
 }
 
 export default class Address {
   id_address: number
   city: string
   address: string
-  zip_code: string
+  postal_code: string
 
   /**
    * Create an address.
    */
-  constructor({ id_address, city, address, zip_code }: ArisAddress) {
+  constructor({ id_address, city, address, postal_code }: ArisAddress) {
     this.id_address = id_address ? id_address : 0
     this.city = city
     this.address = address
-    this.zip_code = zip_code
+    this.postal_code = postal_code
   }
 
   async insert(transaction?: Transaction) {
@@ -36,11 +36,11 @@ export default class Address {
 
     const city_id = await trx('city')
       .select('id_city')
-      .where({ city: this.city })
+      .where({ name: this.city })
       .then(row => row[0].id_city)
 
     const id = await trx('address')
-      .insert({ address: this.address, zip_code: this.zip_code, city_id })
+      .insert({ address: this.address, postal_code: this.postal_code, city_id })
       .then(row => row[0])
 
     transaction || (await trx.commit())

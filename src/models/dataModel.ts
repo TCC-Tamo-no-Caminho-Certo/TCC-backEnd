@@ -128,10 +128,10 @@ export default class Data {
         .object({
           city: joi.string(),
           address: joi.string(),
-          zip_code: joi.string()
+          postal_code: joi.string()
         })
         .with('address', 'city')
-        .with('address', 'zip_code'),
+        .with('address', 'postal_code'),
 
       forgot_password: joi.object({
         email: joi.string().email().required()
@@ -140,7 +140,7 @@ export default class Data {
       address: joi.object({
         city: joi.string().required(),
         address: joi.string().required(),
-        zip_code: joi.string().required()
+        postal_code: joi.string().required()
       }),
 
       proposal_get: joi.object({
