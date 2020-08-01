@@ -41,7 +41,7 @@ route.post('/update', async (req: Request, res: Response) => {
 
   try {
     Data.validate(user_info, 'user_patch')
-    Data.validate(address_info, 'user_address_patch')
+    Data.validate(address_info, 'user_patch_address')
 
     const user = await User.getUser(_user_id)
     await user.update({ name, sur_name, phone, address_info })

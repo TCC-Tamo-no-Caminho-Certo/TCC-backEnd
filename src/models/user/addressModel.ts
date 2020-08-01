@@ -27,7 +27,7 @@ export default class Address {
   async insert(transaction?: Transaction) {
     const trx = transaction || (await db.transaction())
 
-    const hasAddress = await Address.exist(this.address)
+    const hasAddress = await Address.exist(this.city, this.address, this.postal_code)
 
     if (hasAddress) {
       this.id_address = hasAddress
@@ -52,10 +52,10 @@ export default class Address {
 
   async delete() {}
 
-  static async exist(address: string) {
-    const address_id: number = await db('address')
+  static async exist(city: string, address: string, postal_code: string) {
+    const address_id: number = await db('address_view')
       .select('id_address')
-      .where({ address })
+      .where({ city, address, postal_code })
       .then(row => (row[0] ? row[0].id_address : null))
     return address_id
   }

@@ -31,6 +31,7 @@ interface ProposalList {
   hash_verification: string
   artefact_description: string
 }
+
 export default class Data {
   static processing(proposals: any[]) {
     const list: ProposalList[] = []
@@ -105,7 +106,7 @@ export default class Data {
         name: joi.string().required(),
         sur_name: joi.string().required(),
         password: joi.string().required(),
-        birthday: joi.string().regex(new RegExp(/^[12][8901]\d{2}-[01]\d-[0123]\d$/)).required()
+        birthday: joi.string().regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/).required()
       }),
 
       complete_user_register: joi.object({
@@ -119,19 +120,19 @@ export default class Data {
         phone: joi.string().allow(null)
       }),
 
+      user_patch_address: joi
+        .object({
+          city: joi.string(),
+          address: joi.string(),
+          postal_code: joi.string().regex(/^\d{5}-\d{3}$/)
+        })
+        .with('address', 'city')
+        .with('address', 'postal_code'),
+
       user_login: joi.object({
         email: joi.string().email().required(),
         password: joi.string().required()
       }),
-
-      user_address_patch: joi
-        .object({
-          city: joi.string(),
-          address: joi.string(),
-          postal_code: joi.string()
-        })
-        .with('address', 'city')
-        .with('address', 'postal_code'),
 
       forgot_password: joi.object({
         email: joi.string().email().required()
@@ -140,7 +141,7 @@ export default class Data {
       address: joi.object({
         city: joi.string().required(),
         address: joi.string().required(),
-        postal_code: joi.string().required()
+        postal_code: joi.string().required().regex(/^\d{5}-\d{3}$/)
       }),
 
       proposal_get: joi.object({
