@@ -1,9 +1,9 @@
 import forgetMail from '../../services/nodemailer/forgetPassword'
+import Role, { RoleTypes } from './roleModel'
 import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
 import config from '../../config'
 import db from '../../database'
-import Role from './roleModel'
 import jwt from 'jsonwebtoken'
 import argon from 'argon2'
 
@@ -19,6 +19,8 @@ export interface ArisBaseUser {
   email: string
   birthday: string
   password: string
+  created_at?: string
+  updated_at?: string
 }
 
 export default class BaseUser {
@@ -28,14 +30,14 @@ export default class BaseUser {
   email: string
   birthday: string
   password: string
-  role: string
+  role: RoleTypes
   created_at?: string
   updated_at?: string
 
   /**
    * Creates a base user.
    */
-  constructor({ id_user, name, sur_name, email, birthday, password }: ArisBaseUser) {
+  constructor({ id_user, name, sur_name, email, birthday, password, created_at, updated_at }: ArisBaseUser) {
     this.id_user = id_user ? id_user : 0 //Gives a temporary id when creating a new user
     this.name = name
     this.sur_name = sur_name
@@ -43,6 +45,8 @@ export default class BaseUser {
     this.birthday = birthday
     this.password = password
     this.role = 'base user'
+    this.created_at = created_at
+    this.updated_at = updated_at
   }
 
   /**
@@ -82,6 +86,9 @@ export default class BaseUser {
     await trx.commit()
   }
 
+  /**
+   * Updates the user in the database.
+   */
   async update({ name, sur_name }: UpdateBaseUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
@@ -109,6 +116,9 @@ export default class BaseUser {
 
   async delete() {}
 
+  /**
+   * Validates the provided password with the user`s account and returns an access_token.
+   */
   async login(password_provided: string) {
     if (!(await argon.verify(`${this.password}`, `${password_provided}`))) throw new ArisError('Wrong password', 403)
 
@@ -117,6 +127,9 @@ export default class BaseUser {
     return access_token
   }
 
+  /**
+   * generate an access_token for the user.
+   */
   generateAccessToken() {
     const payload = { id: this.id_user, role: this.role }
 
@@ -126,6 +139,9 @@ export default class BaseUser {
     })
   }
 
+  /**
+   * Sends an email for the user with a link to reset his password.
+   */
   static async forgotPassword(email: string) {
     const id = await BaseUser.exist(email)
     if (!id) throw new ArisError('User don`t exist!', 403)
@@ -137,6 +153,9 @@ export default class BaseUser {
     return ResetPasswordToken // have to pop this up later
   }
 
+  /**
+   * Updates the user`s password in the database.
+   */
   static async resetPassword(token: string, password: string) {
     const id_user = <any>jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
       if (err) return err
@@ -152,6 +171,9 @@ export default class BaseUser {
     return { id: id_user, hash }
   }
 
+  /**
+   * Checks if an user (email) is already registered.
+   */
   static async exist(email: string) {
     const user_id: number = await db('user')
       .select('id_user')

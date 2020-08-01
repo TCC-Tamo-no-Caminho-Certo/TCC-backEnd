@@ -2,14 +2,16 @@ import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
 import db from '../../database'
 
+export type RoleTypes = 'admin' | 'base user' | 'student' | 'professor' | 'proponent'
+
 export interface ArisRole {
   id_role?: number
-  title: string
+  title: RoleTypes
 }
 
 export default class Role {
   id_role: number
-  title: string
+  title: RoleTypes
 
   /**
    * Creates a role.

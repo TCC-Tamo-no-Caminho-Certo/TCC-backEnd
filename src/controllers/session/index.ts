@@ -11,8 +11,8 @@ export default (app: Application) => {
 
   app
     .use(`${path}/proposal`, proposalController)
-    .use(`${path}/proposal/proposal/category`, categoryController)
-    .use(`${path}/proposal/proposal/status`, statusController)
+    .use(`${path}/proposal/category`, categoryController)
+    .use(`${path}/proposal/status`, statusController)
 
-  app.use(`${path}/proposal/user`, userController)
+  app.use(`${path}/user`, userController)
 }

@@ -110,7 +110,7 @@ export default class Data {
 
       complete_user_register: joi.object({
         phone: joi.string().allow(null),
-        role: joi.string().equal('professor', 'student', 'customer', 'admin').required()
+        role: joi.string().equal('professor', 'student', 'customer').required()
       }),
 
       user_patch: joi.object({

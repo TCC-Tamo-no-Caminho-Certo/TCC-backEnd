@@ -1,10 +1,10 @@
 import forgetMail from '../../services/nodemailer/forgetPassword'
 import BaseUser, { ArisBaseUser } from './baseUserModel'
 import Address, { ArisAddress } from './addressModel'
+import Role, { RoleTypes } from './roleModel'
 import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
 import db from '../../database'
-import Role from './roleModel'
 
 export interface UpdateUserObj {
   name?: string
@@ -14,26 +14,29 @@ export interface UpdateUserObj {
 }
 
 export interface ArisUser extends ArisBaseUser {
-  id_user: number
   phone?: string
-  role: string
+  role: RoleTypes
   address_id?: number
 }
 
 export default class User extends BaseUser {
   phone?: string
+  role: RoleTypes
   address_id: number
 
   /**
    * Creates an user.
    */
-  constructor({ id_user, name, sur_name, email, birthday, password, role, phone, address_id }: ArisUser) {
-    super({ id_user, name, sur_name, email, birthday, password })
+  constructor({ id_user, name, sur_name, email, birthday, password, role, phone, address_id, created_at, updated_at }: ArisUser) {
+    super({ id_user, name, sur_name, email, birthday, password, created_at, updated_at })
     this.phone = phone
     this.role = role
     this.address_id = address_id ? address_id : 0
   }
 
+  /**
+   * Updates the user in the database.
+   */
   async update({ name, sur_name, phone, address_info }: UpdateUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
@@ -81,8 +84,11 @@ export default class User extends BaseUser {
 
   async delete() {}
 
-  static async completeRegister(base_user: BaseUser | User, address_info: ArisAddress, role: string, phone?: string) {
-    if (!(base_user.role === 'base user') ? true : false) throw new ArisError('This account isn`t of type base user!', 403)
+  /**
+   * Completes the user account and updates in the Database.
+   */
+  static async completeRegister(base_user: BaseUser | User, address_info: ArisAddress, role: RoleTypes, phone?: string) {
+    if (!(base_user.role === 'base user')) throw new ArisError('This account isn`t of type base user!', 403)
 
     const trx = await db.transaction()
 
