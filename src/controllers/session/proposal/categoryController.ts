@@ -8,7 +8,7 @@ const route = express.Router()
 route.post('/get', async (req: Request, res: Response) => {
   try {
     const categories = await Category.get.allCategories()
-    res.status(200).send({ Success: true, Message: 'Fecth complete!', categories })
+    res.status(200).send({ success: true, message: 'Fecth complete!', categories })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
@@ -24,7 +24,7 @@ route.post('/post', admin, async (req: Request, res: Response) => {
     const category = new Category({ name, icon, description })
     await category.insert()
 
-    res.status(200).send({ Success: true, Message: 'Category created!', category })
+    res.status(200).send({ success: true, message: 'Category created!', category })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Creation')
     return res.status(result.status).send(result.send)
@@ -42,8 +42,8 @@ route.post('/update/:id', admin, async (req: Request, res: Response) => {
     await category.update({ name, icon, description })
 
     res.status(200).send({
-      Success: true,
-      Message: 'Category updated!',
+      success: true,
+      message: 'Category updated!',
       category_id,
       name: name || 'Not updated',
       icon: icon || 'Not updated',
@@ -63,8 +63,8 @@ route.post('/delete/:id', admin, async (req: Request, res: Response) => {
     await category.delete()
 
     res.status(200).send({
-      Success: true,
-      Message: 'Category deleted!',
+      success: true,
+      message: 'Category deleted!',
       category_id
     })
   } catch (error) {

@@ -8,7 +8,7 @@ const route = express.Router()
 route.post('/get', async (req: Request, res: Response) => {
   try {
     const status = await Status.get.allStatus()
-    res.status(200).send({ Success: true, Message: 'Fecth complete!', status })
+    res.status(200).send({ success: true, message: 'Fecth complete!', status })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
@@ -24,7 +24,7 @@ route.post('/post', admin, async (req: Request, res: Response) => {
     const status = new Status({ name, icon, description })
     await status.insert()
 
-    res.status(200).send({ Success: true, Message: 'Status created!', status })
+    res.status(200).send({ success: true, message: 'Status created!', status })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Creation')
     return res.status(result.status).send(result.send)
@@ -42,8 +42,8 @@ route.post('/update/:id', admin, async (req: Request, res: Response) => {
     await status.update({ name, icon, description })
 
     res.status(200).send({
-      Success: true,
-      Message: 'Status updated!',
+      success: true,
+      message: 'Status updated!',
       status_id,
       name: name || 'Not updated',
       icon: icon || 'Not updated',
@@ -63,8 +63,8 @@ route.post('/delete/:id', admin, async (req: Request, res: Response) => {
     await status.delete()
 
     res.status(200).send({
-      Success: true,
-      Message: 'Status deleted!',
+      success: true,
+      message: 'Status deleted!',
       status_id
     })
   } catch (error) {

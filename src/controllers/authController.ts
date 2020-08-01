@@ -10,7 +10,7 @@ const route = express.Router()
 
 route.get('/validate-session', auth, async (req: Request, res: Response) => {
   try {
-    return res.status(200).send({ Success: true, Message: 'Session validated!' })
+    return res.status(200).send({ success: true, message: 'Session validated!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Validate session')
     return res.status(result.status).send(result.send)
@@ -30,8 +30,8 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
     const access_token = user.generateAccessToken()
 
     return res.status(200).send({
-      Success: true,
-      Message: 'Registration complete!',
+      success: true,
+      message: 'Registration complete!',
       user,
       access_token
     })
@@ -50,7 +50,7 @@ route.post('/login', captcha, async (req: Request, res: Response) => {
     const user = await User.getUser(email)
     const access_token = await user.login(password)
 
-    return res.status(200).send({ Success: true, Message: 'Login authorized!', access_token })
+    return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Login')
     return res.status(result.status).send(result.send)
@@ -65,7 +65,7 @@ route.post('/forgot-password', async (req: Request, res: Response) => {
 
     const ResetPasswordToken = await User.forgotPassword(<string>email)
 
-    return res.status(200).send({ Success: true, Message: 'Email sended!', ResetPasswordToken })
+    return res.status(200).send({ success: true, message: 'Email sended!', ResetPasswordToken })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Change password')
     return res.status(result.status).send(result.send)
@@ -78,7 +78,7 @@ route.post('/reset-password', async (req: Request, res: Response) => {
   try {
     const result = await User.resetPassword(token, password)
 
-    return res.status(200).send({ Success: true, Message: 'Password changed!', ...result })
+    return res.status(200).send({ success: true, message: 'Password changed!', ...result })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Change password!')
     return res.status(result.status).send(result.send)

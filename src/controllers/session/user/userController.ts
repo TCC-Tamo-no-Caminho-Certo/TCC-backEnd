@@ -27,7 +27,7 @@ route.post('/complete-register', async (req: Request, res: Response) => {
     const aris_user = await User.completeRegister(user, address_info, role, phone)
     const access_token = aris_user.generateAccessToken()
 
-    return res.status(200).send({ Success: true, Message: 'Complete register authorized!', user: aris_user, access_token })
+    return res.status(200).send({ success: true, message: 'Complete register authorized!', user: aris_user, access_token })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Complete register')
     return res.status(result.status).send(result.send)
@@ -46,7 +46,7 @@ route.post('/update', async (req: Request, res: Response) => {
     const user = await User.getUser(_user_id)
     await user.update({ name, sur_name, phone, address_info })
 
-    return res.status(200).send({ Success: true, Message: 'Update authorized!', user })
+    return res.status(200).send({ success: true, message: 'Update authorized!', user })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)

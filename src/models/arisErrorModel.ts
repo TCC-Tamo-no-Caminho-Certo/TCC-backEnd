@@ -32,17 +32,17 @@ function JoiErrorHandler(error: ValidationError, message: string) {
   if (error.isJoi) {
     const error_list: any = {}
     error.details.forEach(error_element => (error_list[`${error_element.path}`] = error_element.message))
-    return { status: 400, send: { Success: false, Message: message + ' unauthorized!', Error: error_list } }
+    return { status: 400, send: { success: false, message: message + ' unauthorized!', error: error_list } }
   }
 }
 
 function ArisErrorHandler(error: ArisError, message: string) {
   if (error.isAris) {
-    return { status: error.status, send: { Success: false, Message: message + ' unauthorized!', Error: error.details } }
+    return { status: error.status, send: { success: false, message: message + ' unauthorized!', error: error.details } }
   }
 }
 
 function SystemErrorHandler(error: Error, message: string) {
   console.log(error)
-  return { status: 500, send: { Success: false, Message: message + ' failed!' } }
+  return { status: 500, send: { success: false, message: message + ' failed!' } }
 }

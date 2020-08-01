@@ -29,7 +29,7 @@ route.post('/get/:page', async (req: Request, res: Response) => {
 
     const list = Data.processing(proposals)
 
-    res.status(200).send({ Success: true, Message: 'Fecth complete!', list })
+    res.status(200).send({ success: true, message: 'Fecth complete!', list })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
@@ -52,8 +52,8 @@ route.post('/post', professor, async (req: Request, res: Response) => {
     await proposal.insert()
 
     res.status(200).send({
-      Success: true,
-      Message: 'Proposal created!',
+      success: true,
+      message: 'Proposal created!',
       id: proposal.id_proposal,
       title,
       version,
@@ -77,8 +77,8 @@ route.post('/update/:id', professor, async (req: Request, res: Response) => {
     await proposal.update({ title, version, status, categories })
 
     res.status(200).send({
-      Success: true,
-      Message: 'Proposal updated!',
+      success: true,
+      message: 'Proposal updated!',
       proposal_id,
       title: title || 'Not updated',
       version: version || 'Not updated',
@@ -99,7 +99,7 @@ route.post('/delete/:id', professor, async (req: Request, res: Response) => {
     const proposal = await Proposal.getProposal(_user_id, proposal_id)
     await proposal.delete()
 
-    res.status(200).send({ Success: true, Message: 'Proposal deleted!', proposal_id })
+    res.status(200).send({ success: true, message: 'Proposal deleted!', proposal_id })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Delete')
     return res.status(result.status).send(result.send)
