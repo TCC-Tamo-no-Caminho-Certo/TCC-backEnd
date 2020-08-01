@@ -5,13 +5,14 @@ import userController from './user/userController'
 import auth from '../../middlewares/auth'
 import { Application } from 'express'
 
+const path = '/api/session'
 export default (app: Application) => {
-  app.use('/session', auth)
+  app.use(path, auth)
 
   app
-    .use('/session/proposal', proposalController)
-    .use('/session/proposal/category', categoryController)
-    .use('/session/proposal/status', statusController)
+    .use(`${path}/proposal`, proposalController)
+    .use(`${path}/proposal/proposal/category`, categoryController)
+    .use(`${path}/proposal/proposal/status`, statusController)
 
-  app.use('/session/user', userController)
+  app.use(`${path}/proposal/user`, userController)
 }
