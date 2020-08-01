@@ -1,6 +1,6 @@
 import Category from '../../../models/proposal/categoryModel'
+import permission from '../../../middlewares/permission'
 import ArisError from '../../../models/arisErrorModel'
-import { admin } from '../../../middlewares/permition'
 import express, { Request, Response } from 'express'
 import Data from '../../../models/dataModel'
 const route = express.Router()
@@ -15,7 +15,7 @@ route.post('/get', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/post', admin, async (req: Request, res: Response) => {
+route.post('/post', permission(['admin']), async (req: Request, res: Response) => {
   const { name, icon, description } = req.body
 
   try {
@@ -31,7 +31,7 @@ route.post('/post', admin, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/update/:id', admin, async (req: Request, res: Response) => {
+route.post('/update/:id', permission(['admin']), async (req: Request, res: Response) => {
   const { name, icon, description } = req.body
   const category_id = parseInt(req.params.id)
 
@@ -55,7 +55,7 @@ route.post('/update/:id', admin, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/delete/:id', admin, async (req: Request, res: Response) => {
+route.post('/delete/:id', permission(['admin']), async (req: Request, res: Response) => {
   const category_id = parseInt(req.params.id)
 
   try {

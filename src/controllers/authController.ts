@@ -85,4 +85,4 @@ route.post('/reset-password', async (req: Request, res: Response) => {
   }
 })
 
-export default (app: Application) => app.use('/', route)
+export default (app: Application) => app.use('/api', route)

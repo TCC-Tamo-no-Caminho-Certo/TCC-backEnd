@@ -1,5 +1,5 @@
 import Proposal from '../../../models/proposal/proposalModel'
-import { professor } from '../../../middlewares/permition'
+import permission from '../../../middlewares/permission'
 import ArisError from '../../../models/arisErrorModel'
 import Data from '../../../models/dataModel'
 
@@ -25,7 +25,7 @@ route.post('/get/:page', async (req: Request, res: Response) => {
 
     const proposals = await Proposal.get.ids(filters, page)
 
-    if (typeof proposals === 'string') return res.status(200).send({ Success: true, Message: 'Fecth complete!', list: proposals })
+    if (typeof proposals === 'string') return res.status(200).send({ success: true, message: 'Fecth complete!', list: proposals })
 
     const list = Data.processing(proposals)
 
@@ -36,7 +36,7 @@ route.post('/get/:page', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/post', professor, async (req: Request, res: Response) => {
+route.post('/post', permission(['professor']), async (req: Request, res: Response) => {
   const { _user_id, title, version, status, categories } = req.body
 
   try {
@@ -66,7 +66,7 @@ route.post('/post', professor, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/update/:id', professor, async (req: Request, res: Response) => {
+route.post('/update/:id', permission(['professor']), async (req: Request, res: Response) => {
   const { _user_id, title, version, status, categories } = req.body
   const proposal_id = parseInt(req.params.id)
 
@@ -91,7 +91,7 @@ route.post('/update/:id', professor, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/delete/:id', professor, async (req: Request, res: Response) => {
+route.post('/delete/:id', permission(['professor']), async (req: Request, res: Response) => {
   const proposal_id = parseInt(req.params.id)
   const { _user_id } = req.body
 
