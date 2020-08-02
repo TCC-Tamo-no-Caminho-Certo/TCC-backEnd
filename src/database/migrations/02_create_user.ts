@@ -6,7 +6,7 @@ export async function up(knex: knex) {
       table.increments('id_user').primary()
       table.boolean('active').notNullable()
       table.string('name', 40).notNullable()
-      table.string('sur_name', 40).notNullable()
+      table.string('surname', 40).notNullable()
       table.string('email', 50).notNullable().unique()
       table.string('password', 100).notNullable()
       table.string('phone', 20).unique()
@@ -58,7 +58,7 @@ export async function up(knex: knex) {
             u.id_user,
             u.active,
             u.name,
-            u.sur_name,
+            u.surname,
             u.email,
             u.password,
             u.phone,

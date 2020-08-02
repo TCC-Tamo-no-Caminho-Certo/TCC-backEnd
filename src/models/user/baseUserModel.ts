@@ -9,13 +9,13 @@ import argon from 'argon2'
 
 export interface UpdateBaseUserObj {
   name?: string
-  sur_name?: string
+  surname?: string
 }
 
 export interface ArisBaseUser {
   id_user?: number
   name: string
-  sur_name: string
+  surname: string
   email: string
   birthday: string
   password: string
@@ -26,7 +26,7 @@ export interface ArisBaseUser {
 export default class BaseUser {
   id_user: number
   name: string
-  sur_name: string
+  surname: string
   email: string
   birthday: string
   password: string
@@ -37,10 +37,10 @@ export default class BaseUser {
   /**
    * Creates a base user.
    */
-  constructor({ id_user, name, sur_name, email, birthday, password, created_at, updated_at }: ArisBaseUser) {
+  constructor({ id_user, name, surname, email, birthday, password, created_at, updated_at }: ArisBaseUser) {
     this.id_user = id_user ? id_user : 0 //Gives a temporary id when creating a new user
     this.name = name
-    this.sur_name = sur_name
+    this.surname = surname
     this.email = email
     this.birthday = birthday
     this.password = password
@@ -70,7 +70,7 @@ export default class BaseUser {
     const user_id = await trx('user')
       .insert({
         name: this.name,
-        sur_name: this.sur_name,
+        surname: this.surname,
         email: this.email,
         birthday: this.birthday,
         password: this.password,
@@ -89,7 +89,7 @@ export default class BaseUser {
   /**
    * Updates this user in the database.
    */
-  async update({ name, sur_name }: UpdateBaseUserObj, transaction?: Transaction) {
+  async update({ name, surname }: UpdateBaseUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
 
@@ -102,9 +102,9 @@ export default class BaseUser {
       this.name = name
       update++
     }
-    if (sur_name) {
-      update_list.sur_name = sur_name
-      this.sur_name = sur_name
+    if (surname) {
+      update_list.surname = surname
+      this.surname = surname
       update++
     }
 

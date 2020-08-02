@@ -18,8 +18,8 @@ route.get('/validate-session', auth, async (req: Request, res: Response) => {
 })
 
 route.post('/register', captcha, async (req: Request, res: Response) => {
-  const { name, sur_name, email, birthday, password } = req.body
-  const user_info = { name, sur_name, email, birthday, password }
+  const { name, surname, email, birthday, password } = req.body
+  const user_info = { name, surname, email, birthday, password }
 
   try {
     Data.validate(user_info, 'base_user_register')

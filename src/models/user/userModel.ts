@@ -8,7 +8,7 @@ import db from '../../database'
 
 export interface UpdateUserObj {
   name?: string
-  sur_name?: string
+  surname?: string
   phone?: string
   address_info?: ArisAddress
 }
@@ -27,8 +27,8 @@ export default class User extends BaseUser {
   /**
    * Creates an user.
    */
-  constructor({ id_user, name, sur_name, email, birthday, password, role, phone, address_id, created_at, updated_at }: ArisUser) {
-    super({ id_user, name, sur_name, email, birthday, password, created_at, updated_at })
+  constructor({ id_user, name, surname, email, birthday, password, role, phone, address_id, created_at, updated_at }: ArisUser) {
+    super({ id_user, name, surname, email, birthday, password, created_at, updated_at })
     this.phone = phone
     this.role = role
     this.address_id = address_id ? address_id : 0
@@ -37,7 +37,7 @@ export default class User extends BaseUser {
   /**
    * Updates this user in the database.
    */
-  async update({ name, sur_name, phone, address_info }: UpdateUserObj, transaction?: Transaction) {
+  async update({ name, surname, phone, address_info }: UpdateUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
 
@@ -58,9 +58,9 @@ export default class User extends BaseUser {
       this.name = name
       update++
     }
-    if (sur_name) {
-      update_list.sur_name = sur_name
-      this.sur_name = sur_name
+    if (surname) {
+      update_list.surname = surname
+      this.surname = surname
       update++
     }
     if (phone) {
