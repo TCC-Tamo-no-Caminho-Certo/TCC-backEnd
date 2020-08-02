@@ -19,6 +19,7 @@ export default class Category {
   name: string
   icon: string
   description: string
+
   /**
    * Creates a category.
    */
@@ -29,6 +30,9 @@ export default class Category {
     this.description = description
   }
 
+  /**
+   * Inserts this category in the database.
+   */
   async insert() {
     const has_category = await Category.exist(this.name)
     if (has_category) throw new ArisError('Category already exists!', 400)
@@ -44,6 +48,9 @@ export default class Category {
     this.id_category = id_category
   }
 
+  /**
+   * Updates this category in the database.
+   */
   async update({ name, icon, description }: UpdateCategoryObj) {
     let update = 0
     const update_list: UpdateCategoryObj = {}
@@ -63,6 +70,9 @@ export default class Category {
     if (update) await db('category').update(update_list).where({ id_category: this.id_category })
   }
 
+  /**
+   * Delets this category in the database.
+   */
   async delete() {
     await db('category').del().where({ id_category: this.id_category })
   }
@@ -87,6 +97,9 @@ export default class Category {
     }
   }
 
+  /**
+   * Checks if an category is already registered in the database.
+   */
   static async exist(name: string) {
     const has_category = await db('category')
       .where({ name })
@@ -94,6 +107,9 @@ export default class Category {
     return has_category ? true : false
   }
 
+  /**
+   * returns an category if it`s registered in the database.
+   */
   static async getCategory(id_category: number) {
     const category_info = await db('category')
       .where({ id_category })

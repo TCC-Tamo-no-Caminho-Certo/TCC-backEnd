@@ -19,6 +19,7 @@ export default class Status {
   name: string
   icon: string
   description: string
+
   /**
    * Creates a status.
    */
@@ -29,6 +30,9 @@ export default class Status {
     this.description = description
   }
 
+  /**
+   * Inserts this status in the database.
+   */
   async insert() {
     const has_status = await Status.exist(this.name)
     if (has_status) throw new ArisError('Status already exists!', 400)
@@ -44,6 +48,9 @@ export default class Status {
     this.id_status = id_status
   }
 
+  /**
+   * Updates this status in the database.
+   */
   async update({ name, icon, description }: UpdateStatusObj) {
     let update = 0
     const update_list: UpdateStatusObj = {}
@@ -63,6 +70,9 @@ export default class Status {
     if (update) await db('status').update(update_list).where({ id_status: this.id_status })
   }
 
+  /**
+   * Delets this status in the database.
+   */
   async delete() {
     await db('status').del().where({ id_status: this.id_status })
   }
@@ -87,6 +97,9 @@ export default class Status {
     }
   }
 
+  /**
+   * Checks if an status is already registered in the database.
+   */
   static async exist(name: string) {
     const has_status = await db('status')
       .where({ name })
@@ -94,6 +107,9 @@ export default class Status {
     return has_status ? true : false
   }
 
+  /**
+   * returns an status if it`s registered in the database.
+   */
   static async getStatus(id_status: number) {
     const status_info = await db('status')
       .where({ id_status })

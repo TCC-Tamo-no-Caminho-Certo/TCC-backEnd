@@ -35,7 +35,7 @@ export default class User extends BaseUser {
   }
 
   /**
-   * Updates the user in the database.
+   * Updates this user in the database.
    */
   async update({ name, sur_name, phone, address_info }: UpdateUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -82,7 +82,15 @@ export default class User extends BaseUser {
     transaction || (await trx.commit())
   }
 
-  async delete() {}
+  /**
+   * Delets this user in the database.
+   */
+  async delete() {
+    const trx = await db.transaction()
+
+    await trx('role_user').del().where({ user_id: this.id_user })
+    super.delete(trx)
+  }
 
   /**
    * Completes the user account and updates in the Database.
@@ -104,7 +112,7 @@ export default class User extends BaseUser {
   }
 
   /**
-   * returns an user
+   * returns an user if it`s registered in the database
    * @param identifier - an user id or email
    */
   static async getUser(identifier: string | number): Promise<User | BaseUser> {

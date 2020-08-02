@@ -8,9 +8,9 @@ export async function up(knex: knex) {
       table.string('name', 40).notNullable()
       table.string('sur_name', 40).notNullable()
       table.string('email', 50).notNullable().unique()
-      table.date('birthday').notNullable()
       table.string('password', 100).notNullable()
       table.string('phone', 20).unique()
+      table.date('birthday').notNullable()
       table.dateTime('created_at').notNullable()
       table.dateTime('updated_at').notNullable()
       table.integer('address_id').unsigned().references('id_address').inTable('address')
@@ -56,13 +56,13 @@ export async function up(knex: knex) {
       CREATE OR REPLACE VIEW user_view AS
         SELECT 
             u.id_user,
+            u.active,
             u.name,
             u.sur_name,
             u.email,
-            u.birthday,
             u.password,
             u.phone,
-            u.active,
+            u.birthday,
             u.created_at,
             u.updated_at,
             r.title AS 'role',

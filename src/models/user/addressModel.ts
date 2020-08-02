@@ -1,3 +1,4 @@
+import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
 import db from '../../database'
 
@@ -24,6 +25,9 @@ export default class Address {
     this.postal_code = postal_code
   }
 
+  /**
+   * Inserts this address in the database.
+   */
   async insert(transaction?: Transaction) {
     const trx = transaction || (await db.transaction())
 
@@ -48,15 +52,32 @@ export default class Address {
     this.id_address = id
   }
 
-  update = {}
+  /**
+   * Delets this address in the database.
+   */
+  async delete() {
+    await db('address').del().where({ id_address: this.id_address })
+  }
 
-  async delete() {}
-
+  /**
+   * Checks if an address is already registered in the database.
+   */
   static async exist(city: string, address: string, postal_code: string) {
     const address_id: number = await db('address_view')
       .select('id_address')
       .where({ city, address, postal_code })
       .then(row => (row[0] ? row[0].id_address : null))
     return address_id
+  }
+
+  /**
+   * returns an address if it`s registered in the database.
+   */
+  static async getAddress(id_address: number) {
+    const address_info = await db('address_view')
+      .where({ id_address })
+      .then(row => (row[0] ? row[0] : null))
+    if (!address_info) throw new ArisError('Address not found!', 403)
+    return new Address(address_info)
   }
 }

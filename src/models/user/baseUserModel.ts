@@ -50,7 +50,7 @@ export default class BaseUser {
   }
 
   /**
-   * Inserts the user in the database.
+   * Inserts this user in the database.
    */
   async insert() {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -87,7 +87,7 @@ export default class BaseUser {
   }
 
   /**
-   * Updates the user in the database.
+   * Updates this user in the database.
    */
   async update({ name, sur_name }: UpdateBaseUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -114,7 +114,13 @@ export default class BaseUser {
         .where({ id_user: this.id_user })
   }
 
-  async delete() {}
+  /**
+   * Delets this user in the database.
+   */
+  async delete(transaction?: Transaction) {
+    const trx = transaction || db
+    await trx('user').del().where({ id_user: this.id_user })
+  }
 
   /**
    * Validates the provided password with the user`s account and returns an access_token.
