@@ -30,6 +30,12 @@ if (config.environment === 'production') app.use(compression())
 app.use('/', express.static(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname))))
 controllers(app)
 
+// Version route
+
+app.get('/api/version', (req, res) => {
+  res.json({ Version: version.major + '.' + version.minor + '.' + version.patch, Build: version.build })
+})
+
 // Server Activation
 
 config.server.endpoints.forEach((endpoint: EndpointConfig) => {
