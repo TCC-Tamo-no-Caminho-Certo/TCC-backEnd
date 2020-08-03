@@ -54,7 +54,7 @@ route.post('/post', permission(['professor']), async (req: Request, res: Respons
     res.status(200).send({
       success: true,
       message: 'Proposal created!',
-      id: proposal.id_proposal,
+      id: proposal.proposal_id,
       title,
       version,
       status,
