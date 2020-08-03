@@ -3,7 +3,7 @@ import knex from 'knex'
 export async function up(knex: knex) {
   return knex.schema
     .createTable('user', table => {
-      table.increments('id_user').primary()
+      table.increments('user_id').primary()
       table.boolean('active').notNullable()
       table.string('name', 40).notNullable()
       table.string('surname', 40).notNullable()
@@ -13,49 +13,49 @@ export async function up(knex: knex) {
       table.date('birthday').notNullable()
       table.dateTime('created_at').notNullable()
       table.dateTime('updated_at').notNullable()
-      table.integer('address_id').unsigned().references('id_address').inTable('address')
+      table.integer('address_id').unsigned().references('address_id').inTable('address')
     })
     .then(() =>
       knex.schema.createTable('role', table => {
-        table.increments('id_role').primary()
+        table.increments('role_id').primary()
         table.string('title', 30).notNullable().unique()
       })
     )
     .then(() =>
       knex.schema.createTable('role_user', table => {
-        table.integer('user_id').unsigned().references('id_user').inTable('user').notNullable()
-        table.integer('role_id').unsigned().references('id_role').inTable('role').notNullable()
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable()
+        table.integer('role_id').unsigned().references('role_id').inTable('role').notNullable()
       })
     )
     .then(() =>
       knex.schema.createTable('customer', table => {
-        table.increments('id_customer').primary()
-        table.integer('user_id').unsigned().references('id_user').inTable('user').notNullable().unique()
+        table.increments('customer_id').primary()
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
       })
     )
     .then(() =>
       knex.schema.createTable('student', table => {
-        table.increments('id_student').primary()
-        table.integer('user_id').unsigned().references('id_user').inTable('user').notNullable().unique()
+        table.increments('student_id').primary()
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
       })
     )
     .then(() =>
       knex.schema.createTable('professor', table => {
-        table.increments('id_professor').primary()
-        table.integer('user_id').unsigned().references('id_user').inTable('user').notNullable().unique()
+        table.increments('professor_id').primary()
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
       })
     )
     .then(() =>
       knex.schema.createTable('proponent', table => {
-        table.increments('id_proponent').primary()
-        table.integer('user_id').unsigned().references('id_user').inTable('user').notNullable().unique()
+        table.increments('proponent_id').primary()
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
       })
     )
     .then(() =>
       knex.raw(`
       CREATE OR REPLACE VIEW user_view AS
         SELECT 
-            u.id_user,
+            u.user_id,
             u.active,
             u.name,
             u.surname,
@@ -66,7 +66,7 @@ export async function up(knex: knex) {
             u.created_at,
             u.updated_at,
             r.title AS 'role',
-            a.id_address AS 'address_id',
+            a.address_id,
             a.address,
             a.postal_code,
             a.city,
@@ -75,19 +75,19 @@ export async function up(knex: knex) {
         FROM
             user u
                 LEFT JOIN
-            address_view a ON u.address_id = a.id_address
+            address_view a ON u.address_id = a.address_id
                 LEFT JOIN
-            role_user ru ON u.id_user = ru.user_id
+            role_user ru ON u.user_id = ru.user_id
                 LEFT JOIN
-            role r ON ru.role_id = r.id_role
+            role r ON ru.role_id = r.role_id
                 LEFT JOIN
-            student ON u.id_user = student.user_id
+            student ON u.user_id = student.user_id
                 LEFT JOIN
-            professor ON u.id_user = professor.user_id
+            professor ON u.user_id = professor.user_id
                 LEFT JOIN
-            proponent ON u.id_user = proponent.user_id
+            proponent ON u.user_id = proponent.user_id
                 LEFT JOIN
-            customer ON u.id_user = customer.user_id;
+            customer ON u.user_id = customer.user_id;
       `)
     )
 }

@@ -9,13 +9,14 @@ export interface UpdateCategoryObj {
 }
 
 export interface ArisCategory {
-  id_category?: number
+  category_id?: number
   name: string
   icon: string
   description: string
 }
+
 export default class Category {
-  id_category: number
+  category_id: number
   name: string
   icon: string
   description: string
@@ -23,8 +24,8 @@ export default class Category {
   /**
    * Creates a category.
    */
-  constructor({ id_category, name, icon, description }: ArisCategory) {
-    this.id_category = id_category ? id_category : 0
+  constructor({ category_id, name, icon, description }: ArisCategory) {
+    this.category_id = category_id ? category_id : 0
     this.name = name
     this.icon = icon
     this.description = description
@@ -37,7 +38,7 @@ export default class Category {
     const has_category = await Category.exist(this.name)
     if (has_category) throw new ArisError('Category already exists!', 400)
 
-    const id_category = await db('category')
+    const category_id = await db('category')
       .insert({
         name: this.name,
         icon: this.icon,
@@ -45,7 +46,7 @@ export default class Category {
       })
       .then(row => row[0])
 
-    this.id_category = id_category
+    this.category_id = category_id
   }
 
   /**
@@ -67,23 +68,23 @@ export default class Category {
       update++
     }
 
-    if (update) await db('category').update(update_list).where({ id_category: this.id_category })
+    if (update) await db('category').update(update_list).where({ category_id: this.category_id })
   }
 
   /**
    * Delets this category in the database.
    */
   async delete() {
-    await db('category').del().where({ id_category: this.id_category })
+    await db('category').del().where({ category_id: this.category_id })
   }
 
   static get = {
     async ids(categories: string[], transaction?: Transaction) {
       const trx = transaction || db
       const ids = await trx('category')
-        .select('id_category')
+        .select('category_id')
         .whereIn('name', categories)
-        .then(row => row.map(value => value.id_category))
+        .then(row => row.map(value => value.category_id))
 
       return ids
     },
@@ -110,9 +111,9 @@ export default class Category {
   /**
    * returns an category if it`s registered in the database.
    */
-  static async getCategory(id_category: number) {
+  static async getCategory(category_id: number) {
     const category_info = await db('category')
-      .where({ id_category })
+      .where({ category_id })
       .then(row => (row[0] ? row[0] : null))
     if (!category_info) throw new ArisError('Category not found!', 400)
     return new Category(category_info)

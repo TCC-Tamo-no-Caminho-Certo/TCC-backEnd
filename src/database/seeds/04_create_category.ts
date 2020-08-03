@@ -11,7 +11,7 @@ export async function seed(knex: knex) {
   for (const key in data) {
     const has_data = await knex('category')
       .where(data[key])
-      .then(row => (row[0] ? row[0].id_category : null))
+      .then(row => (row[0] ? row[0].category_id : null))
     if (!has_data) insert.push(data[key])
   }
 

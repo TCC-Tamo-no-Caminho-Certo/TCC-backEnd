@@ -3,7 +3,7 @@ import { Transaction } from 'knex'
 import db from '../../database'
 
 export interface ArisStatus {
-  id_status?: number
+  status_id?: number
   name: string
   icon: string
   description: string
@@ -15,7 +15,7 @@ export interface UpdateStatusObj {
   description?: string
 }
 export default class Status {
-  id_status: number
+  status_id: number
   name: string
   icon: string
   description: string
@@ -23,8 +23,8 @@ export default class Status {
   /**
    * Creates a status.
    */
-  constructor({ id_status, name, icon, description }: ArisStatus) {
-    this.id_status = id_status ? id_status : 0
+  constructor({ status_id, name, icon, description }: ArisStatus) {
+    this.status_id = status_id ? status_id : 0
     this.name = name
     this.icon = icon
     this.description = description
@@ -37,7 +37,7 @@ export default class Status {
     const has_status = await Status.exist(this.name)
     if (has_status) throw new ArisError('Status already exists!', 400)
 
-    const id_status = await db('status')
+    const status_id = await db('status')
       .insert({
         name: this.name,
         icon: this.icon,
@@ -45,7 +45,7 @@ export default class Status {
       })
       .then(row => row[0])
 
-    this.id_status = id_status
+    this.status_id = status_id
   }
 
   /**
@@ -67,23 +67,23 @@ export default class Status {
       update++
     }
 
-    if (update) await db('status').update(update_list).where({ id_status: this.id_status })
+    if (update) await db('status').update(update_list).where({ status_id: this.status_id })
   }
 
   /**
    * Delets this status in the database.
    */
   async delete() {
-    await db('status').del().where({ id_status: this.id_status })
+    await db('status').del().where({ status_id: this.status_id })
   }
 
   static get = {
     async id(name: string, transaction?: Transaction) {
       const trx = transaction || db
       const id = await trx('status')
-        .select('id_status')
+        .select('status_id')
         .where({ name })
-        .then(row => (row[0] ? row[0].id_status : null))
+        .then(row => (row[0] ? row[0].status_id : null))
 
       return id
     },
@@ -110,9 +110,9 @@ export default class Status {
   /**
    * returns an status if it`s registered in the database.
    */
-  static async getStatus(id_status: number) {
+  static async getStatus(status_id: number) {
     const status_info = await db('status')
-      .where({ id_status })
+      .where({ status_id })
       .then(row => (row[0] ? row[0] : null))
     if (!status_info) throw new ArisError('Status not found!', 400)
     return new Status(status_info)

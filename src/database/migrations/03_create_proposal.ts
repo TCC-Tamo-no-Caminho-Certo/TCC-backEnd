@@ -3,7 +3,7 @@ import knex from 'knex'
 export async function up(knex: knex) {
   return knex.schema
     .createTable('proposal', table => {
-      table.increments('id_proposal').primary()
+      table.increments('proposal_id').primary()
       table.string('title', 30).notNullable()
       table.dateTime('created_at').notNullable()
       table.dateTime('updated_at').notNullable()
@@ -11,18 +11,18 @@ export async function up(knex: knex) {
     })
     .then(() =>
       knex.schema.createTable('artefact', table => {
-        table.increments('id_artefact').primary()
+        table.increments('artefact_id').primary()
         table.string('name', 30).notNullable()
         table.string('path', 45).notNullable()
         table.string('hash_verification', 90).notNullable()
         table.text('description')
         table.float('version').notNullable()
-        table.integer('proposal_id').unsigned().references('id_proposal').inTable('proposal').notNullable().unique()
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().unique()
       })
     )
     .then(() =>
       knex.schema.createTable('status', table => {
-        table.increments('id_status').primary()
+        table.increments('status_id').primary()
         table.string('name', 30).notNullable().unique()
         table.string('icon', 30).notNullable().unique()
         table.text('description')
@@ -30,13 +30,13 @@ export async function up(knex: knex) {
     )
     .then(() =>
       knex.schema.createTable('status_proposal', table => {
-        table.integer('proposal_id').unsigned().references('id_proposal').inTable('proposal').notNullable().unique()
-        table.integer('status_id').unsigned().references('id_status').inTable('status').notNullable()
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().unique()
+        table.integer('status_id').unsigned().references('status_id').inTable('status').notNullable()
       })
     )
     .then(() =>
       knex.schema.createTable('category', table => {
-        table.increments('id_category').primary()
+        table.increments('category_id').primary()
         table.string('name', 30).notNullable().unique()
         table.string('icon', 30).notNullable().unique()
         table.text('description')
@@ -44,22 +44,22 @@ export async function up(knex: knex) {
     )
     .then(() =>
       knex.schema.createTable('category_proposal', table => {
-        table.integer('proposal_id').unsigned().references('id_proposal').inTable('proposal').notNullable()
-        table.integer('category_id').unsigned().references('id_category').inTable('category').notNullable()
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable()
+        table.integer('category_id').unsigned().references('category_id').inTable('category').notNullable()
       })
     )
     .then(() =>
       knex.schema.createTable('user_proposal', table => {
-        table.integer('user_id').unsigned().references('id_user').inTable('user').notNullable()
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable()
         table.string('permission', 45).notNullable()
-        table.integer('proposal_id').unsigned().references('id_proposal').inTable('proposal').notNullable()
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable()
       })
     )
     .then(() =>
       knex.raw(`
       CREATE OR REPLACE VIEW proposal_view AS
         SELECT 
-            p.id_proposal,
+            p.proposal_id,
             p.created_at,
             p.updated_at,
             p.title,
@@ -79,18 +79,18 @@ export async function up(knex: knex) {
         FROM
             proposal p
                 LEFT JOIN
-            status_proposal sp ON p.id_proposal = sp.proposal_id
+            status_proposal sp ON p.proposal_id = sp.proposal_id
                 LEFT JOIN
-            status s ON s.id_status = sp.status_id
+            status s ON s.status_id = sp.status_id
                 LEFT JOIN
-            category_proposal cp ON p.id_proposal = cp.proposal_id
+            category_proposal cp ON p.proposal_id = cp.proposal_id
                 LEFT JOIN
-            category c ON c.id_category = cp.category_id
+            category c ON c.category_id = cp.category_id
                 LEFT JOIN
-            artefact a ON p.id_proposal = a.proposal_id
+            artefact a ON p.proposal_id = a.proposal_id
                 LEFT JOIN
-            user_proposal u ON p.id_proposal = u.proposal_id
-        ORDER BY p.id_proposal;
+            user_proposal u ON p.proposal_id = u.proposal_id
+        ORDER BY p.proposal_id;
       `)
     )
 }

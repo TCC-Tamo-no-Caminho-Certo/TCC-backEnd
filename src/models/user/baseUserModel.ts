@@ -13,7 +13,7 @@ export interface UpdateBaseUserObj {
 }
 
 export interface ArisBaseUser {
-  id_user?: number
+  user_id?: number
   name: string
   surname: string
   email: string
@@ -24,7 +24,7 @@ export interface ArisBaseUser {
 }
 
 export default class BaseUser {
-  id_user: number
+  user_id: number
   name: string
   surname: string
   email: string
@@ -37,8 +37,8 @@ export default class BaseUser {
   /**
    * Creates a base user.
    */
-  constructor({ id_user, name, surname, email, birthday, password, created_at, updated_at }: ArisBaseUser) {
-    this.id_user = id_user ? id_user : 0 //Gives a temporary id when creating a new user
+  constructor({ user_id, name, surname, email, birthday, password, created_at, updated_at }: ArisBaseUser) {
+    this.user_id = user_id ? user_id : 0 //Gives a temporary id when creating a new user
     this.name = name
     this.surname = surname
     this.email = email
@@ -79,9 +79,9 @@ export default class BaseUser {
         updated_at: date
       })
       .then(row => row[0])
-    this.id_user = user_id
+    this.user_id = user_id
 
-    await trx('role_user').insert({ role_id: role.id_role, user_id })
+    await trx('role_user').insert({ role_id: role.role_id, user_id })
 
     await trx.commit()
   }
@@ -111,7 +111,7 @@ export default class BaseUser {
     if (update)
       await trx('user')
         .update({ ...update_list, updated_at: this.updated_at })
-        .where({ id_user: this.id_user })
+        .where({ user_id: this.user_id })
   }
 
   /**
@@ -119,7 +119,7 @@ export default class BaseUser {
    */
   async delete(transaction?: Transaction) {
     const trx = transaction || db
-    await trx('user').del().where({ id_user: this.id_user })
+    await trx('user').del().where({ user_id: this.user_id })
   }
 
   /**
@@ -137,7 +137,7 @@ export default class BaseUser {
    * generate an access_token for the user.
    */
   generateAccessToken() {
-    const payload = { id: this.id_user, role: this.role }
+    const payload = { id: this.user_id, role: this.role }
 
     return jwt.sign(payload, config.jwt.privateKey, {
       algorithm: 'RS256',
@@ -163,18 +163,18 @@ export default class BaseUser {
    * Updates the user`s password in the database.
    */
   static async resetPassword(token: string, password: string) {
-    const id_user = <any>jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
+    const user_id = <any>jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
       if (err) return err
       return (<any>decoded).id
     })
 
-    if (typeof id_user === 'object') throw new ArisError(id_user.expiredAt ? 'Token expired!' : 'Invalid token signature!', 401)
+    if (typeof user_id === 'object') throw new ArisError(user_id.expiredAt ? 'Token expired!' : 'Invalid token signature!', 401)
 
     const hash = await argon.hash(password)
 
-    await db('user').update({ password: hash }).where({ id_user })
+    await db('user').update({ password: hash }).where({ user_id })
 
-    return { id: id_user, hash }
+    return { id: user_id, hash }
   }
 
   /**
@@ -182,9 +182,9 @@ export default class BaseUser {
    */
   static async exist(email: string) {
     const user_id: number = await db('user')
-      .select('id_user')
+      .select('user_id')
       .where({ email })
-      .then(row => (row[0] ? row[0].id_user : null))
+      .then(row => (row[0] ? row[0].user_id : null))
     return user_id
   }
 }

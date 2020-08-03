@@ -27,8 +27,8 @@ export default class User extends BaseUser {
   /**
    * Creates an user.
    */
-  constructor({ id_user, name, surname, email, birthday, password, role, phone, address_id, created_at, updated_at }: ArisUser) {
-    super({ id_user, name, surname, email, birthday, password, created_at, updated_at })
+  constructor({ user_id, name, surname, email, birthday, password, role, phone, address_id, created_at, updated_at }: ArisUser) {
+    super({ user_id, name, surname, email, birthday, password, created_at, updated_at })
     this.phone = phone
     this.role = role
     this.address_id = address_id ? address_id : 0
@@ -48,7 +48,7 @@ export default class User extends BaseUser {
     if (address_info && address_info.address) {
       const address = new Address(address_info)
       await address.insert(trx)
-      address_id = address.id_address
+      address_id = address.address_id
     }
 
     let update = 0
@@ -77,7 +77,7 @@ export default class User extends BaseUser {
     if (update)
       await trx('user')
         .update({ ...update_list, updated_at: this.updated_at })
-        .where({ id_user: this.id_user })
+        .where({ user_id: this.user_id })
 
     transaction || (await trx.commit())
   }
@@ -88,7 +88,7 @@ export default class User extends BaseUser {
   async delete() {
     const trx = await db.transaction()
 
-    await trx('role_user').del().where({ user_id: this.id_user })
+    await trx('role_user').del().where({ user_id: this.user_id })
     super.delete(trx)
   }
 
@@ -101,7 +101,7 @@ export default class User extends BaseUser {
     const trx = await db.transaction()
 
     const new_role = await Role.getRole(role, trx)
-    await trx('role_user').update({ role_id: new_role.id_role }).where({ user_id: base_user.id_user })
+    await trx('role_user').update({ role_id: new_role.role_id }).where({ user_id: base_user.user_id })
 
     const user = new User({ ...base_user, phone, role })
     await user.update({ phone, address_info }, trx)
@@ -117,7 +117,7 @@ export default class User extends BaseUser {
    */
   static async getUser(identifier: string | number): Promise<User | BaseUser> {
     const user_info: ArisUser = await db('user_view')
-      .where(typeof identifier === 'string' ? { email: identifier } : { id_user: identifier })
+      .where(typeof identifier === 'string' ? { email: identifier } : { user_id: identifier })
       .then(row => (row[0] ? row[0] : null))
     if (!user_info) throw new ArisError('User don`t exists!', 403)
     if (user_info.role === 'base user') return new BaseUser(user_info)

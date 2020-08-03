@@ -13,21 +13,21 @@ export async function seed(knex: knex) {
       const cities: any[] = result.data
       const insert_city: any[] = []
 
-      let id_district = await trx('district')
+      let district_id = await trx('district')
         .where({ name: districts[key].nome })
-        .then(row => (row[0] ? row[0].id_district : null))
+        .then(row => (row[0] ? row[0].district_id : null))
 
-      if (!id_district) {
-        id_district = await trx('district')
+      if (!district_id) {
+        district_id = await trx('district')
           .insert({ name: districts[key].nome, country_id: 1 })
           .then(row => (row[0] ? row[0] : null))
 
         for (const key in cities) {
           const has_city = await trx('city')
             .where({ name: cities[key].nome })
-            .then(row => (row[0] ? row[0].id_city : null))
+            .then(row => (row[0] ? row[0].city_id : null))
 
-          if (!has_city) insert_city.push({ name: cities[key].nome, district_id: id_district })
+          if (!has_city) insert_city.push({ name: cities[key].nome, district_id: district_id })
         }
       }
 

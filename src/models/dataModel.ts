@@ -18,7 +18,7 @@ interface Category {
 }
 
 interface ProposalList {
-  id_proposal: number
+  proposal_id: number
   created_at: string
   updated_at: string
   title: string
@@ -45,7 +45,7 @@ export default class Data {
       }
 
       list[k] = {
-        id_proposal: proposals[i].id_proposal,
+        proposal_id: proposals[i].proposal_id,
         created_at: proposals[i].created_at,
         updated_at: proposals[i].updated_at,
         title: proposals[i].title,
@@ -75,7 +75,7 @@ export default class Data {
       }
 
       for (let j = i + 1; j < proposals.length; j++) {
-        if (proposals[i].id_proposal === proposals[j].id_proposal) {
+        if (proposals[i].proposal_id === proposals[j].proposal_id) {
           ++count
 
           if (!list[k].categories.some((category: Category) => category.name === proposals[j].category_name))

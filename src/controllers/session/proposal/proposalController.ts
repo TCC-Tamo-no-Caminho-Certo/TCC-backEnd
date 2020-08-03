@@ -23,7 +23,7 @@ route.post('/get/:page', async (req: Request, res: Response) => {
   try {
     Data.validate(filters, 'proposal_get')
 
-    const proposals = await Proposal.get.ids(filters, page)
+    const proposals = await Proposal.get.allProposals(filters, page)
 
     if (typeof proposals === 'string') return res.status(200).send({ success: true, message: 'Fecth complete!', list: proposals })
 

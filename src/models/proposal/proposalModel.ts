@@ -17,7 +17,7 @@ interface Filters {
 }
 
 export interface ArisProposal {
-  id_proposal?: number
+  proposal_id?: number
   title: string
   version: number
   status: string
@@ -33,7 +33,7 @@ export interface UpdateProposalObj {
 }
 
 export default class Proposal {
-  id_proposal: number
+  proposal_id: number
   title: string
   version: number
   status: string
@@ -43,8 +43,8 @@ export default class Proposal {
   /**
    * Creates a proposal.
    */
-  constructor({ id_proposal, title, version, status, categories, user_id }: ArisProposal) {
-    this.id_proposal = id_proposal ? id_proposal : 0 //Gives a temporary id when creating a new proposal
+  constructor({ proposal_id, title, version, status, categories, user_id }: ArisProposal) {
+    this.proposal_id = proposal_id ? proposal_id : 0 //Gives a temporary id when creating a new proposal
     this.title = title
     this.version = version
     this.status = status
@@ -53,20 +53,20 @@ export default class Proposal {
   }
 
   private _update = {
-    async titleAndVersion(id_proposal: number, title: string, version: number, transaction?: Transaction) {
+    async titleAndVersion(proposal_id: number, title: string, version: number, transaction?: Transaction) {
       const trx = transaction || db
       const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
       await trx('proposal')
         .update(title && version ? { title, version, updated_at: date } : title ? { title, updated_at: date } : { version, updated_at: date })
-        .where({ id_proposal })
+        .where({ proposal_id })
     },
 
-    async time(id_proposal: number, transaction?: Transaction) {
+    async time(proposal_id: number, transaction?: Transaction) {
       const trx = transaction || db
       const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
-      await trx('proposal').update({ updated_at: date }).where({ id_proposal })
+      await trx('proposal').update({ updated_at: date }).where({ proposal_id })
     }
   }
 
@@ -113,7 +113,7 @@ export default class Proposal {
 
     await trx.commit()
 
-    this.id_proposal = proposal_id
+    this.proposal_id = proposal_id
   }
 
   /**
@@ -124,7 +124,7 @@ export default class Proposal {
 
     const trx = await db.transaction()
 
-    title || version ? await this._update.titleAndVersion(this.id_proposal, title, version, trx) : await this._update.time(this.id_proposal, trx)
+    title || version ? await this._update.titleAndVersion(this.proposal_id, title, version, trx) : await this._update.time(this.proposal_id, trx)
 
     if (status) {
       const status_id = await Status.get.id(status)
@@ -134,7 +134,7 @@ export default class Proposal {
         throw new ArisError('Status does`t exists!', 400)
       }
 
-      await trx('status_proposal').update({ status_id }).where({ proposal_id: this.id_proposal })
+      await trx('status_proposal').update({ status_id }).where({ proposal_id: this.proposal_id })
     }
 
     if (categories) {
@@ -145,12 +145,12 @@ export default class Proposal {
         throw new ArisError(`A category provided does't exists!`, 400)
       }
 
-      await trx('category_proposal').del().where({ proposal_id: this.id_proposal })
+      await trx('category_proposal').del().where({ proposal_id: this.proposal_id })
 
       for (let i in categories_id)
         await trx('category_proposal').insert({
           category_id: categories_id[i],
-          proposal_id: this.id_proposal
+          proposal_id: this.proposal_id
         })
     }
 
@@ -165,11 +165,11 @@ export default class Proposal {
 
     const trx = await db.transaction()
 
-    await trx('artefact').del().where({ proposal_id: this.id_proposal })
-    await trx('user_proposal').del().where({ proposal_id: this.id_proposal })
-    await trx('status_proposal').del().where({ proposal_id: this.id_proposal })
-    await trx('category_proposal').del().where({ proposal_id: this.id_proposal })
-    await trx('proposal').del().where({ id_proposal: this.id_proposal })
+    await trx('artefact').del().where({ proposal_id: this.proposal_id })
+    await trx('user_proposal').del().where({ proposal_id: this.proposal_id })
+    await trx('status_proposal').del().where({ proposal_id: this.proposal_id })
+    await trx('category_proposal').del().where({ proposal_id: this.proposal_id })
+    await trx('proposal').del().where({ proposal_id: this.proposal_id })
 
     await trx.commit()
   }
@@ -178,7 +178,7 @@ export default class Proposal {
    * Check if is the owner of the proposal.
    */
   async isOwner() {
-    const owner = await db('user_proposal').select('user_id', 'permission').where({ proposal_id: this.id_proposal })
+    const owner = await db('user_proposal').select('user_id', 'permission').where({ proposal_id: this.proposal_id })
 
     if (!owner.some(user => user.user_id === this.user_id && user.permission === 'owner')) return false
 
@@ -187,14 +187,14 @@ export default class Proposal {
 
   static get = {
     /**
-     * Select (with a filter or not) the proposals ids.
+     * Select (with a filter or not) proposals.
      */
-    async ids(filters: Filters, page: number) {
+    async allProposals(filters: Filters, page: number) {
       const ids = await db('proposal_view')
-        .select('id_proposal')
-        .distinct('id_proposal')
+        .select('proposal_id')
+        .distinct('proposal_id')
         .where(builder => {
-          filters.ids && filters.ids[0] ? builder.whereIn('id_proposal', filters.ids) : null
+          filters.ids && filters.ids[0] ? builder.whereIn('proposal_id', filters.ids) : null
           filters.users && filters.users[0] ? builder.whereIn('user_id', filters.users) : null
           filters.titles && filters.titles[0] ? builder.whereIn('title', filters.titles) : null
           filters.status && filters.status[0] ? builder.whereIn('status_name', filters.status) : null
@@ -204,21 +204,21 @@ export default class Proposal {
         })
         .offset((page - 1) * 5)
         .limit(5)
-        .then(row => row.map(prop => prop.id_proposal))
+        .then(row => row.map(prop => prop.proposal_id))
       if (ids.length === 0) return 'Didn´t find any proposal'
 
-      return await db('proposal_view').select('*').whereIn('id_proposal', ids)
+      return await db('proposal_view').select('*').whereIn('proposal_id', ids)
     }
   }
 
-  static async getProposal(user_id: number, id_proposal: number) {
+  static async getProposal(user_id: number, proposal_id: number) {
     const proposal_info = await db('proposal_view')
-      .where({ id_proposal })
+      .where({ proposal_id })
       .then(row => (row[0] ? row : null))
     if (!proposal_info) throw new ArisError('Proposal not found!', 400)
     const result = Data.processing(proposal_info)[0]
     const proposal: ArisProposal = {
-      id_proposal: result.id_proposal,
+      proposal_id: result.proposal_id,
       title: result.title,
       version: result.version,
       status: result.status.name,

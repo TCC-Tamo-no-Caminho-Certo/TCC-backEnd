@@ -5,19 +5,19 @@ import db from '../../database'
 export type RoleTypes = 'admin' | 'base user' | 'student' | 'professor' | 'proponent'
 
 export interface ArisRole {
-  id_role?: number
+  role_id?: number
   title: RoleTypes
 }
 
 export default class Role {
-  id_role: number
+  role_id: number
   title: RoleTypes
 
   /**
    * Creates a role.
    */
-  constructor({ id_role, title }: ArisRole) {
-    this.id_role = id_role ? id_role : 0
+  constructor({ role_id, title }: ArisRole) {
+    this.role_id = role_id ? role_id : 0
     this.title = title
   }
 
@@ -25,17 +25,17 @@ export default class Role {
     const has_role = await Role.exist(this.title)
     if (has_role) throw new ArisError('Role already exists!', 400)
 
-    const id_role = await db('role')
+    const role_id = await db('role')
       .insert({ title: this.title })
       .then(row => row[0])
 
-    this.id_role = id_role
+    this.role_id = role_id
   }
 
   async update() {}
 
   async delete() {
-    await db('role').del().where({ id_role: this.id_role })
+    await db('role').del().where({ role_id: this.role_id })
   }
 
   static get = {
