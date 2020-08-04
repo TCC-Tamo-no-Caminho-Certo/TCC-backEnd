@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import config from '../config'
 import axios from 'axios'
 
-export default config.environment === 'production'
+export default config.environment !== 'test'
   ? async function (req: Request, res: Response, next: NextFunction) {
       const secret = config.captchaKey
 

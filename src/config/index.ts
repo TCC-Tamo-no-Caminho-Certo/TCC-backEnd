@@ -1,161 +1,161 @@
-import path from "path";
-import fs from "fs";
+import path from 'path'
+import fs from 'fs'
 
 //Server
 export interface OptionsConfig {
-  key?: string;
-  certificate?: string;
+  key?: string
+  certificate?: string
 }
 export interface EndpointConfig {
-  enabled: boolean;
-  host: string;
-  port: number;
-  useSSL: boolean;
-  options: OptionsConfig;
+  enabled: boolean
+  host: string
+  port: number
+  useSSL: boolean
+  options: OptionsConfig
 }
 export interface ServerConfig {
-  root: string;
-  endpoints: EndpointConfig[];
+  root: string
+  endpoints: EndpointConfig[]
 }
 
 // DataBase
 export interface ConnectionConfig {
-  host: string;
-  user: string;
-  password: string | undefined;
-  database: string;
+  host: string
+  user: string
+  password: string | undefined
+  database: string
 }
 export interface PoolConfig {
-  max: number;
-  min: number;
+  max: number
+  min: number
 }
 export interface DatabaseConfig {
-  client: string;
-  connection: ConnectionConfig;
-  pool: PoolConfig;
+  client: string
+  connection: ConnectionConfig
+  pool: PoolConfig
 }
 
 // Redis
 export interface RedisConfig {
-  use: boolean;
-  host: string;
-  port: number;
-  database: number;
-  password?: string | null;
+  use: boolean
+  host: string
+  port: number
+  database: number
+  password?: string | null
 }
 
 // JWT
 export interface JWTConfig {
-  privateKey: string;
-  publicKey: string;
-  resetSecret: "";
+  privateKey: string
+  publicKey: string
+  resetSecret: ''
 }
 
 // Mail
 export interface AuthConfig {
-  user: string;
-  pass: string | null;
+  user: string
+  pass: string | null
 }
 export interface MailConfig {
-  host: string;
-  port: number;
-  auth: AuthConfig;
+  host: string
+  port: number
+  auth: AuthConfig
 }
 
 // Log
 export interface LoggingConfig {
-  path: string;
-  filename: string;
+  path: string
+  filename: string
 }
 
 class ConfigManager {
-  environment: "development" | "production" = "development";
+  environment: 'development' | 'production' | 'test' = 'development'
 
   server: ServerConfig = {
-    root: "%CurrentDirectory%/../www",
+    root: '%CurrentDirectory%/../www',
     endpoints: [
       {
         enabled: true,
-        host: "127.0.0.1",
+        host: '127.0.0.1',
         port: 8080,
         useSSL: false,
-        options: {},
-      },
-    ],
-  };
+        options: {}
+      }
+    ]
+  }
 
   database: DatabaseConfig = {
-    client: "mysql2",
+    client: 'mysql2',
     connection: {
-      host: "127.0.0.1",
-      user: "root",
-      password: "root",
-      database: "steamslab",
+      host: '127.0.0.1',
+      user: 'root',
+      password: 'root',
+      database: 'steamslab'
     },
     pool: {
       max: 10,
-      min: 0,
-    },
-  };
+      min: 0
+    }
+  }
 
   redis: RedisConfig = {
     use: false,
-    host: "127.0.0.1",
+    host: '127.0.0.1',
     port: 6379,
     database: 1,
-    password: null,
-  };
+    password: null
+  }
 
   jwt: JWTConfig = {
-    privateKey: "",
-    publicKey: "",
-    resetSecret: "",
-  };
+    privateKey: '',
+    publicKey: '',
+    resetSecret: ''
+  }
 
-  captchaKey: string = "";
+  captchaKey: string = ''
 
   mail: MailConfig = {
-    host: "smtp.steamslab.com",
+    host: 'smtp.steamslab.com',
     port: 465,
     auth: {
-      user: "username",
-      pass: null,
-    },
-  };
+      user: 'username',
+      pass: null
+    }
+  }
 
   logging: LoggingConfig = {
-    path: "./logs/",
-    filename: "./latest.log",
-  };
+    path: './logs/',
+    filename: './latest.log'
+  }
 
   loadConfig(filename: string): void {
     if (!fs.existsSync(filename)) {
-      fs.writeFileSync(filename, JSON.stringify(this), "utf8");
+      fs.writeFileSync(filename, JSON.stringify(this), 'utf8')
     }
 
-    let text = fs.readFileSync(filename, "utf8");
-    let config: ConfigManager = JSON.parse(text);
-    this.server = config.server;
-    this.database = config.database;
-    this.redis = config.redis;
-    this.jwt = config.jwt;
-    this.captchaKey = config.captchaKey;
-    this.mail = config.mail;
-    this.logging = config.logging;
+    let text = fs.readFileSync(filename, 'utf8')
+    let config: ConfigManager = JSON.parse(text)
+    this.server = config.server
+    this.database = config.database
+    this.redis = config.redis
+    this.jwt = config.jwt
+    this.captchaKey = config.captchaKey
+    this.mail = config.mail
+    this.logging = config.logging
   }
 }
 
-var configPath = path.join(path.dirname(__filename), "../../.config/server.json");
+var configPath = path.join(path.dirname(__filename), '../../.config/server.json')
 
-var processArgs = process.argv.slice(2);
+var processArgs = process.argv.slice(2)
 processArgs.forEach(arg => {
-  if(arg.startsWith("--config-")) {
-    arg = arg.replace("--config-", "");
-    configPath = path.resolve(arg);
+  if (arg.startsWith('--config-')) {
+    arg = arg.replace('--config-', '')
+    configPath = path.resolve(arg)
   }
-});
+})
 
-const configManager: ConfigManager = new ConfigManager();
-configManager.loadConfig(configPath);
+const configManager: ConfigManager = new ConfigManager()
+configManager.loadConfig(configPath)
 
-export default configManager;
+export default configManager

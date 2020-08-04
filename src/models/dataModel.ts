@@ -33,6 +33,8 @@ interface ProposalList {
 }
 
 export default class Data {
+
+  // DB data
   static processing(proposals: any[]) {
     const list: ProposalList[] = []
     let count = 0
@@ -99,6 +101,15 @@ export default class Data {
     return list
   }
 
+  static parseDatetime(data: any) {
+    const created: Date = data.created_at
+    const updated: Date = data.updated_at
+    if (created) data.created_at = created.toISOString().slice(0, 19).replace('T', ' ')
+    if (updated) data.updated_at = updated.toISOString().slice(0, 19).replace('T', ' ')
+    return data
+  }
+
+  // Client data
   static validate(data: Object, type: keyof typeof schema_list) {
     const schema_list = {
       base_user_register: joi.object({

@@ -5,6 +5,7 @@ import Role, { RoleTypes } from './roleModel'
 import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
 import db from '../../database'
+import Data from '../dataModel'
 
 export interface UpdateUserObj {
   name?: string
@@ -118,7 +119,7 @@ export default class User extends BaseUser {
   static async getUser(identifier: string | number): Promise<User | BaseUser> {
     const user_info: ArisUser = await db('user_view')
       .where(typeof identifier === 'string' ? { email: identifier } : { user_id: identifier })
-      .then(row => (row[0] ? row[0] : null))
+      .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
     if (!user_info) throw new ArisError('User don`t exists!', 403)
     if (user_info.role === 'base user') return new BaseUser(user_info)
     return new User(user_info)
