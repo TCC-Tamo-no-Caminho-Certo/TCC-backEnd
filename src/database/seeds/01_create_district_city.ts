@@ -5,37 +5,36 @@ import axios from 'axios'
 export async function seed(knex: knex) {
   try {
     const trx = await knex.transaction()
+
     const result = await axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados')
-    const districts: any[] = result.data
+    const ibge_districts: any[] = result.data
 
-    for (const key in districts) {
-      const result = await axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${districts[key].id}/municipios`)
-      const cities: any[] = result.data
-      const insert_city: any[] = []
+    const db_districts: any[] = await trx('district').select('name')
 
-      let district_id = await trx('district')
-        .where({ name: districts[key].nome })
-        .then(row => (row[0] ? row[0].district_id : null))
+    for (const key in ibge_districts) {
+      const insert_cities: any[] = []
 
-      if (!district_id) {
-        district_id = await trx('district')
-          .insert({ name: districts[key].nome, country_id: 1 })
+      if (!db_districts || !db_districts.some(dist => dist.name === ibge_districts[key].nome)) {
+        const district_id = await trx('district')
+          .insert({ name: ibge_districts[key].nome, country_id: 1 })
           .then(row => (row[0] ? row[0] : null))
 
-        for (const key in cities) {
-          const has_city = await trx('city')
-            .where({ name: cities[key].nome })
-            .then(row => (row[0] ? row[0].city_id : null))
+        const result = await axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ibge_districts[key].id}/municipios`)
+        const ibge_cities: any[] = result.data
 
-          if (!has_city) insert_city.push({ name: cities[key].nome, district_id: district_id })
+        const db_cities: any[] = await trx('city').select('name')
+
+        for (const key in ibge_cities) {
+          if (!db_cities || !db_cities.some(city => city.name === ibge_cities[key].nome))
+            insert_cities.push({ name: ibge_cities[key].nome, district_id: district_id })
         }
       }
 
-      await trx('city').insert(insert_city)
+      await trx('city').insert(insert_cities)
     }
 
     await trx.commit()
   } catch (error) {
-    console.log('[WaARNNING] Seed 01 district/city failled')
+    console.log('[WaARNNING] Seed 01 district/city failled', error)
   }
 }
