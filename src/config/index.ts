@@ -153,6 +153,7 @@ class ConfigManager {
     this.captcha = config.captcha
     this.mail = config.mail
     this.logging = config.logging
+    this.environment = config.environment;
   }
 }
 
