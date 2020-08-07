@@ -121,18 +121,7 @@ export default class BaseUser {
     const trx = transaction || db
     await trx('user').del().where({ user_id: this.user_id })
   }
-
-  /**
-   * Validates the provided password with the user`s account and returns an access_token.
-   */
-  async login(password_provided: string) {
-    if (!(await argon.verify(`${this.password}`, `${password_provided}`))) throw new ArisError('Wrong password', 403)
-
-    const access_token = this.generateAccessToken()
-
-    return access_token
-  }
-
+  
   /**
    * generate an access_token for the user.
    */

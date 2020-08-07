@@ -142,6 +142,7 @@ class ConfigManager {
     this.captchaKey = config.captchaKey
     this.mail = config.mail
     this.logging = config.logging
+    this.environment = config.environment;
   }
 }
 
