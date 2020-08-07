@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 
-//Server
+// Server
 export interface OptionsConfig {
   key?: string
   certificate?: string
@@ -51,6 +51,12 @@ export interface JWTConfig {
   resetSecret: ''
 }
 
+// Captcha
+export interface CaptchaConfig {
+  use: boolean
+  key: string
+}
+
 // Mail
 export interface AuthConfig {
   user: string
@@ -64,12 +70,13 @@ export interface MailConfig {
 
 // Log
 export interface LoggingConfig {
+  use: boolean
   path: string
   filename: string
 }
 
 class ConfigManager {
-  environment: 'development' | 'production' | 'test' = 'development'
+  environment: 'development' | 'production' = 'development'
 
   server: ServerConfig = {
     root: '%CurrentDirectory%/../www',
@@ -112,7 +119,10 @@ class ConfigManager {
     resetSecret: ''
   }
 
-  captchaKey: string = ''
+  captcha: CaptchaConfig = {
+    use: true,
+    key: ''
+  }
 
   mail: MailConfig = {
     host: 'smtp.steamslab.com',
@@ -124,6 +134,7 @@ class ConfigManager {
   }
 
   logging: LoggingConfig = {
+    use: false,
     path: './logs/',
     filename: './latest.log'
   }
@@ -139,7 +150,7 @@ class ConfigManager {
     this.database = config.database
     this.redis = config.redis
     this.jwt = config.jwt
-    this.captchaKey = config.captchaKey
+    this.captcha = config.captcha
     this.mail = config.mail
     this.logging = config.logging
   }

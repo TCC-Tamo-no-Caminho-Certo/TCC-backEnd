@@ -12,8 +12,10 @@ import path from 'path'
 
 // Initialize External Modules
 
-logger.initializeLogger(config.logging.path, config.logging.filename)
-logger.info('Running ArisLabs Backend - ' + version.major + '.' + version.minor + '.' + version.patch + ' Build ' + version.build)
+if (config.logging.use) {
+  logger.initializeLogger(config.logging.path, config.logging.filename)
+  logger.info('Running ArisLabs Backend - ' + version.major + '.' + version.minor + '.' + version.patch + ' Build ' + version.build)
+}
 
 if (config.redis.use) {
   logger.info(`Using redis at ${config.redis.host}:${config.redis.port}`)
