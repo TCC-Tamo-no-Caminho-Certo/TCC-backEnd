@@ -1,6 +1,7 @@
 import forgetMail from '../../services/nodemailer/forgetPassword'
 import Role, { RoleTypes } from './roleModel'
 import ArisError from '../arisErrorModel'
+import redis from '../../services/redis'
 import { Transaction } from 'knex'
 import config from '../../config'
 import db from '../../database'
@@ -121,17 +122,20 @@ export default class BaseUser {
     const trx = transaction || db
     await trx('user').del().where({ user_id: this.user_id })
   }
-  
+
   /**
    * generate an access_token for the user.
    */
-  generateAccessToken() {
+  generateAccessToken(remember?: boolean) {
     const payload = { id: this.user_id, role: this.role }
 
-    return jwt.sign(payload, config.jwt.privateKey, {
+    const access_token = jwt.sign(payload, config.jwt.privateKey, {
       algorithm: 'RS256',
-      expiresIn: '24h'
+      expiresIn: remember ? '30d' : '24h'
     })
+    redis.client?.setex(`auth.${access_token}`, remember ? 2592000 : 86400, JSON.stringify(payload))
+
+    return access_token
   }
 
   /**
@@ -152,12 +156,10 @@ export default class BaseUser {
    * Updates the user`s password in the database.
    */
   static async resetPassword(token: string, password: string) {
-    const user_id = <any>jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
-      if (err) return err
+    const user_id = jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
+      if (err) throw new ArisError(err.name === 'TokenExpiredError' ? 'Token expired!' : 'Invalid token signature!', 401)
       return (<any>decoded).id
     })
-
-    if (typeof user_id === 'object') throw new ArisError(user_id.expiredAt ? 'Token expired!' : 'Invalid token signature!', 401)
 
     const hash = await argon.hash(password)
 

@@ -37,11 +37,10 @@ export interface DatabaseConfig {
 
 // Redis
 export interface RedisConfig {
-  use: boolean
   host: string
   port: number
   database: number
-  password?: string | null
+  password?: string
 }
 
 // JWT
@@ -106,11 +105,10 @@ class ConfigManager {
   }
 
   redis: RedisConfig = {
-    use: false,
     host: '127.0.0.1',
     port: 6379,
     database: 1,
-    password: null
+    password: undefined
   }
 
   jwt: JWTConfig = {
@@ -153,13 +151,13 @@ class ConfigManager {
     this.captcha = config.captcha
     this.mail = config.mail
     this.logging = config.logging
-    this.environment = config.environment;
+    this.environment = config.environment
   }
 }
 
-var configPath = path.join(path.dirname(__filename), '../../.config/server.json')
+let configPath = path.join(path.dirname(__filename), '../../.config/server.json')
 
-var processArgs = process.argv.slice(2)
+let processArgs = process.argv.slice(2)
 processArgs.forEach(arg => {
   if (arg.startsWith('--config-')) {
     arg = arg.replace('--config-', '')

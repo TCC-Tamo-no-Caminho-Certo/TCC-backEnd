@@ -17,10 +17,8 @@ if (config.logging.use) {
   logger.info('Running ArisLabs Backend - ' + version.major + '.' + version.minor + '.' + version.patch + ' Build ' + version.build)
 }
 
-if (config.redis.use) {
-  logger.info(`Using redis at ${config.redis.host}:${config.redis.port}`)
-  redis.initialize(config.redis.host, config.redis.port, config.redis.database, config.redis.password)
-}
+redis.initialize(config.redis.host, config.redis.port, config.redis.database, config.redis.password)
+logger.info(`Using redis at ${config.redis.host}:${config.redis.port}`)
 
 // App Configuration
 
@@ -53,7 +51,7 @@ config.server.endpoints.forEach((endpoint: EndpointConfig) => {
       logger?.info(`Listening on https://${endpoint.host}:${endpoint.port}`)
     } else {
       http.createServer(app).listen(endpoint.port, endpoint.host)
-      logger?.info(`Listening on http://${endpoint.host}:${endpoint.port}`)
+      logger.info(`Listening on http://${endpoint.host}:${endpoint.port}`)
     }
   }
 })
