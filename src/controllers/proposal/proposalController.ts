@@ -1,7 +1,7 @@
-import Proposal from '../../../models/proposal/proposalModel'
-import permission from '../../../middlewares/permission'
-import ArisError from '../../../models/arisErrorModel'
-import Data from '../../../models/dataModel'
+import Proposal from '../../models/proposal/proposalModel'
+import permission from '../../middlewares/permission'
+import ArisError from '../../models/arisErrorModel'
+import Data from '../../models/dataModel'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()

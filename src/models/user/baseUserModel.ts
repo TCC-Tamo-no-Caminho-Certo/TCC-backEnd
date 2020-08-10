@@ -1,7 +1,6 @@
 import forgetMail from '../../services/nodemailer/forgetPassword'
 import Role, { RoleTypes } from './roleModel'
 import ArisError from '../arisErrorModel'
-import redis from '../../services/redis'
 import { Transaction } from 'knex'
 import config from '../../config'
 import db from '../../database'
@@ -121,21 +120,6 @@ export default class BaseUser {
   async delete(transaction?: Transaction) {
     const trx = transaction || db
     await trx('user').del().where({ user_id: this.user_id })
-  }
-
-  /**
-   * generate an access_token for the user.
-   */
-  generateAccessToken(remember?: boolean) {
-    const payload = { id: this.user_id, role: this.role }
-
-    const access_token = jwt.sign(payload, config.jwt.privateKey, {
-      algorithm: 'RS256',
-      expiresIn: remember ? '30d' : '24h'
-    })
-    redis.client?.setex(`auth.${access_token}`, remember ? 2592000 : 86400, JSON.stringify(payload))
-
-    return access_token
   }
 
   /**

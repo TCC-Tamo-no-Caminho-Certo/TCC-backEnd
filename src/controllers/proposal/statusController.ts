@@ -1,8 +1,9 @@
-import Status from '../../../models/proposal/statusModel'
-import permission from '../../../middlewares/permission'
-import ArisError from '../../../models/arisErrorModel'
+import Status from '../../models/proposal/statusModel'
+import permission from '../../middlewares/permission'
+import ArisError from '../../models/arisErrorModel'
+import Data from '../../models/dataModel'
+
 import express, { Request, Response } from 'express'
-import Data from '../../../models/dataModel'
 const route = express.Router()
 
 route.post('/get', async (req: Request, res: Response) => {

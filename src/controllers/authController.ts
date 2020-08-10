@@ -1,22 +1,33 @@
+import { generateAccessToken, logout } from '../utils'
 import BaseUser from '../models/user/baseUserModel'
 import ArisError from '../models/arisErrorModel'
 import captcha from '../middlewares/recaptcha'
 import User from '../models/user/userModel'
 import Data from '../models/dataModel'
-import auth from '../middlewares/auth'
-import redis from '../services/redis'
-import jwt from 'jsonwebtoken'
-import config from '../config'
 import argon from 'argon2'
 
-import express, { Request, Response, Application } from 'express'
+import express, { Request, Response } from 'express'
 const route = express.Router()
 
-route.get('/validate-session', auth, async (req: Request, res: Response) => {
+route.get('/validate-session', async (req: Request, res: Response) => {
   try {
     return res.status(200).send({ success: true, message: 'Session validated!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Validate session')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+route.get('/logout', async (req: Request, res: Response) => {
+  try {
+    logout(req)
+
+    return res.status(200).send({
+      success: true,
+      message: 'User logged out!'
+    })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Logout')
     return res.status(result.status).send(result.send)
   }
 })
@@ -30,7 +41,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
 
     const user = new BaseUser(user_info)
     await user.insert()
-    const access_token = user.generateAccessToken()
+    const access_token = generateAccessToken(user)
 
     return res.status(200).send({
       success: true,
@@ -54,7 +65,7 @@ route.post('/login', captcha, async (req: Request, res: Response) => {
 
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
 
-    const access_token = user.generateAccessToken(remember_me)
+    const access_token = generateAccessToken(user, remember_me)
 
     return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
   } catch (error) {
@@ -91,4 +102,4 @@ route.post('/reset-password', async (req: Request, res: Response) => {
   }
 })
 
-export default (app: Application) => app.use('/api', route)
+export default route

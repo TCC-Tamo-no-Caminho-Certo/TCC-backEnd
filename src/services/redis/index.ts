@@ -2,7 +2,7 @@ import redis, { RedisClient } from 'redis'
 import logger from '../logger'
 
 class RedisManager {
-  public client: RedisClient | null = null
+  public client: RedisClient = <RedisClient>{}
 
   initialize(host: string, port: number, database: string | number, password?: string) {
     this.client = redis.createClient({
