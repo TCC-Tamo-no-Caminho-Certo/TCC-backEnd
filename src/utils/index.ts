@@ -2,7 +2,7 @@ import BaseUser from '../models/user/baseUserModel'
 import User from '../models/user/userModel'
 import redis from '../services/redis'
 import config from '../config'
-import jwt from 'jsonwebtoken'
+import { v4 as uuidv4 } from 'uuid';
 
 import { Request } from 'express'
 
@@ -12,15 +12,16 @@ import { Request } from 'express'
  * generate an access_token for the user.
  */
 export function generateAccessToken(user: BaseUser | User, remember?: boolean) {
-  const payload = { id: user.user_id, role: user.role }
-
-  const access_token = jwt.sign(payload, config.jwt.privateKey, {
-    algorithm: 'RS256',
-    expiresIn: remember ? '30d' : '24h'
-  })
-  redis.client.setex(`auth.${access_token}`, remember ? 2592000 : 86400, JSON.stringify(payload))
-
-  return access_token
+  const token = uuidv4();
+  redis.client.setex(
+    `auth.${token}`,
+    remember ? 2592000 : 86400,
+    JSON.stringify({
+      id: user.user_id,
+      role: user.role,
+    })
+  );
+  return token
 }
 
 export function logout(req: Request) {
