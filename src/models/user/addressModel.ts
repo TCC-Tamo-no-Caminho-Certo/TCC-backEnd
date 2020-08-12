@@ -26,7 +26,7 @@ export default class Address {
   }
 
   /**
-   * Inserts this address in the database.
+   * Inserts this address on the database.
    */
   async insert(transaction?: Transaction) {
     const trx = transaction || (await db.transaction())

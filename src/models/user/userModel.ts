@@ -1,4 +1,3 @@
-import forgetMail from '../../services/nodemailer/forgetPassword'
 import BaseUser, { ArisBaseUser } from './baseUserModel'
 import Address, { ArisAddress } from './addressModel'
 import Role, { RoleTypes } from './roleModel'
@@ -6,10 +5,12 @@ import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
 import db from '../../database'
 import Data from '../dataModel'
+import argon from 'argon2'
 
 export interface UpdateUserObj {
   name?: string
   surname?: string
+  password?: string
   phone?: string
   address_info?: ArisAddress
 }
@@ -38,7 +39,7 @@ export default class User extends BaseUser {
   /**
    * Updates this user in the database.
    */
-  async update({ name, surname, phone, address_info }: UpdateUserObj, transaction?: Transaction) {
+  async update({ name, surname, password, phone, address_info }: UpdateUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
 
@@ -62,6 +63,12 @@ export default class User extends BaseUser {
     if (surname) {
       update_list.surname = surname
       this.surname = surname
+      update++
+    }
+    if (password) {
+      const hash = await argon.hash(password)
+      update_list.password = hash
+      this.password = hash
       update++
     }
     if (phone) {

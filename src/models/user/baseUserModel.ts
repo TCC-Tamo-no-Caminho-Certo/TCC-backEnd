@@ -1,15 +1,13 @@
-import forgetMail from '../../services/nodemailer/forgetPassword'
 import Role, { RoleTypes } from './roleModel'
 import ArisError from '../arisErrorModel'
 import { Transaction } from 'knex'
-import config from '../../config'
 import db from '../../database'
-import jwt from 'jsonwebtoken'
 import argon from 'argon2'
 
 export interface UpdateBaseUserObj {
   name?: string
   surname?: string
+  password?: string
 }
 
 export interface ArisBaseUser {
@@ -89,7 +87,7 @@ export default class BaseUser {
   /**
    * Updates this user in the database.
    */
-  async update({ name, surname }: UpdateBaseUserObj, transaction?: Transaction) {
+  async update({ name, surname, password }: UpdateBaseUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
 
@@ -107,6 +105,12 @@ export default class BaseUser {
       this.surname = surname
       update++
     }
+    if (password) {
+      const hash = await argon.hash(password)
+      update_list.password = hash
+      this.password = hash
+      update++
+    }
 
     if (update)
       await trx('user')
@@ -120,36 +124,6 @@ export default class BaseUser {
   async delete(transaction?: Transaction) {
     const trx = transaction || db
     await trx('user').del().where({ user_id: this.user_id })
-  }
-
-  /**
-   * Sends an email for the user with a link to reset his password.
-   */
-  static async forgotPassword(email: string) {
-    const id = await BaseUser.exist(email)
-    if (!id) throw new ArisError('User don`t exist!', 403)
-
-    const ResetPasswordToken = jwt.sign({ id }, config.jwt.resetSecret, { expiresIn: '1h' })
-
-    // await forgetMail({ email }, err => { if (err) { Error: 'Couldn`t send email!' } })// have to send a link with the token above
-
-    return ResetPasswordToken // have to pop this up later
-  }
-
-  /**
-   * Updates the user`s password in the database.
-   */
-  static async resetPassword(token: string, password: string) {
-    const user_id = jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
-      if (err) throw new ArisError(err.name === 'TokenExpiredError' ? 'Token expired!' : 'Invalid token signature!', 401)
-      return (<any>decoded).id
-    })
-
-    const hash = await argon.hash(password)
-
-    await db('user').update({ password: hash }).where({ user_id })
-
-    return { id: user_id, hash }
   }
 
   /**

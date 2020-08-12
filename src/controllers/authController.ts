@@ -1,4 +1,4 @@
-import { generateAccessToken, logout } from '../utils'
+import { generateAccessToken, logout, forgotPassword, resetPassword } from '../utils'
 import BaseUser from '../models/user/baseUserModel'
 import ArisError from '../models/arisErrorModel'
 import captcha from '../middlewares/recaptcha'
@@ -80,9 +80,9 @@ route.post('/forgot-password', async (req: Request, res: Response) => {
   try {
     Data.validate({ email }, 'forgot_password')
 
-    const ResetPasswordToken = await User.forgotPassword(<string>email)
+    await forgotPassword(<string>email)
 
-    return res.status(200).send({ success: true, message: 'Email sended!', ResetPasswordToken })
+    return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Change password')
     return res.status(result.status).send(result.send)
@@ -93,7 +93,7 @@ route.post('/reset-password', async (req: Request, res: Response) => {
   const { token, password } = req.body
 
   try {
-    const result = await User.resetPassword(token, password)
+    const result = await resetPassword(token, password)
 
     return res.status(200).send({ success: true, message: 'Password changed!', ...result })
   } catch (error) {

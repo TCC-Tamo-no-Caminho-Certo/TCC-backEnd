@@ -114,8 +114,8 @@ export default class Data {
     const schema_list = {
       base_user_register: joi.object({
         email: joi.string().email().required(),
-        name: joi.string().regex(/^[a-záàâãéèêíïóôõöúçñ\s]{2,}$/i).required(),
-        surname: joi.string().regex(/^[a-záàâãéèêíïóôõöúçñ\s]{2,}$/i).required(),
+        name: joi.string().regex(/^([a-zà-ú]\s?)+$/i).required(),
+        surname: joi.string().regex(/^([a-zà-ú]\s?)+$/i).required(),
         password: joi.string().required(),
         birthday: joi.string().regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/).required()
       }),
@@ -126,14 +126,14 @@ export default class Data {
       }),
 
       user_patch: joi.object({
-        name: joi.string().regex(/^[a-záàâãéèêíïóôõöúçñ\s]{2,}$/i).allow(null),
-        surname: joi.string().regex(/^[a-záàâãéèêíïóôõöúçñ\s]{2,}$/i).allow(null),
+        name: joi.string().regex(/^([a-zà-ú]\s?)+$/i).allow(null),
+        surname: joi.string().regex(/^([a-zà-ú]\s?)+$/i).allow(null),
         phone: joi.string().regex(/^\(\d\d\)\d{5}-\d{4}$/).allow(null)
       }),
 
       user_patch_address: joi
         .object({
-          city: joi.string().regex(/^[a-záàâãéèêíïóôõöúçñ\s]{2,}$/i),
+          city: joi.string().regex(/^([a-zà-ú]\s?)+$/i),
           address: joi.string(),
           postal_code: joi.string().regex(/^\d{5}-\d{3}$/)
         })
@@ -150,7 +150,7 @@ export default class Data {
       }),
 
       address: joi.object({
-        city: joi.string().required().regex(/^[a-záàâãéèêíïóôõöúçñ\s]{2,}$/i),
+        city: joi.string().required().regex(/^([a-zà-ú]\s?)+$/i),
         address: joi.string().required(),
         postal_code: joi.string().required().regex(/^\d{5}-\d{3}$/)
       }),
