@@ -1,10 +1,25 @@
-import { generateAccessToken, logout } from '../../utils'
-import ArisError from '../../models/arisErrorModel'
+import { generateAccessToken, logout } from '../../utils/user'
+
+import ArisError from '../../utils/arisError'
 import User from '../../models/user/userModel'
-import Data from '../../models/dataModel'
+import Data from '../../utils/data'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
+
+route.get('/get', async (req: Request, res: Response) => {
+  const { _user_id } = req.body
+
+  try {
+    const user = await User.getUser(_user_id)
+    delete user.password
+
+    return res.status(200).send({ success: true, message: 'Complete register authorized!', user })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Get user info')
+    return res.status(result.status).send(result.send)
+  }
+})
 
 route.post('/complete-register', async (req: Request, res: Response) => {
   const { _user_id, city, address, postal_code, phone, role } = req.body

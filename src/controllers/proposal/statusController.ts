@@ -1,12 +1,12 @@
 import Status from '../../models/proposal/statusModel'
 import permission from '../../middlewares/permission'
-import ArisError from '../../models/arisErrorModel'
-import Data from '../../models/dataModel'
+import ArisError from '../../utils/arisError'
+import Data from '../../utils/data'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
 
-route.post('/get', async (req: Request, res: Response) => {
+route.get('/get', async (req: Request, res: Response) => {
   try {
     const status = await Status.get.allStatus()
     res.status(200).send({ success: true, message: 'Fecth complete!', status })

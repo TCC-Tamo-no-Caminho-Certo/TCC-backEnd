@@ -1,15 +1,11 @@
 import forgetMail from '../services/nodemailer/forgetPassword'
 import BaseUser from '../models/user/baseUserModel'
-import ArisError from '../models/arisErrorModel'
 import User from '../models/user/userModel'
 import redis from '../services/redis'
 import { v4 as uuidv4 } from 'uuid'
-import config from '../config'
-import jwt from 'jsonwebtoken'
+import ArisError from './arisError'
 
 import { Request } from 'express'
-
-//----------------------------------------- ARQUIVO TEMPORÁRIO ATÉ DECIDIR O Q FAZER -------------------------------------------------------
 
 /**
  * Generate an access_token for the user.
@@ -44,7 +40,7 @@ export async function forgotPassword(email: string) {
   const id = await User.exist(email)
   if (!id) throw new ArisError('User don`t exist!', 403)
 
-  const token = jwt.sign({ id }, config.jwt.resetSecret, { expiresIn: '1h' })
+  const token = uuidv4()
 
   await forgetMail({ to: email, token, link: 'link' })
 
@@ -55,9 +51,10 @@ export async function forgotPassword(email: string) {
  * Updates the user`s password in the database.
  */
 export async function resetPassword(token: string, password: string) {
-  const id: any = jwt.verify(token, config.jwt.resetSecret, (err, decoded) => {
-    if (err) throw new ArisError(err.name === 'TokenExpiredError' ? 'Token expired!' : 'Invalid token signature!', 401)
-    return (<any>decoded).id
+  const id: any = redis.client.get(`reset.${token}`, (err, reply) => {
+    if (err) throw new ArisError('Redis reset error!', 500)
+    if (!reply) throw new ArisError('Invalid token!', 403)
+    return reply
   })
 
   const user = await User.getUser(id)
@@ -65,4 +62,17 @@ export async function resetPassword(token: string, password: string) {
   redis.client.del(`reset.${token}`)
 
   return { id, hash: user.password }
+}
+
+export async function confirmRegister(token: string) {
+  const user_info: any = redis.client.get(`register.${token}`, (err, reply) => {
+    if (err) throw new ArisError('Redis register error!', 500)
+    if (!reply) throw new ArisError('Invalid token!', 403)
+
+    return JSON.parse(reply)
+  })
+  const user = new BaseUser(user_info)
+  await user.insert()
+
+  return user
 }

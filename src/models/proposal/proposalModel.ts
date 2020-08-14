@@ -1,10 +1,10 @@
-import ArisError from '../arisErrorModel'
+import ArisError from '../../utils/arisError'
 import Category from './categoryModel'
 import Artefact from './artefactModel'
+import Data from '../../utils/data'
 import Status from './statusModel'
 import { Transaction } from 'knex'
 import db from '../../database'
-import Data from '../dataModel'
 
 interface Filters {
   ids?: number[]

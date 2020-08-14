@@ -1,10 +1,10 @@
 import BaseUser, { ArisBaseUser } from './baseUserModel'
 import Address, { ArisAddress } from './addressModel'
 import Role, { RoleTypes } from './roleModel'
-import ArisError from '../arisErrorModel'
+import ArisError from '../../utils/arisError'
+import Data from '../../utils/data'
 import { Transaction } from 'knex'
 import db from '../../database'
-import Data from '../dataModel'
 import argon from 'argon2'
 
 export interface UpdateUserObj {

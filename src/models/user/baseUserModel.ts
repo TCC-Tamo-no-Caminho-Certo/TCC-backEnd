@@ -1,5 +1,5 @@
 import Role, { RoleTypes } from './roleModel'
-import ArisError from '../arisErrorModel'
+import ArisError from '../../utils/arisError'
 import { Transaction } from 'knex'
 import db from '../../database'
 import argon from 'argon2'

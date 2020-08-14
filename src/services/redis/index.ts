@@ -1,5 +1,15 @@
 import redis, { RedisClient } from 'redis'
+import Promise from 'bluebird'
 import logger from '../logger'
+
+Promise.promisifyAll(redis.RedisClient.prototype)
+
+declare module 'redis' {
+  export interface RedisClient extends NodeJS.EventEmitter {
+    setAsync(key: string, value: string): Promise<void>
+    getAsync(key: string): Promise<string>
+  }
+}
 
 class RedisManager {
   public client: RedisClient = <RedisClient>{}

@@ -11,7 +11,7 @@ export default (req: Request, res: Response, next: NextFunction) => {
   const [bearer, token] = parts
   if (!/^Bearer$/i.test(bearer)) return res.status(403).json({ success: false, message: 'Token malformated!' })
 
-  redis.client.get(`auth.${token}`, function (err, reply) {
+  redis.client.get(`auth.${token}`, (err, reply) => {
     if (err) return res.status(500).json({ success: false, message: 'Redis auth error!' })
     if (!reply) return res.status(403).json({ success: false, message: 'Invalid token!' })
 

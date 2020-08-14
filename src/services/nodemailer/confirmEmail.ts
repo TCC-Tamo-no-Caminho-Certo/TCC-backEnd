@@ -12,6 +12,6 @@ export default async ({ to, token, link }: MailConfig) =>
             token: ${token}`
     },
     err => {
-      if (err) throw new ArisError('Couldn´t send reset password email!', 500)
+      if (err) throw new ArisError('Couldn´t send email for confirm email!', 500)
     }
   )

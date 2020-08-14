@@ -99,13 +99,15 @@ export default class Data {
     }
 
     return list
-  }
+  } // move to proposal utils!
 
   static parseDatetime(data: any) {
     const created: Date = data.created_at
     const updated: Date = data.updated_at
+    const birthday: Date = data.birthday
     if (created) data.created_at = created.toISOString().slice(0, 19).replace('T', ' ')
     if (updated) data.updated_at = updated.toISOString().slice(0, 19).replace('T', ' ')
+    if (birthday) data.birthday = birthday.toISOString().slice(0, 10)
     return data
   }
 
@@ -147,6 +149,10 @@ export default class Data {
 
       forgot_password: joi.object({
         email: joi.string().email().required()
+      }),
+
+      reset_password: joi.object({
+        password: joi.string().required()
       }),
 
       address: joi.object({

@@ -1,6 +1,4 @@
-import nodemailer from 'nodemailer'
-import config from '../../config'
+import forgetPassword from './forgetPassword'
+import confirmEmail from './confirmEmail'
 
-const transport = nodemailer.createTransport(config.mail)
-
-export default transport
+export { forgetPassword, confirmEmail }
