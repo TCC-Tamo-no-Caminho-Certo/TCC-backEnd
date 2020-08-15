@@ -1,7 +1,7 @@
-import { generateAccessToken, logout } from '../../utils/user'
 
 import ArisError from '../../utils/arisError'
 import User from '../../models/user/userModel'
+import UserUtils from '../../utils/user'
 import Data from '../../utils/data'
 
 import express, { Request, Response } from 'express'
@@ -32,8 +32,8 @@ route.post('/complete-register', async (req: Request, res: Response) => {
 
     const user = await User.getUser(_user_id)
     const aris_user = await User.completeRegister(user, address_info, role, phone)
-    logout(req)
-    const access_token = generateAccessToken(aris_user)
+    UserUtils.logout(req)
+    const access_token = UserUtils.generateAccessToken(aris_user)
 
     return res.status(200).send({ success: true, message: 'Complete register authorized!', user: aris_user, access_token })
   } catch (error) {

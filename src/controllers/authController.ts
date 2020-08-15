@@ -1,11 +1,10 @@
-import { generateAccessToken, logout } from '../utils/user'
-import { confirmEmail, forgetPassword } from '../services/nodemailer'
-
 import BaseUser from '../models/user/baseUserModel'
 import captcha from '../middlewares/recaptcha'
 import User from '../models/user/userModel'
 import ArisError from '../utils/arisError'
+import Mail from '../services/nodemailer'
 import redis from '../services/redis'
+import UserUtils from '../utils/user'
 import { v4 as uuidv4 } from 'uuid'
 import Data from '../utils/data'
 import argon from 'argon2'
@@ -24,7 +23,7 @@ route.get('/validate-session', async (req: Request, res: Response) => {
 
 route.get('/logout', async (req: Request, res: Response) => {
   try {
-    logout(req)
+    UserUtils.logout(req)
 
     return res.status(200).send({
       success: true,
@@ -46,7 +45,7 @@ route.post('/login', captcha, async (req: Request, res: Response) => {
 
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
 
-    const access_token = generateAccessToken(user, remember_me)
+    const access_token = UserUtils.generateAccessToken(user, remember_me)
 
     return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
   } catch (error) {
@@ -64,7 +63,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
 
     const token = uuidv4()
     redis.client.setex(`register.${token}`, 86400, JSON.stringify(user_info))
-    await confirmEmail({ to: email, token, link: 'link' })
+    await Mail.confirmEmail({ to: email, token, link: 'link' })
 
     return res.status(200).send({
       success: true,
@@ -76,8 +75,8 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/confirm-register/:token', async (req: Request, res: Response) => {
-  const token = req.params.token
+route.post('/confirm-register', async (req: Request, res: Response) => {
+  const { token } = req.body.token
 
   try {
     const reply = await redis.client.getAsync(`register.${token}`)
@@ -86,7 +85,7 @@ route.post('/confirm-register/:token', async (req: Request, res: Response) => {
 
     const user = new BaseUser(user_info)
     await user.insert()
-    const access_token = generateAccessToken(user)
+    const access_token = UserUtils.generateAccessToken(user)
 
     redis.client.del(`register.${token}`)
 
@@ -112,10 +111,8 @@ route.post('/forgot-password', async (req: Request, res: Response) => {
     if (!id) throw new ArisError('User don`t exist!', 403)
 
     const token = uuidv4()
-
-    await forgetPassword({ to: email, token, link: 'link' })
-
     redis.client.setex(`reset.${token}`, 3600, id.toString())
+    await Mail.forgetPass({ to: email, token, link: 'link' })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
