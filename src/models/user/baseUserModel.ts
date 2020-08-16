@@ -120,6 +120,8 @@ export default class BaseUser {
    */
   async delete(transaction?: Transaction) {
     const trx = transaction || db
+    
+    await trx('role_user').del().where({ user_id: this.user_id })
     await trx('user').del().where({ user_id: this.user_id })
   }
 

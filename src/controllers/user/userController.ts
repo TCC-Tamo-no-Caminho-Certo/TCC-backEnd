@@ -1,4 +1,3 @@
-
 import ArisError from '../../utils/arisError'
 import User from '../../models/user/userModel'
 import UserUtils from '../../utils/user'
@@ -57,6 +56,21 @@ route.post('/update', async (req: Request, res: Response) => {
     return res.status(200).send({ success: true, message: 'Update authorized!', user })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Update')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+route.get('/delete', async (req: Request, res: Response) => {
+  const { _user_id } = req.body
+
+  try {
+    const user = await User.getUser(_user_id)
+    await user.delete()
+    UserUtils.logout(req)
+
+    return res.status(200).send({ success: true, message: 'Delete complete!', user })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Delete')
     return res.status(result.status).send(result.send)
   }
 })
