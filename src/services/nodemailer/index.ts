@@ -1,7 +1,7 @@
-import forgetPassword from './forgetPassword'
+import forgotPassword from './forgotPassword'
 import confirmEmail from './confirmEmail'
 
 export default class Mail {
-  static forgetPass = forgetPassword
+  static forgotPass = forgotPassword
   static confirmEmail = confirmEmail
 }

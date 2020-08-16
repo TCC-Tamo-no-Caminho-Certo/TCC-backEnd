@@ -55,9 +55,6 @@ export default class BaseUser {
     this.created_at = date
     this.updated_at = date
 
-    const hasUser = await BaseUser.exist(this.email)
-    if (hasUser) throw new ArisError('User already exists', 400)
-
     const trx = await db.transaction()
 
     const role = await Role.getRole(this.role, trx)

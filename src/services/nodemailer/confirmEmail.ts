@@ -8,7 +8,7 @@ export default async ({ to, token, link }: MailConfig) =>
       to: to,
       subject: 'Hello ✔',
       text: '',
-      html: `<a>${link}</a>
+      html: `<a href="dev.steamslab.com/confirm-email/${token}">${link}</a>
             token: ${token}`
     },
     err => {

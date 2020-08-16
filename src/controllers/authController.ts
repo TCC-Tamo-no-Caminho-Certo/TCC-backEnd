@@ -25,10 +25,7 @@ route.get('/logout', async (req: Request, res: Response) => {
   try {
     UserUtils.logout(req)
 
-    return res.status(200).send({
-      success: true,
-      message: 'User logged out!'
-    })
+    return res.status(200).send({ success: true, message: 'User logged out!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Logout')
     return res.status(result.status).send(result.send)
@@ -61,14 +58,14 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   try {
     Data.validate(user_info, 'base_user_register')
 
+    const hasUser = await BaseUser.exist(email)
+    if (hasUser) throw new ArisError('User already exists', 400)
+
     const token = uuidv4()
     redis.client.setex(`register.${token}`, 86400, JSON.stringify(user_info))
     await Mail.confirmEmail({ to: email, token, link: 'link' })
 
-    return res.status(200).send({
-      success: true,
-      message: 'Email sended!'
-    })
+    return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Registration')
     return res.status(result.status).send(result.send)
@@ -76,7 +73,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
 })
 
 route.post('/confirm-register', async (req: Request, res: Response) => {
-  const { token } = req.body.token
+  const { token } = req.body
 
   try {
     const reply = await redis.client.getAsync(`register.${token}`)
@@ -92,7 +89,6 @@ route.post('/confirm-register', async (req: Request, res: Response) => {
     return res.status(200).send({
       success: true,
       message: 'Registration complete!',
-      user,
       access_token
     })
   } catch (error) {
@@ -112,7 +108,7 @@ route.post('/forgot-password', async (req: Request, res: Response) => {
 
     const token = uuidv4()
     redis.client.setex(`reset.${token}`, 3600, id.toString())
-    await Mail.forgetPass({ to: email, token, link: 'link' })
+    await Mail.forgotPass({ to: email, token, link: 'link' })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
@@ -136,7 +132,7 @@ route.post('/reset-password', async (req: Request, res: Response) => {
 
     redis.client.del(`reset.${token}`)
 
-    return res.status(200).send({ success: true, message: 'Password changed!', id, password: user.password })
+    return res.status(200).send({ success: true, message: 'Password changed!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Change password!')
     return res.status(result.status).send(result.send)
