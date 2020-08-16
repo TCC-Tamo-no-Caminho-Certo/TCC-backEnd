@@ -95,8 +95,8 @@ export default class User extends BaseUser {
    */
   async delete() {
     const trx = await db.transaction()
-    if (this.role !== 'admin') trx(this.role).del().where({ user_id: this.user_id })
-    super.delete(trx)
+    if (this.role !== 'admin') await trx(this.role).del().where({ user_id: this.user_id })
+    await super.delete(trx)
     await trx.commit()
   }
 

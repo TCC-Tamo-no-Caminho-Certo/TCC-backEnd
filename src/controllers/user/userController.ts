@@ -13,7 +13,7 @@ route.get('/get', async (req: Request, res: Response) => {
     const user = await User.getUser(_user_id)
     delete user.password
 
-    return res.status(200).send({ success: true, message: 'Complete register authorized!', user })
+    return res.status(200).send({ success: true, message: 'Get user info complete!', user })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Get user info')
     return res.status(result.status).send(result.send)
@@ -27,14 +27,14 @@ route.post('/complete-register', async (req: Request, res: Response) => {
 
   try {
     Data.validate(address_info, 'address')
-    Data.validate(user_info, 'complete_user_register')
+    Data.validate(user_info, 'complete_register')
 
     const user = await User.getUser(_user_id)
     const aris_user = await User.completeRegister(user, address_info, role, phone)
     UserUtils.logout(req)
     const access_token = UserUtils.generateAccessToken(aris_user)
 
-    return res.status(200).send({ success: true, message: 'Complete register authorized!', user: aris_user, access_token })
+    return res.status(200).send({ success: true, message: 'Complete register complete!', user: aris_user, access_token })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Complete register')
     return res.status(result.status).send(result.send)
@@ -53,7 +53,7 @@ route.post('/update', async (req: Request, res: Response) => {
     const user = await User.getUser(_user_id)
     await user.update({ name, surname, phone, address_info })
 
-    return res.status(200).send({ success: true, message: 'Update authorized!', user })
+    return res.status(200).send({ success: true, message: 'Update complete!', user })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)

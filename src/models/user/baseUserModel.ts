@@ -120,13 +120,13 @@ export default class BaseUser {
    */
   async delete(transaction?: Transaction) {
     const trx = transaction || db
-    
+
     await trx('role_user').del().where({ user_id: this.user_id })
     await trx('user').del().where({ user_id: this.user_id })
   }
 
   /**
-   * Checks if an user (email) is already registered.
+   * Checks if an user (email) is already registered, and returns its id if so.
    */
   static async exist(email: string) {
     const user_id: number = await db('user')

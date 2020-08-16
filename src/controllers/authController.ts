@@ -36,12 +36,10 @@ route.post('/login', captcha, async (req: Request, res: Response) => {
   const { email, password, remember_me } = req.body
 
   try {
-    Data.validate({ email, password }, 'user_login')
+    Data.validate({ email, password }, 'login')
 
     const user = await User.getUser(email)
-
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
-
     const access_token = UserUtils.generateAccessToken(user, remember_me)
 
     return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
@@ -56,7 +54,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   const user_info = { name, surname, email, birthday, password }
 
   try {
-    Data.validate(user_info, 'base_user_register')
+    Data.validate(user_info, 'register')
 
     const hasUser = await BaseUser.exist(email)
     if (hasUser) throw new ArisError('User already exists', 400)
@@ -86,11 +84,7 @@ route.post('/confirm-register', async (req: Request, res: Response) => {
 
     redis.client.del(`register.${token}`)
 
-    return res.status(200).send({
-      success: true,
-      message: 'Registration complete!',
-      access_token
-    })
+    return res.status(200).send({ success: true, message: 'Register complete!', access_token })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Confirm registration')
     return res.status(result.status).send(result.send)

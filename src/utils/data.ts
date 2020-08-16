@@ -114,7 +114,7 @@ export default class Data {
   // Client data
   static validate(data: Object, type: keyof typeof schema_list) {
     const schema_list = {
-      base_user_register: joi.object({
+      register: joi.object({
         email: joi.string().email().required(),
         name: joi.string().regex(/^([a-zà-ú]\s?)+$/i).required(),
         surname: joi.string().regex(/^([a-zà-ú]\s?)+$/i).required(),
@@ -122,7 +122,7 @@ export default class Data {
         birthday: joi.string().regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/).required()
       }),
 
-      complete_user_register: joi.object({
+      complete_register: joi.object({
         phone: joi.string().regex(/^\(\d\d\)\d{5}-\d{4}$/).allow(null),
         role: joi.string().equal('professor', 'student', 'customer').required()
       }),
@@ -142,7 +142,7 @@ export default class Data {
         .with('address', 'city')
         .with('address', 'postal_code'),
 
-      user_login: joi.object({
+      login: joi.object({
         email: joi.string().email().required(),
         password: joi.string().required()
       }),
