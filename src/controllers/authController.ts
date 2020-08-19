@@ -56,7 +56,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   try {
     Data.validate(user_info, 'register')
 
-    const hasUser = await BaseUser.exist(email)
+    const hasUser = await User.exist(email)
     if (hasUser) throw new ArisError('User already exists', 400)
 
     const token = uuidv4()
@@ -74,6 +74,8 @@ route.post('/confirm-register', async (req: Request, res: Response) => {
   const { token } = req.body
 
   try {
+    Data.validate({ token }, 'token')
+
     const reply = await redis.client.getAsync(`register.${token}`)
     if (!reply) throw new ArisError('Invalid token!', 403)
     const user_info = JSON.parse(reply)
@@ -91,7 +93,7 @@ route.post('/confirm-register', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/forgot-password', async (req: Request, res: Response) => {
+route.post('/forgot-password', captcha, async (req: Request, res: Response) => {
   const { email } = req.body
 
   try {
@@ -116,10 +118,13 @@ route.post('/reset-password', async (req: Request, res: Response) => {
 
   try {
     Data.validate({ password }, 'reset_password')
+    Data.validate({ token }, 'token')
 
     const reply = await redis.client.getAsync(`reset.${token}`)
     if (!reply) throw new ArisError('Invalid token!', 403)
     const id = parseInt(reply)
+
+    if (!password) throw new ArisError('Password not provided!0', 403)
 
     const user = await User.getUser(id)
     await user.update({ password })

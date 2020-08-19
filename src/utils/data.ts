@@ -114,6 +114,8 @@ export default class Data {
   // Client data
   static validate(data: Object, type: keyof typeof schema_list) {
     const schema_list = {
+      token: joi.string(),
+      
       register: joi.object({
         email: joi.string().email().required(),
         name: joi.string().regex(/^([a-zà-ú]\s?)+$/i).required(),

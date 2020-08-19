@@ -48,12 +48,15 @@ export default class BaseUser {
   }
 
   /**
-   * Inserts this user in the database.
+   * Inserts this user in the database, if doesn't already registered.
    */
   async insert() {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.created_at = date
     this.updated_at = date
+
+    const hasUser = await BaseUser.exist(this.email)
+    if (hasUser) throw new ArisError('User already exists', 400)
 
     const trx = await db.transaction()
 

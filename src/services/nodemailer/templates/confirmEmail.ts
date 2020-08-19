@@ -1,5 +1,5 @@
-import transport, { MailConfig } from './transport'
-import ArisError from '../../utils/arisError'
+import transport, { MailConfig } from '../transport'
+import ArisError from '../../../utils/arisError'
 
 export default async ({ to, token, link }: MailConfig) =>
   transport.sendMail(

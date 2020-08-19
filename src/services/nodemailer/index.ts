@@ -1,5 +1,5 @@
-import forgotPassword from './forgotPassword'
-import confirmEmail from './confirmEmail'
+import forgotPassword from './templates/forgotPassword'
+import confirmEmail from './templates/confirmEmail'
 
 export default class Mail {
   static forgotPass = forgotPassword
