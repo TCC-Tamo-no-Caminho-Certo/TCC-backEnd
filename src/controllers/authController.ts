@@ -65,7 +65,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
-    const result = ArisError.errorHandler(error, 'Registration')
+    const result = ArisError.errorHandler(error, 'Send email')
     return res.status(result.status).send(result.send)
   }
 })
@@ -108,7 +108,7 @@ route.post('/forgot-password', captcha, async (req: Request, res: Response) => {
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
-    const result = ArisError.errorHandler(error, 'Change password')
+    const result = ArisError.errorHandler(error, 'Send email')
     return res.status(result.status).send(result.send)
   }
 })
@@ -124,7 +124,7 @@ route.post('/reset-password', async (req: Request, res: Response) => {
     if (!reply) throw new ArisError('Invalid token!', 403)
     const id = parseInt(reply)
 
-    if (!password) throw new ArisError('Password not provided!0', 403)
+    if (!password) return res.status(200).send({ success: true, message: 'Valid reset token!' })
 
     const user = await User.getUser(id)
     await user.update({ password })
@@ -133,7 +133,7 @@ route.post('/reset-password', async (req: Request, res: Response) => {
 
     return res.status(200).send({ success: true, message: 'Password changed!' })
   } catch (error) {
-    const result = ArisError.errorHandler(error, 'Change password!')
+    const result = ArisError.errorHandler(error, 'Change password')
     return res.status(result.status).send(result.send)
   }
 })

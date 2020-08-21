@@ -33,7 +33,6 @@ interface ProposalList {
 }
 
 export default class Data {
-
   // DB data
   static processing(proposals: any[]) {
     const list: ProposalList[] = []
@@ -114,25 +113,48 @@ export default class Data {
   // Client data
   static validate(data: Object, type: keyof typeof schema_list) {
     const schema_list = {
-      token: joi.string(),
-      
+      token: joi.object({
+        token: joi.string().required()
+      }),
+
       register: joi.object({
         email: joi.string().email().required(),
-        name: joi.string().regex(/^([a-zà-ú]\s?)+$/i).required(),
-        surname: joi.string().regex(/^([a-zà-ú]\s?)+$/i).required(),
+        name: joi
+          .string()
+          .regex(/^([a-zà-ú]\s?)+$/i)
+          .required(),
+        surname: joi
+          .string()
+          .regex(/^([a-zà-ú]\s?)+$/i)
+          .required(),
         password: joi.string().required(),
-        birthday: joi.string().regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/).required()
+        birthday: joi
+          .string()
+          .regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/)
+          .required()
       }),
 
       complete_register: joi.object({
-        phone: joi.string().regex(/^\(\d\d\)\d{5}-\d{4}$/).allow(null),
+        phone: joi
+          .string()
+          .regex(/^\(\d\d\)\d{5}-\d{4}$/)
+          .allow(null),
         role: joi.string().equal('professor', 'student', 'customer').required()
       }),
 
       user_patch: joi.object({
-        name: joi.string().regex(/^([a-zà-ú]\s?)+$/i).allow(null),
-        surname: joi.string().regex(/^([a-zà-ú]\s?)+$/i).allow(null),
-        phone: joi.string().regex(/^\(\d\d\)\d{5}-\d{4}$/).allow(null)
+        name: joi
+          .string()
+          .regex(/^([a-zà-ú]\s?)+$/i)
+          .allow(null),
+        surname: joi
+          .string()
+          .regex(/^([a-zà-ú]\s?)+$/i)
+          .allow(null),
+        phone: joi
+          .string()
+          .regex(/^\(\d\d\)\d{5}-\d{4}$/)
+          .allow(null)
       }),
 
       user_patch_address: joi
@@ -154,13 +176,19 @@ export default class Data {
       }),
 
       reset_password: joi.object({
-        password: joi.string().required()
+        password: joi.string()
       }),
 
       address: joi.object({
-        city: joi.string().required().regex(/^([a-zà-ú]\s?)+$/i),
+        city: joi
+          .string()
+          .required()
+          .regex(/^([a-zà-ú]\s?)+$/i),
         address: joi.string().required(),
-        postal_code: joi.string().required().regex(/^\d{5}-\d{3}$/)
+        postal_code: joi
+          .string()
+          .required()
+          .regex(/^\d{5}-\d{3}$/)
       }),
 
       proposal_get: joi.object({
