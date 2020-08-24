@@ -70,8 +70,8 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/confirm-register', async (req: Request, res: Response) => {
-  const { token } = req.body
+route.get('/confirm-register/:token', async (req: Request, res: Response) => {
+  const { token } = req.params
 
   try {
     Data.validate({ token }, 'token')
@@ -113,11 +113,10 @@ route.post('/forgot-password', captcha, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/reset-password', async (req: Request, res: Response) => {
+route.post('/reset-password', captcha, async (req: Request, res: Response) => {
   const { token, password } = req.body
 
   try {
-    Data.validate({ password }, 'reset_password')
     Data.validate({ token }, 'token')
 
     const reply = await redis.client.getAsync(`reset.${token}`)
@@ -125,6 +124,8 @@ route.post('/reset-password', async (req: Request, res: Response) => {
     const id = parseInt(reply)
 
     if (!password) return res.status(200).send({ success: true, message: 'Valid reset token!' })
+
+    Data.validate({ password }, 'reset_password')
 
     const user = await User.getUser(id)
     await user.update({ password })

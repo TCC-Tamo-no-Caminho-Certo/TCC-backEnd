@@ -29,9 +29,6 @@ app.use(express.json())
 if (config.environment === 'production') app.use(compression())
 app.use('/', express.static(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname))))
 controllers(app)
-app.get('*', (req, res) => res.sendFile(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname), 'index.html')))
-
-// Version route
 
 app.get('/api/version', (req, res) => {
   res.json({
@@ -42,6 +39,8 @@ app.get('/api/version', (req, res) => {
     string: version.major + '.' + version.minor + '.' + version.patch + ' Build ' + version.build
   })
 })
+
+app.get('*', (req, res) => res.sendFile(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname), 'index.html')))
 
 // Server Activation
 

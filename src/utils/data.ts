@@ -176,7 +176,7 @@ export default class Data {
       }),
 
       reset_password: joi.object({
-        password: joi.string()
+        password: joi.string().required()
       }),
 
       address: joi.object({
