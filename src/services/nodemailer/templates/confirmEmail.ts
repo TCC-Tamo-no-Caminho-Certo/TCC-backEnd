@@ -5,7 +5,7 @@ import config from '../../../config'
 export default async ({ to, token, link }: MailConfig) =>
   transport.sendMail(
     {
-      from: '<gabriel.nori@hotmail.com>',
+      from: '<steamslab.brasil@gmail.com>',
       to: to,
       subject: 'Hello ✔',
       text: '',
