@@ -168,7 +168,8 @@ export default class Data {
 
       login: joi.object({
         email: joi.string().email().required(),
-        password: joi.string().required()
+        password: joi.string().required(),
+        remember: joi.boolean().allow(null)
       }),
 
       forgot_password: joi.object({

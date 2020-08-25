@@ -33,14 +33,14 @@ route.get('/logout', async (req: Request, res: Response) => {
 })
 
 route.post('/login', captcha, async (req: Request, res: Response) => {
-  const { email, password, remember_me } = req.body
+  const { email, password, remember } = req.body
 
   try {
-    Data.validate({ email, password }, 'login')
+    Data.validate({ email, password, remember }, 'login')
 
     const user = await User.getUser(email)
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
-    const access_token = UserUtils.generateAccessToken(user, remember_me)
+    const access_token = UserUtils.generateAccessToken(user, remember)
 
     return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
   } catch (error) {
