@@ -61,7 +61,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
 
     const token = uuidv4()
     redis.client.setex(`register.${token}`, 86400, JSON.stringify(user_info))
-    await Mail.confirmEmail({ to: email, token, link: 'link' })
+    await Mail.confirmEmail({ to: email, token })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
@@ -70,8 +70,8 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   }
 })
 
-route.get('/confirm-register/:token', async (req: Request, res: Response) => {
-  const { token } = req.params
+route.post('/confirm-register', captcha, async (req: Request, res: Response) => {
+  const { token } = req.body
 
   try {
     Data.validate({ token }, 'token')
@@ -104,7 +104,7 @@ route.post('/forgot-password', captcha, async (req: Request, res: Response) => {
 
     const token = uuidv4()
     redis.client.setex(`reset.${token}`, 3600, id.toString())
-    await Mail.forgotPass({ to: email, token, link: 'link' })
+    await Mail.forgotPass({ to: email, token })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
