@@ -17,6 +17,7 @@ export default async ({ to, token }: MailConfig) =>
             `
     },
     err => {
-      if (err) throw new ArisError('Couldn´t send email for confirm email!', 500)
+      console.error(err);
+      //if (err) throw new ArisError('Couldn´t send email for confirm email!', 500)
     }
   )
