@@ -70,7 +70,7 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/confirm-register', captcha, async (req: Request, res: Response) => {
+route.post('/confirm-register', async (req: Request, res: Response) => {
   const { token } = req.body
 
   try {

@@ -38,6 +38,7 @@ function JoiErrorHandler(error: ValidationError, message: string) {
 
 function ArisErrorHandler(error: ArisError, message: string) {
   if (error.isAris) {
+    if (error.status === 500) console.log(error)
     return { status: error.status, send: { success: false, message: message + ' unauthorized!', error: error.details } }
   }
 }
