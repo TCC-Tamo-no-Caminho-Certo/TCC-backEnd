@@ -9,15 +9,9 @@ export default async ({ to, token }: MailConfig) =>
       to: to,
       subject: 'Hello ✔',
       text: '',
-      html: `
-            <form action="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/api/confirm-register" method="post">
-              <input type="hidden" name="token"/>
-              <button type="submit">link</button>
-            </form>
-            `
+      html: `<a href="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/api/confirm-register/${token}">link</a>`
     },
     err => {
-      console.error(err);
-      //if (err) throw new ArisError('Couldn´t send email for confirm email!', 500)
+      if (err) throw new ArisError('Couldn´t send email for confirm email!', 500)
     }
   )

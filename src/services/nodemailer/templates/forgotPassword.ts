@@ -9,14 +9,10 @@ export default async ({ to, token }: MailConfig) =>
       to: to,
       subject: 'Hello ✔',
       text: '',
-      html: `<form action="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/api/reset-password" method="post">
-              <input type="hidden" name="token"/>
-              <button type="submit">link</button>
-            </form>
+      html: `<a href="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/reset-password/${token}">link</a>
             token: ${token}`
     },
     err => {
-      console.error(err);
-      //if (err) throw new ArisError('Couldn´t send reset password email!', 500)
+      if (err) throw new ArisError('Couldn´t send reset password email!', 500)
     }
   )
