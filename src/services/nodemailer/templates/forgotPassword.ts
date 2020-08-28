@@ -9,7 +9,10 @@ export default async ({ to, token }: MailConfig) =>
       to: to,
       subject: 'Hello ✔',
       text: '',
-      html: `<a href="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/reset-password/${token}">link</a>
+      html: `<form action="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/api/reset-password" method="post">
+              <input type="hidden" name="token"/>
+              <button type="submit">link</button>
+            </form>
             token: ${token}`
     },
     err => {

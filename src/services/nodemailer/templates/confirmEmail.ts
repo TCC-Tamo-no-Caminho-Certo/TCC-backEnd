@@ -10,8 +10,8 @@ export default async ({ to, token }: MailConfig) =>
       subject: 'Hello ✔',
       text: '',
       html: `
-            <form action="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/api/confirm-register/${token}" method="post">
-              <input type="hidden" name="query" id="query"/>
+            <form action="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/api/confirm-register" method="post">
+              <input type="hidden" name="token"/>
               <button type="submit">link</button>
             </form>
             `
