@@ -1,6 +1,5 @@
 import auth from '../../src/middlewares/auth'
-import captcha from '../../src/middlewares/recaptch'
-import permition from '../../src/middlewares/permission'
+import captcha from '../../src/middlewares/recaptcha'
 import { Request, Response, NextFunction } from 'express'
 import permission from '../../src/middlewares/permission'
 

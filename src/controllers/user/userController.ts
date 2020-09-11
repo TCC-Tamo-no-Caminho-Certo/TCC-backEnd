@@ -2,6 +2,7 @@ import ArisError from '../../utils/arisError'
 import User from '../../models/user/userModel'
 import UserUtils from '../../utils/user'
 import Data from '../../utils/data'
+import argon from 'argon2'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
@@ -11,9 +12,10 @@ route.get('/get', async (req: Request, res: Response) => {
 
   try {
     const user = await User.getUser(_user_id)
-    delete user.password
+    const response: any = { ...user }
+    delete response.password
 
-    return res.status(200).send({ success: true, message: 'Get user info complete!', user })
+    return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Get user info')
     return res.status(result.status).send(result.send)
@@ -42,18 +44,22 @@ route.post('/complete-register', async (req: Request, res: Response) => {
 })
 
 route.post('/update', async (req: Request, res: Response) => {
-  const { _user_id, name, surname, phone, city, address, postal_code } = req.body
+  const { _user_id, name, surname, phone, password, new_password, city, address, postal_code } = req.body
   const address_info = { city, address, postal_code }
-  const user_info = { name, surname, phone }
+  const user_info = { name, surname, phone, password, new_password }
 
   try {
     Data.validate(user_info, 'user_patch')
     Data.validate(address_info, 'user_patch_address')
 
     const user = await User.getUser(_user_id)
-    await user.update({ name, surname, phone, address_info })
+    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
+    await user.update({ name, surname, phone, password: new_password, address_info })
 
-    return res.status(200).send({ success: true, message: 'Update complete!', user })
+    const response: any = { ...user }
+    delete response.password
+
+    return res.status(200).send({ success: true, message: 'Update complete!', user: response })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)

@@ -154,7 +154,9 @@ export default class Data {
         phone: joi
           .string()
           .regex(/^\(\d\d\)\d{5}-\d{4}$/)
-          .allow(null)
+          .allow(null),
+        new_password: joi.string(),
+        password: joi.string().required()
       }),
 
       user_patch_address: joi

@@ -7,6 +7,7 @@ import redis from '../services/redis'
 import UserUtils from '../utils/user'
 import { v4 as uuidv4 } from 'uuid'
 import Data from '../utils/data'
+import crypto from 'crypto'
 import argon from 'argon2'
 
 import express, { Request, Response } from 'express'
@@ -102,7 +103,8 @@ route.post('/forgot-password', captcha, async (req: Request, res: Response) => {
     const id = await User.exist(email)
     if (!id) throw new ArisError('User don`t exist!', 403)
 
-    const token = uuidv4()
+    const token = crypto.randomBytes(3).toString('hex')
+    console.log(token)
     redis.client.setex(`reset.${token}`, 3600, id.toString())
     await Mail.forgotPass({ to: email, token })
 

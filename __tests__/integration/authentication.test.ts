@@ -2,7 +2,6 @@ import User from "../../src/models/user/userModel";
 import app from "../../src/server";
 import db from "../../src/database";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 
 describe("Authentication", () => {
   afterAll(async () => {
@@ -161,14 +160,14 @@ describe("Authentication", () => {
 
   test("Shouldn´t change password with expired token", async () => {
     const id = await User.exist("test@hotmail.com");
-    const token = jwt.sign({ id }, <string>process.env.JWT_RESET_SECRET, {
-      expiresIn: "1ms",
-    });
+    // const token = jwt.sign({ id }, <string>process.env.JWT_RESET_SECRET, {
+    //   expiresIn: "1ms",
+    // });
 
     setTimeout(() => {}, 1000);
 
     const response = await request(app).patch("/reset-password").send({
-      token,
+      // token,
       password: "test2",
     });
 
