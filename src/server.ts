@@ -27,7 +27,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 if (config.environment === 'production') app.use(compression())
-app.use('/', express.static(path.resolve(__dirname, '../www')))
+app.use('/', express.static(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname))))
 
 // App Routes
 
@@ -43,7 +43,7 @@ app.get('/api/version', (req, res) => {
   })
 })
 
-app.get('*', (req, res) => res.sendFile(path.resolve(__dirname, '../www/index.html')))
+app.get('*', (req, res) => res.sendFile(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname), 'index.html')))
 
 // Server Activation
 
