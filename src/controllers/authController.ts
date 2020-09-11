@@ -71,29 +71,6 @@ route.post('/register', captcha, async (req: Request, res: Response) => {
   }
 })
 
-route.get('/confirm-register/:token', async (req: Request, res: Response) => {
-  const { token } = req.params
-
-  try {
-    Data.validate({ token }, 'token')
-
-    const reply = await redis.client.getAsync(`register.${token}`)
-    if (!reply) throw new ArisError('Invalid token!', 403)
-    const user_info = JSON.parse(reply)
-
-    const user = new BaseUser(user_info)
-    await user.insert()
-    const access_token = UserUtils.generateAccessToken(user)
-
-    redis.client.del(`register.${token}`)
-
-    return res.status(200).send({ success: true, message: 'Register complete!', access_token })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Confirm registration')
-    return res.status(result.status).send(result.send)
-  }
-})
-
 route.post('/forgot-password', captcha, async (req: Request, res: Response) => {
   const { email } = req.body
 
