@@ -3,14 +3,13 @@ import categoryController from './proposal/categoryController'
 import statusController from './proposal/statusController'
 import userController from './user/userController'
 import authController from './authController'
-import publicController from './publicController'
 import auth from '../middlewares/auth'
 import { Application } from 'express'
 
 export default (app: Application) => {
   // ----Session---- //
 
-  // Auth (routes that needs to be authorized)
+  // Auth (routes that needs to be authenticated)
   app
     .use('/api/logout', auth)
     .use('/api/validate-session', auth)
@@ -28,10 +27,8 @@ export default (app: Application) => {
   
   // --------------- //
 
-  // ----Out of session---- //
-  app.use('/api', authController)
-
   // ----Public---- //
-  app.use('/', publicController)
+  app.use('/', authController)
 
+  // --------------- //
 }
