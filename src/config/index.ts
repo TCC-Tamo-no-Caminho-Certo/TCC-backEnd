@@ -22,7 +22,7 @@ export interface ServerConfig {
 export interface ConnectionConfig {
   host: string
   user: string
-  password: string | undefined
+  password?: string
   database: string
 }
 export interface PoolConfig {
@@ -47,7 +47,7 @@ export interface RedisConfig {
 export interface JWTConfig {
   privateKey: string
   publicKey: string
-  resetSecret: ''
+  resetSecret: string
 }
 
 // Captcha

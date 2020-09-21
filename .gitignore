@@ -9,3 +9,4 @@ coverage
 /dist
 /build
 /node_modules
+/uploads

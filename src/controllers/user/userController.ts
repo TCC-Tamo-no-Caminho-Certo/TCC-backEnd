@@ -1,5 +1,6 @@
-import ArisError from '../../utils/arisError'
 import User from '../../models/user/userModel'
+import ArisError from '../../utils/arisError'
+import multer from '../../services/multer'
 import UserUtils from '../../utils/user'
 import Data from '../../utils/data'
 import argon from 'argon2'
@@ -18,6 +19,37 @@ route.get('/get', async (req: Request, res: Response) => {
     return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Get user info')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+route.get('/avatar/get', async (req: Request, res: Response) => {
+  const { _user_id } = req.body
+
+  try {
+    const user = await User.getUser(_user_id)
+
+    return res.status(200).sendFile(`${__dirname}../../../www/uploads/${user.avatar}`)
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Get user avatar')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+route.post('/avatar/upload', async (req: Request, res: Response) => {
+  const { _user_id } = req.body
+
+  try {
+    const user = await User.getUser(_user_id)
+
+    multer.single('avatar')(req, res, async () => {
+      const avatar = req.file.filename
+      await user.update({ avatar })
+    })
+
+    return res.status(200).send({ success: true })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Upload avatar')
     return res.status(result.status).send(result.send)
   }
 })
@@ -54,7 +86,9 @@ route.post('/update', async (req: Request, res: Response) => {
 
     const user = await User.getUser(_user_id)
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
-    await user.update({ name, surname, phone, password: new_password, address_info })
+
+    const new_hash = await argon.hash(new_password)
+    await user.update({ name, surname, phone, password: new_hash, address_info })
 
     const response: any = { ...user }
     delete response.password

@@ -2,11 +2,12 @@ import Role, { RoleTypes } from './roleModel'
 import ArisError from '../../utils/arisError'
 import { Transaction } from 'knex'
 import db from '../../database'
-import argon from 'argon2'
 
 export interface UpdateBaseUserObj {
+  [key: string]: any
   name?: string
   surname?: string
+  avatar?: string
   password?: string
 }
 
@@ -15,6 +16,7 @@ export interface ArisBaseUser {
   name: string
   surname: string
   email: string
+  avatar: string
   birthday: string
   password: string
   created_at?: string
@@ -22,10 +24,12 @@ export interface ArisBaseUser {
 }
 
 export default class BaseUser {
+  [key: string]: any
   user_id: number
   name: string
   surname: string
   email: string
+  avatar: string
   birthday: string
   password: string
   role: RoleTypes
@@ -35,11 +39,12 @@ export default class BaseUser {
   /**
    * Creates a base user.
    */
-  constructor({ user_id, name, surname, email, birthday, password, created_at, updated_at }: ArisBaseUser) {
-    this.user_id = user_id ? user_id : 0 //Gives a temporary id when creating a new user
+  constructor({ user_id, name, surname, email, avatar, birthday, password, created_at, updated_at }: ArisBaseUser) {
+    this.user_id = user_id || 0 //Gives a temporary id when creating a new user
     this.name = name
     this.surname = surname
     this.email = email
+    this.avatar = avatar || 'default'
     this.birthday = birthday
     this.password = password
     this.role = 'base user'
@@ -49,6 +54,7 @@ export default class BaseUser {
 
   /**
    * Inserts this user in the database, if doesn't already registered.
+   * @param User.password - needs to be hashed!
    */
   async insert() {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -61,9 +67,6 @@ export default class BaseUser {
     const trx = await db.transaction()
 
     const role = await Role.getRole(this.role, trx)
-
-    const hash = await argon.hash(this.password)
-    this.password = hash
 
     const user_id = await trx('user')
       .insert({
@@ -86,36 +89,27 @@ export default class BaseUser {
 
   /**
    * Updates this user in the database.
+   * @param update.password - needs to be hashed!
    */
-  async update({ name, surname, password }: UpdateBaseUserObj, transaction?: Transaction) {
+  async update(update: UpdateBaseUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
 
     const trx = transaction || db
 
-    let update = 0
+    let update_count = 0
     const update_list: UpdateBaseUserObj = {}
-    if (name) {
-      update_list.name = name
-      this.name = name
-      update++
-    }
-    if (surname) {
-      update_list.surname = surname
-      this.surname = surname
-      update++
-    }
-    if (password) {
-      const hash = await argon.hash(password)
-      update_list.password = hash
-      this.password = hash
-      update++
+
+    for (const key in update) {
+      update_list[key] = update[key]
+      this[key] = update[key]
+      update_count++
     }
 
-    if (update)
-      await trx('user')
+    update_count &&
+      (await trx('user')
         .update({ ...update_list, updated_at: this.updated_at })
-        .where({ user_id: this.user_id })
+        .where({ user_id: this.user_id }))
   }
 
   /**

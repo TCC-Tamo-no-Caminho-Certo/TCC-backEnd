@@ -5,11 +5,12 @@ import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'
 import { Transaction } from 'knex'
 import db from '../../database'
-import argon from 'argon2'
 
 export interface UpdateUserObj {
+  [key: string]: any
   name?: string
   surname?: string
+  avatar?: string
   password?: string
   phone?: string
   address_info?: ArisAddress
@@ -29,63 +30,49 @@ export default class User extends BaseUser {
   /**
    * Creates an user.
    */
-  constructor({ user_id, name, surname, email, birthday, password, role, phone, address_id, created_at, updated_at }: ArisUser) {
-    super({ user_id, name, surname, email, birthday, password, created_at, updated_at })
+  constructor({ user_id, name, surname, email, avatar, birthday, password, role, phone, address_id, created_at, updated_at }: ArisUser) {
+    super({ user_id, name, surname, email, avatar, birthday, password, created_at, updated_at })
     this.phone = phone
     this.role = role
-    this.address_id = address_id ? address_id : 0
+    this.address_id = address_id || 0
   }
 
   /**
    * Updates this user in the database.
+   * @param update.password - needs to be hashed!
    */
-  async update({ name, surname, password, phone, address_info }: UpdateUserObj, transaction?: Transaction) {
+  async update(update: UpdateUserObj, transaction?: Transaction) {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     this.updated_at = date
 
     const trx = transaction || (await db.transaction())
 
-    let address_id: number | undefined
+    let update_count = 0
+    const update_list: any = {}
 
-    if (address_info && address_info.address) {
-      const address = new Address(address_info)
+    for (const key in update) {
+      if (key === 'address_info') continue
+      update_list[key] = update[key]
+      this[key] = update[key]
+      update_count++
+    }
+
+    let address_id: number | undefined
+    if (update.address_info && update.address_info.address) {
+      const address = new Address(update.address_info)
       await address.insert(trx)
       address_id = address.address_id
-    }
-
-    let update = 0
-    const update_list: any = {}
-    if (name) {
-      update_list.name = name
-      this.name = name
-      update++
-    }
-    if (surname) {
-      update_list.surname = surname
-      this.surname = surname
-      update++
-    }
-    if (password) {
-      const hash = await argon.hash(password)
-      update_list.password = hash
-      this.password = hash
-      update++
-    }
-    if (phone) {
-      update_list.phone = phone
-      this.phone = phone
-      update++
     }
     if (address_id) {
       update_list.address_id = address_id
       this.address_id = address_id
-      update++
+      update_count++
     }
 
-    if (update)
-      await trx('user')
+    update_count &&
+      (await trx('user')
         .update({ ...update_list, updated_at: this.updated_at })
-        .where({ user_id: this.user_id })
+        .where({ user_id: this.user_id }))
 
     transaction || (await trx.commit())
   }
