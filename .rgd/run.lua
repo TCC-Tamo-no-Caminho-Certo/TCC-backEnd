@@ -1,4 +1,4 @@
--- Version 1.3.3
+-- Version 1.3.4
 
 function executeWithStatus(filename, args)
     status = run(filename, args)
