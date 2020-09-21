@@ -43,6 +43,16 @@ export interface RedisConfig {
   password?: string
 }
 
+
+// Minio
+export interface MinioConfig {
+  host: string
+  port: number
+  useSsl: boolean
+  accessKey: string
+  secretKey: string
+}
+
 // JWT
 export interface JWTConfig {
   privateKey: string
@@ -111,6 +121,14 @@ class ConfigManager {
     password: undefined
   }
 
+  minio: MinioConfig = {
+    host: '127.0.0.1',
+    port: 9000,
+    useSsl: false,
+    accessKey: '',
+    secretKey: ''
+  }
+
   jwt: JWTConfig = {
     privateKey: '',
     publicKey: '',
@@ -138,6 +156,10 @@ class ConfigManager {
   }
 
   loadConfig(filename: string): void {
+    let folder = path.dirname(filename);
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder);
+    }
     if (!fs.existsSync(filename)) {
       fs.writeFileSync(filename, JSON.stringify(this), 'utf8')
     }
@@ -147,6 +169,7 @@ class ConfigManager {
     this.server = config.server
     this.database = config.database
     this.redis = config.redis
+    this.minio = config.minio
     this.jwt = config.jwt
     this.captcha = config.captcha
     this.mail = config.mail

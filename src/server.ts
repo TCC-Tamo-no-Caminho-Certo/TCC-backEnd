@@ -4,6 +4,7 @@ import controllers from './controllers'
 import logger from './services/logger'
 import compression from 'compression'
 import redis from './services/redis'
+import minio from './services/minio'
 import express from 'express'
 import https from 'https'
 import http from 'http'
@@ -20,12 +21,15 @@ if (config.logging.use) {
 redis.initialize(config.redis.host, config.redis.port, config.redis.database, config.redis.password)
 logger.info(`Using redis at ${config.redis.host}:${config.redis.port}`)
 
+minio.initialize(config.minio.host, config.minio.port, config.minio.useSsl, config.minio.accessKey, config.minio.secretKey)
+logger.info(`Using minio at ${config.minio.host}:${config.minio.port}`)
+
 // App Configuration
 
 const app = express()
 
 app.use(cors())
-app.use(express.json())
+app.use(express.json({limit: '5mb'}))
 if (config.environment === 'production') app.use(compression())
 app.use('/', express.static(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname))))
 

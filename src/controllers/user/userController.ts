@@ -1,9 +1,11 @@
 import User from '../../models/user/userModel'
 import ArisError from '../../utils/arisError'
-import multer from '../../services/multer'
+import minio from '../../services/minio'
 import UserUtils from '../../utils/user'
 import Data from '../../utils/data'
 import argon from 'argon2'
+import Jimp from 'jimp'
+import { v4 as uuidv4 } from 'uuid'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
@@ -23,31 +25,28 @@ route.get('/get', async (req: Request, res: Response) => {
   }
 })
 
-route.get('/avatar/get', async (req: Request, res: Response) => {
-  const { _user_id } = req.body
-
-  try {
-    const user = await User.getUser(_user_id)
-
-    return res.status(200).sendFile(`${__dirname}../../../www/uploads/${user.avatar}`)
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Get user avatar')
-    return res.status(result.status).send(result.send)
-  }
-})
-
 route.post('/avatar/upload', async (req: Request, res: Response) => {
-  const { _user_id } = req.body
+  const { _user_id, picture } = req.body
 
   try {
     const user = await User.getUser(_user_id)
 
-    multer.single('avatar')(req, res, async () => {
-      const avatar = req.file.filename
-      await user.update({ avatar })
-    })
-
-    return res.status(200).send({ success: true })
+    let stringData = picture.split(",", 2);
+    if (stringData.length == 2 && stringData[0] === "data:image/png;base64") {
+        let dataBuffer = Buffer.from(stringData[1], "base64");
+        let image = await Jimp.read(dataBuffer);
+        let buffer = await image.resize(512, 512).getBufferAsync(Jimp.MIME_PNG);
+        var objectUuid = uuidv4();
+        await minio.client.putObject("profile", objectUuid, buffer, buffer.length, {
+          'Content-Type': 'image/png',
+        });
+        var oldAvatarUuid = user.avatar;
+        await user.update({ avatar: objectUuid })
+        if(oldAvatarUuid !== "default") await minio.client.removeObject("profile", oldAvatarUuid);
+        return res.status(200).send({ success: true, object: objectUuid })
+    } else {
+      return res.status(400).send({ success: false, message: "Failed to decode data." })
+    }
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Upload avatar')
     return res.status(result.status).send(result.send)
