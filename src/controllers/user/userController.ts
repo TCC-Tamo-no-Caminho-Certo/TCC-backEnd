@@ -1,11 +1,9 @@
 import User from '../../models/user/userModel'
 import ArisError from '../../utils/arisError'
-import minio from '../../services/minio'
 import UserUtils from '../../utils/user'
+import File from '../../utils/minio'
 import Data from '../../utils/data'
 import argon from 'argon2'
-import Jimp from 'jimp'
-import { v4 as uuidv4 } from 'uuid'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
@@ -31,22 +29,12 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
   try {
     const user = await User.getUser(_user_id)
 
-    let stringData = picture.split(",", 2);
-    if (stringData.length == 2 && stringData[0] === "data:image/png;base64") {
-        let dataBuffer = Buffer.from(stringData[1], "base64");
-        let image = await Jimp.read(dataBuffer);
-        let buffer = await image.resize(512, 512).getBufferAsync(Jimp.MIME_PNG);
-        var objectUuid = uuidv4();
-        await minio.client.putObject("profile", objectUuid, buffer, buffer.length, {
-          'Content-Type': 'image/png',
-        });
-        var oldAvatarUuid = user.avatar;
-        await user.update({ avatar: objectUuid })
-        if(oldAvatarUuid !== "default") await minio.client.removeObject("profile", oldAvatarUuid);
-        return res.status(200).send({ success: true, object: objectUuid })
-    } else {
-      return res.status(400).send({ success: false, message: "Failed to decode data." })
-    }
+    const file = new File(picture)
+    if (file.validateType('data:image/png;base64')) throw new ArisError('Invalid file Type!', 403)
+    const uuid = await file.update('profile', 'image/png', user.avatar)
+    await user.update({ avatar: uuid })
+
+    return res.status(200).send({ success: true, object: uuid })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Upload avatar')
     return res.status(result.status).send(result.send)

@@ -43,7 +43,6 @@ export interface RedisConfig {
   password?: string
 }
 
-
 // Minio
 export interface MinioConfig {
   host: string
@@ -156,9 +155,9 @@ class ConfigManager {
   }
 
   loadConfig(filename: string): void {
-    let folder = path.dirname(filename);
+    let folder = path.dirname(filename)
     if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder);
+      fs.mkdirSync(folder)
     }
     if (!fs.existsSync(filename)) {
       fs.writeFileSync(filename, JSON.stringify(this), 'utf8')

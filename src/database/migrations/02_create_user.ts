@@ -8,7 +8,7 @@ export async function up(knex: knex) {
       table.string('name', 40).notNullable()
       table.string('surname', 40).notNullable()
       table.string('email', 50).notNullable().unique()
-      table.string('avatar', 100).notNullable().defaultTo('default.jpg')
+      table.string('avatar', 100).notNullable().defaultTo('default.png')
       table.string('password', 100).notNullable()
       table.string('phone', 20).unique()
       table.date('birthday').notNullable()

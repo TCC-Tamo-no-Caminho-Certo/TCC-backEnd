@@ -1,113 +1,107 @@
-import * as Minio from "minio";
-import Logger from "../logger";
+import * as Minio from 'minio'
+import Logger from '../logger'
 
 class MinioManager {
-  publicBuckets: string[] = ["profile"];
-  privateBuckets: string[] = ["documents"];
-  public client: Minio.Client = <Minio.Client>{};
+  publicBuckets: string[] = ['profile']
+  privateBuckets: string[] = ['documents']
+  public client: Minio.Client = <Minio.Client>{}
 
-  initialize(
-    host: string,
-    port: number,
-    useSsl: boolean,
-    accessKey: string,
-    secretKey: string
-  ) {
+  initialize(host: string, port: number, useSsl: boolean, accessKey: string, secretKey: string) {
     this.client = new Minio.Client({
       endPoint: host,
       port: port,
       useSSL: useSsl,
       accessKey: accessKey,
-      secretKey: secretKey,
-    });
-    this.publicBuckets.map((bucketName) => {
+      secretKey: secretKey
+    })
+    this.publicBuckets.map(bucketName => {
       this.client.bucketExists(bucketName, (err: any, exists: boolean) => {
         if (err) {
-          Logger.error(err);
-          return;
+          Logger.error(err)
+          return
         } else {
           if (!exists) {
-            this.client.makeBucket(bucketName, "local", (err) => {
+            this.client.makeBucket(bucketName, 'local', err => {
               if (err) {
-                Logger.error(err);
-                return;
+                Logger.error(err)
+                return
               }
               this.client.setBucketPolicy(
                 bucketName,
                 JSON.stringify({
-                  Version: "2012-10-17",
+                  Version: '2012-10-17',
                   Statement: [
                     {
-                      Action: ["s3:GetObject"],
+                      Action: ['s3:GetObject'],
                       Principal: {
-                        AWS: ["*"],
+                        AWS: ['*']
                       },
-                      Effect: "Allow",
+                      Effect: 'Allow',
                       Resource: [`arn:aws:s3:::${bucketName}/*`],
-                      Sid: "",
-                    },
-                  ],
+                      Sid: ''
+                    }
+                  ]
                 })
-              );
-            });
+              )
+            })
           }
         }
-      });
-    });
-    this.privateBuckets.map((bucketName) => {
+      })
+    })
+    this.privateBuckets.map(bucketName => {
       this.client.bucketExists(bucketName, (err: any, exists: boolean) => {
         if (err) {
-          Logger.error(err);
-          return;
+          Logger.error(err)
+          return
         } else {
           if (!exists) {
-            this.client.makeBucket(bucketName, "local", (err) => {
+            this.client.makeBucket(bucketName, 'local', err => {
               if (err) {
-                Logger.error(err);
-                return;
+                Logger.error(err)
+                return
               }
               this.client.setBucketPolicy(
                 bucketName,
                 JSON.stringify({
-                  Version: "2012-10-17",
+                  Version: '2012-10-17',
                   Statement: [
                     {
-                      Action: ["s3:GetObject"],
+                      Action: ['s3:GetObject'],
                       Principal: {
-                        AWS: ["*"],
+                        AWS: ['*']
                       },
-                      Effect: "Deny",
+                      Effect: 'Deny',
                       Resource: [`arn:aws:s3:::${bucketName}/*`],
-                      Sid: "",
-                    },
-                  ],
+                      Sid: ''
+                    }
+                  ]
                 })
-              );
-            });
+              )
+            })
           }
         }
-      });
-    });
+      })
+    })
     this.client.putObject
   }
 
   newStatement(bucketName: string, action: string[], effect: string) {
     return JSON.stringify({
-      Version: "2012-10-17",
+      Version: '2012-10-17',
       Statement: [
         {
           Action: action,
           Principal: {
-            AWS: ["*"],
+            AWS: ['*']
           },
           Effect: effect,
           Resource: [`arn:aws:s3:::${bucketName}/*`],
-          Sid: "",
-        },
-      ],
-    });
+          Sid: ''
+        }
+      ]
+    })
   }
 }
 
-const minioManager = new MinioManager();
-export default minioManager;
+const minioManager = new MinioManager()
+export default minioManager
