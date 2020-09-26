@@ -187,6 +187,8 @@ processArgs.forEach(arg => {
   }
 })
 
+console.log("Loading configuration: " + configPath)
+
 const configManager: ConfigManager = new ConfigManager()
 configManager.loadConfig(configPath)
 
