@@ -2,5 +2,5 @@ export default {
     major: 0,
     minor: 1,
     patch: 0,
-    build: 405,
+    build: 406,
 };
