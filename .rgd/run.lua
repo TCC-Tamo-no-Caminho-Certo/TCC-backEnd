@@ -16,7 +16,7 @@ function runScript()
         runWD("pm2", "stop backend-dev", "/home/rgd/deploy/dev/backend", "")
         if executeWithStatus("rm", "-rfv /home/rgd/deploy/dev/backend/", "") then return end
         if executeWithStatus("cp", "-rv ./build/ /home/rgd/deploy/dev/backend/", "") then return end
-        if executeWithStatus("ln", "-s " .. repoDirectory .. "/node_modules /home/rgd/deploy/dev/backend/node_modules", "") then return end
+        if executeWithStatus("ln", "-s /home/rgd/repositories/ecb026e6-fc40-472a-a74b-a34d3f9fb2f9/node_modules /home/rgd/deploy/dev/backend/node_modules", "") then return end
         runWD("pm2", "start ./bundle.js --name backend-dev -- --config-/home/rgd/deploy/dev/.config/server.json", "/home/rgd/deploy/dev/backend", "")
     elseif branch == "master" then
         if executeWithStatus("npm", "--no-color install", "") then return end
@@ -27,7 +27,7 @@ function runScript()
         runWD("pm2", "stop backend-dist", "/home/rgd/deploy/dist/backend", "")
         if executeWithStatus("rm", "-rfv /home/rgd/deploy/dist/backend/", "") then return end
         if executeWithStatus("cp", "-rv ./build/ /home/rgd/deploy/dist/backend/", "") then return end
-        if executeWithStatus("ln", "-s " .. repoDirectory .. "/node_modules /home/rgd/deploy/dist/backend/node_modules", "") then return end
+        if executeWithStatus("ln", "-s /home/rgd/repositories/ecb026e6-fc40-472a-a74b-a34d3f9fb2f9/node_modules /home/rgd/deploy/dist/backend/node_modules", "") then return end
         runWD("pm2", "start ./bundle.js --name backend-dist -- --config-/home/rgd/deploy/dist/.config/server.json", "/home/rgd/deploy/dist/backend", "")
     end
 end
