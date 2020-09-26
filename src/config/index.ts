@@ -177,15 +177,17 @@ class ConfigManager {
   }
 }
 
-let configPath = path.join(path.dirname(__filename), '../../.config/server.json')
+let configPath = process.env.CONFIGPATH || path.join(path.dirname(__filename), '../../.config/server.json')
 
 let processArgs = process.argv.slice(2)
 processArgs.forEach(arg => {
   if (arg.startsWith('--config-')) {
     arg = arg.replace('--config-', '')
-    configPath = path.resolve(arg)
+    configPath = arg
   }
 })
+
+configPath = path.resolve(configPath)
 
 console.log("Loading configuration: " + configPath)
 
