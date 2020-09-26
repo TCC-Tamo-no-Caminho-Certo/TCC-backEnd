@@ -11,8 +11,8 @@ function runScript()
         if executeWithStatus("npm", "--no-color install") then return end
         if executeWithStatus("rm", "-rfv ./build/") then return end
         if executeWithStatus("npm", "--no-color run build") then return end
-        if executeWithStatus("npm", "--no-color run knex:migrate") then return end
-        if executeWithStatus("npm", "--no-color run knex:seed") then return end
+        if executeWithStatus("npm", "--no-color run knex:migrate -- --config-/home/rgd/deploy/dev/.config/server.json") then return end
+        if executeWithStatus("npm", "--no-color run knex:seed -- --config-/home/rgd/deploy/dev/.config/server.json") then return end
         runWD("pm2", "stop backend-dev", "/home/rgd/deploy/dev/backend")
         if executeWithStatus("rm", "-rfv /home/rgd/deploy/dev/backend/") then return end
         if executeWithStatus("cp", "-rv ./build/ /home/rgd/deploy/dev/backend/") then return end
@@ -22,8 +22,8 @@ function runScript()
         if executeWithStatus("npm", "--no-color install") then return end
         if executeWithStatus("rm", "-rfv ./build/") then return end
         if executeWithStatus("npm", "--no-color run build") then return end
-        if executeWithStatus("npm", "--no-color run knex:migrate") then return end
-        if executeWithStatus("npm", "--no-color run knex:seed") then return end
+        if executeWithStatus("npm", "--no-color run knex:migrate -- --config-/home/rgd/deploy/dist/.config/server.json") then return end
+        if executeWithStatus("npm", "--no-color run knex:seed -- --config-/home/rgd/deploy/dist/.config/server.json") then return end
         runWD("pm2", "stop backend-dist", "/home/rgd/deploy/dist/backend")
         if executeWithStatus("rm", "-rfv /home/rgd/deploy/dist/backend/") then return end
         if executeWithStatus("cp", "-rv ./build/ /home/rgd/deploy/dist/backend/") then return end
