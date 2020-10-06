@@ -135,7 +135,7 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
     Data.validate({ password }, 'reset_password')
 
     const user = await User.getUser(id)
-    const new_hash = await argon.hash(user.password)
+    const new_hash = await argon.hash(password)
     await user.update({ password: new_hash })
 
     redis.client.del(`reset.${token}`)
