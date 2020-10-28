@@ -10,6 +10,7 @@ export interface UpdateUserObj {
   [key: string]: any
   name?: string
   surname?: string
+  birthday?: string
   avatar?: string
   password?: string
   phone?: string

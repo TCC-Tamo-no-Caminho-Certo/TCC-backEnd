@@ -151,6 +151,9 @@ export default class Data {
           .string()
           .regex(/^([a-zà-ú]\s?)+$/i)
           .allow(null),
+        birthday: joi
+          .string()
+          .regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/),
         phone: joi
           .string()
           .regex(/^\(\d\d\)\d{5}-\d{4}$/)

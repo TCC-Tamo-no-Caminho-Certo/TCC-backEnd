@@ -34,7 +34,7 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
     const uuid = await file.update('profile', 'image/png', user.avatar)
     await user.update({ avatar: uuid })
 
-    return res.status(200).send({ success: true, object: uuid })
+    return res.status(200).send({ success: true, message: 'Avatar uploaded!', object: uuid })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Upload avatar')
     return res.status(result.status).send(result.send)
@@ -55,7 +55,7 @@ route.post('/complete-register', async (req: Request, res: Response) => {
     UserUtils.logout(req)
     const access_token = UserUtils.generateAccessToken(aris_user)
 
-    return res.status(200).send({ success: true, message: 'Complete register complete!', user: aris_user, access_token })
+    return res.status(200).send({ success: true, message: 'Register completed!', user: aris_user, access_token })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Complete register')
     return res.status(result.status).send(result.send)
@@ -63,9 +63,9 @@ route.post('/complete-register', async (req: Request, res: Response) => {
 })
 
 route.post('/update', async (req: Request, res: Response) => {
-  const { _user_id, name, surname, phone, password, new_password, city, address, postal_code } = req.body
+  const { _user_id, name, surname, birthday, phone, password, new_password, city, address, postal_code } = req.body
   const address_info = { city, address, postal_code }
-  const user_info = { name, surname, phone, password, new_password }
+  const user_info = { name, surname, birthday, phone, password, new_password }
 
   try {
     Data.validate(user_info, 'user_patch')
@@ -74,8 +74,10 @@ route.post('/update', async (req: Request, res: Response) => {
     const user = await User.getUser(_user_id)
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
 
-    const new_hash = await argon.hash(new_password)
-    await user.update({ name, surname, phone, password: new_hash, address_info })
+    const new_hash = new_password && await argon.hash(new_password)
+    user.role === 'base user' ?
+      await user.update({ name, surname, birthday, password: new_hash }) :
+      await user.update({ name, surname, birthday, phone, password: new_hash, address_info })
 
     const response: any = { ...user }
     delete response.password
@@ -88,10 +90,11 @@ route.post('/update', async (req: Request, res: Response) => {
 })
 
 route.get('/delete', async (req: Request, res: Response) => {
-  const { _user_id } = req.body
+  const { _user_id, password } = req.body
 
   try {
     const user = await User.getUser(_user_id)
+    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
     await user.delete()
     UserUtils.logout(req)
 
