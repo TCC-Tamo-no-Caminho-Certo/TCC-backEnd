@@ -32,13 +32,19 @@ export default class Minio {
     return objectUuid
   }
 
-  async delete(bucket: string, oldUuid: string) {
+  async update(bucket: string, content_type: string, oldUuid: string) {
+    const objectUuid = await this.insert(bucket, content_type)
+    await Minio.delete(bucket, oldUuid)
+    return objectUuid
+  }
+
+  static async delete(bucket: string, oldUuid: string) {
     oldUuid !== 'default' && (await minio.client.removeObject(bucket, oldUuid))
   }
 
-  async update(bucket: string, content_type: string, oldUuid: string) {
-    const objectUuid = await this.insert(bucket, content_type)
-    await this.delete(bucket, oldUuid)
-    return objectUuid
+  static async get(bucket: string, uuid: string) {
+    const data = await minio.client.getObject(bucket, uuid)
+
+    return data
   }
 }
