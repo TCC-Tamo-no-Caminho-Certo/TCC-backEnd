@@ -12,8 +12,8 @@ export default class Minio {
     this.stringData = file.split(',', 2)
   }
 
-  validateType(type: string) {
-    return this.stringData.length == 2 && this.stringData[0] === type
+  validateTypes(types: string[]) {
+    return types.some((type) => this.stringData.length === 2 && this.stringData[0] === type)
   }
 
   async createBuffer() {
