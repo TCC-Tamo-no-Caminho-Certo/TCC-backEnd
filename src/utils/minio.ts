@@ -43,8 +43,9 @@ export default class Minio {
   }
 
   static async get(bucket: string, uuid: string) {
-    const data = await minio.client.getObject(bucket, uuid)
+    const buffer = await minio.client.getObject(bucket, uuid)
+    const { type, data }: { type: string, data: Buffer } = await buffer.read()
 
-    return await data.read()
+    return data.toString()
   }
 }
