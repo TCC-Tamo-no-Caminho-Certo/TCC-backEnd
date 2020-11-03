@@ -13,9 +13,8 @@ route.get('/get', async (req: Request, res: Response) => {
 
   try {
     const user = await User.getUser(_user_id)
-    const avatar = await File.get('profile', user.avatar)
     
-    const response: any = { ...user, avatar }
+    const response: any = { ...user }
     delete response.password
 
     return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
