@@ -30,7 +30,7 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
     const user = await User.getUser(_user_id)
 
     const file = new File(picture)
-    if (file.validateTypes(['data:image/png;base64', 'data:image/jpg;base64'])) throw new ArisError('Invalid file Type!', 403)
+    if (!file.validateTypes(['data:image/png;base64', 'data:image/jpg;base64'])) throw new ArisError('Invalid file Type!', 403)
     const uuid = await file.update('profile', 'image/png', user.avatar)
     await user.update({ avatar: uuid })
 
