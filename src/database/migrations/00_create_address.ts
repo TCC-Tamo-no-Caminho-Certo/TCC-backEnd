@@ -10,14 +10,15 @@ export async function up(knex: knex) {
       knex.schema.createTable('district', table => {
         table.increments('district_id').primary()
         table.string('name', 45).notNullable()
-        table.integer('country_id').unsigned().references('country_id').inTable('country').notNullable()
+        table.integer('country_id').unsigned().references('country_id').inTable('country').notNullable().onDelete('CASCADE')
+        table.primary(['district_id', 'country_id'])
       })
     )
     .then(() =>
       knex.schema.createTable('city', table => {
         table.increments('city_id').primary()
         table.string('name', 60).notNullable()
-        table.integer('district_id').unsigned().references('district_id').inTable('district').notNullable()
+        table.integer('district_id').unsigned().references('district_id').inTable('district').notNullable().onDelete('CASCADE')
       })
     )
     .then(() =>
@@ -25,7 +26,7 @@ export async function up(knex: knex) {
         table.increments('address_id').primary()
         table.string('address', 50).notNullable()
         table.string('postal_code', 45).notNullable()
-        table.integer('city_id').unsigned().references('city_id').inTable('city').notNullable()
+        table.integer('city_id').unsigned().references('city_id').inTable('city').notNullable().onDelete('CASCADE')
       })
     )
     .then(() =>

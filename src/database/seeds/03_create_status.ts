@@ -1,9 +1,10 @@
 import knex from 'knex'
 
 const data = [
-  { name: 'open', icon: 'open.svg', description: null },
-  { name: 'closed', icon: 'closed.svg', description: null },
-  { name: 'validating', icon: 'validating.svg', description: null }
+  { name: 'draft', icon: 'draft.svg', description: null },
+  { name: 'evaluated', icon: 'evaluated.svg', description: null },
+  { name: 'under review', icon: 'under_review.svg', description: null },
+  { name: 'waiting evaluation', icon: 'waiting evaluation.svg', description: null }
 ]
 const insert: any[] = []
 

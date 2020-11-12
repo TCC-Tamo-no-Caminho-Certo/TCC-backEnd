@@ -5,8 +5,7 @@ export async function up(knex: knex) {
     .createTable('proposal', table => {
       table.increments('proposal_id').primary()
       table.string('title', 30).notNullable()
-      table.dateTime('created_at').notNullable()
-      table.dateTime('updated_at').notNullable()
+      table.timestamps(true, true)
       table.float('version').notNullable()
     })
     .then(() =>
@@ -17,7 +16,7 @@ export async function up(knex: knex) {
         table.string('hash_verification', 90).notNullable()
         table.text('description')
         table.float('version').notNullable()
-        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().unique()
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().unique().onDelete('CASCADE')
       })
     )
     .then(() =>
@@ -29,9 +28,9 @@ export async function up(knex: knex) {
       })
     )
     .then(() =>
-      knex.schema.createTable('status_proposal', table => {
-        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().unique()
-        table.integer('status_id').unsigned().references('status_id').inTable('status').notNullable()
+      knex.schema.createTable('proposal_status', table => {
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().onDelete('CASCADE')
+        table.integer('status_id').unsigned().references('status_id').inTable('status').notNullable().onDelete('CASCADE')
       })
     )
     .then(() =>
@@ -43,16 +42,16 @@ export async function up(knex: knex) {
       })
     )
     .then(() =>
-      knex.schema.createTable('category_proposal', table => {
-        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable()
-        table.integer('category_id').unsigned().references('category_id').inTable('category').notNullable()
+      knex.schema.createTable('proposal_category', table => {
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().onDelete('CASCADE')
+        table.integer('category_id').unsigned().references('category_id').inTable('category').notNullable().onDelete('CASCADE')
       })
     )
     .then(() =>
       knex.schema.createTable('user_proposal', table => {
-        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable()
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().onDelete('CASCADE')
         table.string('permission', 45).notNullable()
-        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable()
+        table.integer('proposal_id').unsigned().references('proposal_id').inTable('proposal').notNullable().onDelete('CASCADE')
       })
     )
     .then(() =>
@@ -79,11 +78,11 @@ export async function up(knex: knex) {
         FROM
             proposal p
                 LEFT JOIN
-            status_proposal sp ON p.proposal_id = sp.proposal_id
+            proposal_status sp ON p.proposal_id = sp.proposal_id
                 LEFT JOIN
             status s ON s.status_id = sp.status_id
                 LEFT JOIN
-            category_proposal cp ON p.proposal_id = cp.proposal_id
+            proposal_category cp ON p.proposal_id = cp.proposal_id
                 LEFT JOIN
             category c ON c.category_id = cp.category_id
                 LEFT JOIN

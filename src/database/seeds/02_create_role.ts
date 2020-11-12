@@ -3,9 +3,10 @@ import knex from 'knex'
 const data = [
   { title: 'admin' },
   { title: 'base user' },
+  { title: 'aris user' },
   { title: 'student' },
   { title: 'professor' },
-  { title: 'proponent' },
+  { title: 'moderator' },
   { title: 'customer' }
 ]
 const insert: any[] = []

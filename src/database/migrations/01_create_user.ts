@@ -8,12 +8,11 @@ export async function up(knex: knex) {
       table.string('name', 40).notNullable()
       table.string('surname', 40).notNullable()
       table.string('email', 50).notNullable().unique()
-      table.string('avatar', 100).notNullable().defaultTo('default.png')
+      table.string('avatar', 100).notNullable().defaultTo('default')
       table.string('password', 100).notNullable()
       table.string('phone', 20).unique()
       table.date('birthday').notNullable()
-      table.dateTime('created_at').notNullable()
-      table.dateTime('updated_at').notNullable()
+      table.timestamps(true, true)
       table.integer('address_id').unsigned().references('address_id').inTable('address')
     })
     .then(() =>
@@ -23,33 +22,29 @@ export async function up(knex: knex) {
       })
     )
     .then(() =>
-      knex.schema.createTable('role_user', table => {
-        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable()
-        table.integer('role_id').unsigned().references('role_id').inTable('role').notNullable()
+      knex.schema.createTable('user_role', table => {
+        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().onDelete('CASCADE')
+        table.integer('role_id').unsigned().references('role_id').inTable('role').notNullable().onDelete('CASCADE')
       })
     )
     .then(() =>
       knex.schema.createTable('customer', table => {
-        table.increments('customer_id').primary()
-        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
+        table.integer('customer_id').unsigned().references('user_id').inTable('user').primary().onDelete('CASCADE')
       })
     )
     .then(() =>
       knex.schema.createTable('student', table => {
-        table.increments('student_id').primary()
-        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
+        table.integer('student_id').unsigned().references('user_id').inTable('user').primary().onDelete('CASCADE')
       })
     )
     .then(() =>
       knex.schema.createTable('professor', table => {
-        table.increments('professor_id').primary()
-        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
+        table.integer('professor_id').unsigned().references('user_id').inTable('user').primary().onDelete('CASCADE')
       })
     )
     .then(() =>
-      knex.schema.createTable('proponent', table => {
-        table.increments('proponent_id').primary()
-        table.integer('user_id').unsigned().references('user_id').inTable('user').notNullable().unique()
+      knex.schema.createTable('moderator', table => {
+        table.integer('moderator_id').unsigned().references('user_id').inTable('user').primary().onDelete('CASCADE')
       })
     )
     .then(() =>
@@ -68,28 +63,27 @@ export async function up(knex: knex) {
             u.created_at,
             u.updated_at,
             r.title AS 'role',
-            a.address_id,
-            a.address,
-            a.postal_code,
-            a.city,
-            a.district,
-            a.country
+            a.*,
+            s.*,
+            p.*,
+            m.*,
+            c.*
         FROM
             user u
                 LEFT JOIN
             address_view a ON u.address_id = a.address_id
                 LEFT JOIN
-            role_user ru ON u.user_id = ru.user_id
+            user_role ru ON u.user_id = ru.user_id
                 LEFT JOIN
             role r ON ru.role_id = r.role_id
                 LEFT JOIN
-            student ON u.user_id = student.user_id
+            student s ON u.user_id = s.student_id
                 LEFT JOIN
-            professor ON u.user_id = professor.user_id
+            professor p ON u.user_id = p.professor_id
                 LEFT JOIN
-            proponent ON u.user_id = proponent.user_id
+            moderator m ON u.user_id = m.moderator_id
                 LEFT JOIN
-            customer ON u.user_id = customer.user_id;
+            customer c ON u.user_id = c.customer_id;
       `)
     )
 }
@@ -97,7 +91,7 @@ export async function up(knex: knex) {
 export async function down(knex: knex) {
   return knex
     .raw(`DROP VIEW user_view;`)
-    .then(() => knex.schema.dropTable('proponent'))
+    .then(() => knex.schema.dropTable('moderator'))
     .then(() => knex.schema.dropTable('professor'))
     .then(() => knex.schema.dropTable('student'))
     .then(() => knex.schema.dropTable('customer'))
