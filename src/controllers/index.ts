@@ -13,12 +13,13 @@ import { Application } from 'express'
 export default (app: Application) => {
   // ----Session---- //
 
-  // Auth (routes that needs to be authenticated)
+  // Auth/Permission (routes that needs to be authenticated)
   app
     .use('/api/logout', auth)
     .use('/api/validate-session', auth)
     .use('/api/proposal', auth)
     .use('/api/user', auth)
+    .use('/api/moderator', auth, permission(['moderator']))
 
   // Proposal
   app
@@ -28,9 +29,10 @@ export default (app: Application) => {
 
   // User
   app.use(`/api/user`, userController)
-    
-  app.use('/api/moderator', permission(['moderator']), roleReqController)
-  
+
+  // Moderator
+  app.use('/api/moderator/role-request', roleReqController)
+
   // --------------- //
 
   // ----Public---- //

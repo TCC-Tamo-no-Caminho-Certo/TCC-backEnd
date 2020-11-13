@@ -15,7 +15,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   if (!reply) return res.status(403).json({ success: false, message: 'Invalid token!' })
   const data = JSON.parse(reply)
   req.body._user_id = data.id
-  req.body._role = data.role
+  req.body._roles = data.roles
 
   next()
   // jwt.verify(token, config.jwt.publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
