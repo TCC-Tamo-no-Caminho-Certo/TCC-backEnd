@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Request } from 'express'
 
 export default class UserUtils {
+
   /**
    * Generate an access_token for the user.
    */

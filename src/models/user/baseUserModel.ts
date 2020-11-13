@@ -33,7 +33,7 @@ export default class BaseUser {
   avatar: string
   birthday: string
   password: string
-  role: RoleTypes
+  roles: RoleTypes[]
   created_at?: string
   updated_at?: string
 
@@ -48,7 +48,7 @@ export default class BaseUser {
     this.avatar = avatar || 'default'
     this.birthday = birthday
     this.password = password
-    this.role = 'base user'
+    this.roles = ['base user']
     this.created_at = created_at
     this.updated_at = updated_at
   }
@@ -58,16 +58,12 @@ export default class BaseUser {
    * @param User.password - needs to be hashed!
    */
   async insert() {
-    const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
-    this.created_at = date
-    this.updated_at = date
-
     const hasUser = await BaseUser.exist(this.email)
     if (hasUser) throw new ArisError('User already exists', 400)
 
     const trx = await db.transaction()
 
-    const role = await Role.getRole(this.role, trx)
+    const role = await Role.getRole(this.roles[0], trx)
 
     const user_id = await trx('user')
       .insert({
@@ -76,14 +72,12 @@ export default class BaseUser {
         email: this.email,
         birthday: this.birthday,
         password: this.password,
-        active: true,
-        created_at: date,
-        updated_at: date
+        active: true
       })
       .then(row => row[0])
     this.user_id = user_id
 
-    await trx('role_user').insert({ role_id: role.role_id, user_id })
+    await trx('user_role').insert({ role_id: role.role_id, user_id })
 
     await trx.commit()
   }
@@ -93,9 +87,6 @@ export default class BaseUser {
    * @param update.password - needs to be hashed!
    */
   async update(update: UpdateBaseUserObj, transaction?: Transaction) {
-    const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
-    this.updated_at = date
-
     const trx = transaction || db
 
     let update_count = 0
@@ -107,10 +98,9 @@ export default class BaseUser {
       update_count++
     }
 
-    update_count &&
-      (await trx('user')
-        .update({ ...update_list, updated_at: this.updated_at })
-        .where({ user_id: this.user_id }))
+    update_count && (await trx('user').update(update_list).where({ user_id: this.user_id }))
+
+    this.updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ')
   }
 
   /**
@@ -118,8 +108,6 @@ export default class BaseUser {
    */
   async delete(transaction?: Transaction) {
     const trx = transaction || db
-
-    await trx('role_user').del().where({ user_id: this.user_id })
     await trx('user').del().where({ user_id: this.user_id })
   }
 

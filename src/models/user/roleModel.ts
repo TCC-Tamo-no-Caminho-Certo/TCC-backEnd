@@ -2,7 +2,7 @@ import ArisError from '../../utils/arisError'
 import { Transaction } from 'knex'
 import db from '../../database'
 
-export type RoleTypes = 'admin' | 'base user' | 'student' | 'professor' | 'proponent'
+export type RoleTypes = 'admin' | 'base user' | 'aris user' | 'student' | 'professor' | 'customer' | 'evaluator' | 'moderator'
 
 export interface ArisRole {
   role_id?: number
