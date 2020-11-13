@@ -1,9 +1,13 @@
 import proposalController from './proposal/proposalController'
 import categoryController from './proposal/categoryController'
+import roleReqController from './moderator/roleReqController'
 import statusController from './proposal/statusController'
 import userController from './user/userController'
 import authController from './authController'
+
+import permission from '../middlewares/permission'
 import auth from '../middlewares/auth'
+
 import { Application } from 'express'
 
 export default (app: Application) => {
@@ -24,6 +28,8 @@ export default (app: Application) => {
 
   // User
   app.use(`/api/user`, userController)
+    
+  app.use('/api/moderator', permission(['moderator']), roleReqController)
   
   // --------------- //
 
