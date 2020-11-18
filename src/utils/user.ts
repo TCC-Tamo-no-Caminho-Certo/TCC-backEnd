@@ -38,9 +38,8 @@ export default class UserUtils {
     const { user_id, roles } = user
 
     await redis.client.delAsync(`auth.data.${user_id}`)
-    await redis.client.setexAsync(
+    await redis.client.setAsync(
       `auth.data.${user_id}`,
-      86400,
       JSON.stringify({
         id: user_id,
         roles

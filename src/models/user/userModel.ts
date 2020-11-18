@@ -1,7 +1,7 @@
 import BaseUser, { ArisBaseUser } from './baseUserModel'
 import Address, { ArisAddress } from './addressModel'
+import Role, { RoleTypes } from './roleModel'
 import ArisError from '../../utils/arisError'
-import { RoleTypes } from './roleModel'
 import Data from '../../utils/data'
 import { Transaction } from 'knex'
 import db from '../../database'
@@ -80,6 +80,38 @@ export default class User extends BaseUser {
     transaction || (await trx.commit())
   }
 
+  async addRole(role_id: number) {
+    const trx = await db.transaction()
+    const role = await Role.getRole(role_id, trx)
+
+    if (this.roles.some(role => role === 'aris user')) {
+      const { role_id: base_id } = await Role.getRole('aris user', trx)
+      await trx('user_role').update({ role_id }).where({ user_id: this.user_id, role_id: base_id })
+      this.roles = [role.title]
+    } else {
+      await trx('user_role').insert({ user_id: this.user_id, role_id })
+      this.roles.push(role.title)
+    }
+
+    await trx.commit()
+  }
+
+  async updateRole(new_role: RoleTypes, prev_role: RoleTypes) {
+    const trx = await db.transaction()
+
+    const n_role = await Role.getRole(new_role, trx)
+    const p_role = await Role.getRole(prev_role, trx)
+
+    await trx('user_role').update({ role_id: n_role.role_id }).where({ role_id: p_role.role_id })
+    this.roles.map(role => (role === p_role.title ? n_role.title : role))
+
+    await trx.commit()
+  }
+
+  async removeRole(role_id: number) {
+    await db('user_role').del().where({ user_id: this.user_id, role_id })
+  }
+
   /**
    * returns an user if it`s registered in the database
    * @param identifier - an user id or email
@@ -89,8 +121,11 @@ export default class User extends BaseUser {
       .where(typeof identifier === 'string' ? { email: identifier } : { user_id: identifier })
       .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
 
-    const roles = await db('user_role_view').select('title').where({ user_id: user_info.user_id }).then(row => (row[0] ? row.map(role => role.title) : null))
-    if(!roles) throw new ArisError('Couldn`t found user roles!', 500)
+    const roles = await db('user_role_view')
+      .select('title')
+      .where({ user_id: user_info.user_id })
+      .then(row => (row[0] ? row.map(role => role.title) : null))
+    if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
 
     user_info.roles = roles
 

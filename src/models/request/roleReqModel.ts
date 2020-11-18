@@ -1,5 +1,6 @@
-import db from '../../database'
 import ArisError from '../../utils/arisError'
+import Data from '../../utils/data'
+import db from '../../database'
 
 type StatusTypes = 'accepted' | 'rejected' | 'awaiting'
 
@@ -65,14 +66,15 @@ export default class RoleReq {
     const result = await db('role_request')
       .offset((page - 1) * 5)
       .limit(5)
+      .then(row => row.map(request => Data.parseDatetime(request)))
 
     return result
-  }
+  } // create filter
 
   static async getRequest(request_id: number) {
     const request_info = await db('role_request')
       .where({ request_id })
-      .then(row => (row[0] ? row[0] : null))
+      .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
     if (!request_info) throw new ArisError('Request not found!', 403)
 
     return new RoleReq(request_info)

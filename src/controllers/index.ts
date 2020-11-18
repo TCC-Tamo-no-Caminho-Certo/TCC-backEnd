@@ -1,6 +1,6 @@
 import proposalController from './proposal/proposalController'
 import categoryController from './proposal/categoryController'
-import roleReqController from './moderator/roleReqController'
+import roleReqController from './request/roleReqController'
 import statusController from './proposal/statusController'
 import userController from './user/userController'
 import authController from './authController'
@@ -19,7 +19,7 @@ export default (app: Application) => {
     .use('/api/validate-session', auth)
     .use('/api/proposal', auth)
     .use('/api/user', auth)
-    .use('/api/moderator', auth, permission(['moderator']))
+    .use('/api/request', auth, permission(['moderator']))
 
   // Proposal
   app
@@ -30,8 +30,8 @@ export default (app: Application) => {
   // User
   app.use(`/api/user`, userController)
 
-  // Moderator
-  app.use('/api/moderator/role-request', roleReqController)
+  // Request
+  app.use('/api/request/role', roleReqController)
 
   // --------------- //
 

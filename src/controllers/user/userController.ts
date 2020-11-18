@@ -1,4 +1,5 @@
 import RoleReq from '../../models/request/roleReqModel'
+import permission from '../../middlewares/permission'
 import Role from '../../models/user/roleModel'
 import User from '../../models/user/userModel'
 import ArisError from '../../utils/arisError'
@@ -63,7 +64,7 @@ route.post('/request-role', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/complete-register', async (req: Request, res: Response) => {
+route.post('/complete-register', permission(['base user']), async (req: Request, res: Response) => { // decide what happens to the user role when it request to complete register 
   const { _user_id, city, address, postal_code, phone, role, form_data } = req.body
   const address_info = { city, address, postal_code }
   const user_info = { phone, role }
@@ -75,23 +76,19 @@ route.post('/complete-register', async (req: Request, res: Response) => {
     if (!data) throw new ArisError('Form data not provided!', 403) // CREATE VALIDATION
 
     const user = await User.getUser(_user_id)
-    if (!user.roles.some(role => role === 'base user')) throw new ArisError('This account isn`t of type base user!', 403)
-
     const { role_id } = await Role.getRole(role)
 
-    const aris_user = new User({ ...user })
-    await aris_user.update({ phone, role: 'aris user', address_info })
+    const aris_user = new User(user)
+    await aris_user.update({ phone, address_info })
+    await aris_user.updateRole('aris user', 'base user')
 
     const request = new RoleReq({ user_id: aris_user.user_id, role_id, data, status: 'awaiting' })
     await request.insert()
 
-    UserUtils.logout(req)
-    const access_token = UserUtils.generateAccessToken(aris_user)
-
     const response: any = { ...aris_user }
     delete response.password
 
-    return res.status(200).send({ success: true, message: 'Register completed!', user: response, access_token })
+    return res.status(200).send({ success: true, message: 'Register completed and request sended!', user: response })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Complete register')
     return res.status(result.status).send(result.send)

@@ -55,10 +55,10 @@ export default class Role {
     return has_role ? true : false
   }
 
-  static async getRole(title: string, transaction?: Transaction) {
+  static async getRole(identifier: RoleTypes | number, transaction?: Transaction) {
     const trx = transaction || db
     const role_info = await trx('role')
-      .where({ title })
+      .where(typeof identifier === 'string' ? { title: identifier } : { role_id: identifier })
       .then(row => (row[0] ? row[0] : null))
     if (!role_info) {
       transaction && transaction.rollback()

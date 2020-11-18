@@ -74,16 +74,12 @@ export default class Proposal {
    * Inserts the proposal in the database.
    */
   async insert() {
-    const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
-
     const trx = await db.transaction()
 
     const proposal_id = await trx('proposal')
       .insert({
         title: this.title,
-        version: this.version,
-        created_at: date,
-        updated_at: date
+        version: this.version
       })
       .then(row => row[0])
 
