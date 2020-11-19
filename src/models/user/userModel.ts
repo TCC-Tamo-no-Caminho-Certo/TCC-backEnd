@@ -80,6 +80,9 @@ export default class User extends BaseUser {
     transaction || (await trx.commit())
   }
 
+  /**
+   * Adds a role for this user in the database.
+   */
   async addRole(role_id: number) {
     const trx = await db.transaction()
     const role = await Role.getRole(role_id, trx)
@@ -96,6 +99,9 @@ export default class User extends BaseUser {
     await trx.commit()
   }
 
+  /**
+   * Updates a role for this user in the database.
+   */
   async updateRole(new_role: RoleTypes, prev_role: RoleTypes) {
     const trx = await db.transaction()
 
@@ -108,6 +114,9 @@ export default class User extends BaseUser {
     await trx.commit()
   }
 
+  /**
+   * Removes a role for this user in the database.
+   */
   async removeRole(role_id: number) {
     await db('user_role').del().where({ user_id: this.user_id, role_id })
   }
