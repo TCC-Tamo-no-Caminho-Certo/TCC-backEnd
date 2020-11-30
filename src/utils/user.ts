@@ -15,9 +15,7 @@ export default class UserUtils {
 
     const data = JSON.parse(await redis.client.getAsync(`auth.data.${user_id}`))
 
-    if (data) {
-      await redis.client.setexAsync(`auth.${token}`, remember ? 2592000 : 86400, user_id.toString())
-    } else {
+    if (!data) {
       await redis.client.setAsync(
         `auth.data.${user_id}`,
         JSON.stringify({
@@ -25,10 +23,10 @@ export default class UserUtils {
           roles
         })
       )
-      await redis.client.setexAsync(`auth.${token}`, remember ? 2592000 : 86400, user_id.toString())
     }
+    await redis.client.setexAsync(`auth.${user_id}-${token}`, remember ? 2592000 : 86400, user_id.toString())
 
-    return token
+    return `${user_id}-${token}`
   }
 
   /**
