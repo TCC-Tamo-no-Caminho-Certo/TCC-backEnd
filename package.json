@@ -13,7 +13,7 @@
     "knex:migrate": "knex --knexfile knexfile.ts migrate:latest",
     "knex:rollback": "knex --knexfile knexfile.ts migrate:rollback",
     "knex:rollback-all": "knex --knexfile knexfile.ts migrate:rollback --all",
-    "test": "jest --runInBand --detectOpenHandles --logHeapUsage"
+    "test": "jest --verbose --expand --detectOpenHandles --logHeapUsage"
   },
   "repository": {
     "type": "git",
@@ -37,14 +37,14 @@
     "jimp": "^0.16.1",
     "joi": "^17.3.0",
     "knex": "^0.21.12",
-    "minio": "^7.0.16",
+    "minio": "^7.0.17",
     "mysql2": "^2.2.5",
     "nodemailer": "^6.4.16",
     "redis": "^3.0.2",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.12.1",
+    "@babel/preset-typescript": "^7.12.7",
     "@types/bluebird": "^3.5.33",
     "@types/compression": "^1.7.0",
     "@types/cors": "^2.8.8",

@@ -13,7 +13,7 @@ export default class Minio {
   }
 
   validateTypes(types: string[]) {
-    return types.some((type) => this.stringData.length === 2 && this.stringData[0] === type)
+    return types.some(type => this.stringData.length === 2 && this.stringData[0] === type)
   }
 
   async createBuffer() {

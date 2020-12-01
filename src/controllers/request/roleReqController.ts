@@ -18,15 +18,15 @@ route.get('/get/:page', async (req: Request, res: Response) => {
     return res.status(result.status).send(result.send)
   }
 })
-
+// create filters
 route.post('/accept/:id', async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
     const request = await RoleReq.getRequest(request_id)
-    const user = await User.getUser(request.user_id)
+    const user = <User>await User.getUser(request.user_id)
 
-    await request.update({ status: "accepted" })
+    await request.update({ status: 'accepted' })
     await user.addRole(request.role_id)
 
     await UserUtils.updateAccessTokenData(user)
@@ -43,7 +43,12 @@ route.post('/reject/:id', async (req: Request, res: Response) => {
 
   try {
     const request = await RoleReq.getRequest(request_id)
+    const user = <User>await User.getUser(request.user_id)
+
     await request.update({ status: 'rejected' })
+    await user.removeRole(request.role_id)
+
+    await UserUtils.updateAccessTokenData(user)
 
     return res.status(200).send({ success: true, message: 'Reject complete!' })
   } catch (error) {

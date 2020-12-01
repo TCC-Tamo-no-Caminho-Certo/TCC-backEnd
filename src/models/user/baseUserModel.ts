@@ -3,21 +3,12 @@ import ArisError from '../../utils/arisError'
 import { Transaction } from 'knex'
 import db from '../../database'
 
-export interface UpdateBaseUserObj {
-  [key: string]: any
-  name?: string
-  surname?: string
-  birthday?: string
-  avatar?: string
-  password?: string
-}
-
 export interface ArisBaseUser {
   user_id?: number
   name: string
   surname: string
-  email: string
-  avatar: string
+  emails: string[]
+  avatar?: string
   birthday: string
   password: string
   created_at?: string
@@ -25,11 +16,10 @@ export interface ArisBaseUser {
 }
 
 export default class BaseUser {
-  [key: string]: any
   user_id: number
   name: string
   surname: string
-  email: string
+  emails: string[]
   avatar: string
   birthday: string
   password: string
@@ -40,11 +30,11 @@ export default class BaseUser {
   /**
    * Creates a base user.
    */
-  constructor({ user_id, name, surname, email, avatar, birthday, password, created_at, updated_at }: ArisBaseUser) {
+  constructor({ user_id, name, surname, emails, avatar, birthday, password, created_at, updated_at }: ArisBaseUser) {
     this.user_id = user_id || 0 //Gives a temporary id when creating a new user
     this.name = name
     this.surname = surname
-    this.email = email
+    this.emails = emails
     this.avatar = avatar || 'default'
     this.birthday = birthday
     this.password = password
@@ -58,7 +48,7 @@ export default class BaseUser {
    * @param User.password - needs to be hashed!
    */
   async insert() {
-    const hasUser = await BaseUser.exist(this.email)
+    const hasUser = await BaseUser.exist(this.emails[0])
     if (hasUser) throw new ArisError('User already exists', 400)
 
     const trx = await db.transaction()
@@ -69,13 +59,14 @@ export default class BaseUser {
       .insert({
         name: this.name,
         surname: this.surname,
-        email: this.email,
         birthday: this.birthday,
         password: this.password,
         active: true
       })
       .then(row => row[0])
     this.user_id = user_id
+
+    await trx('email').insert({ user_id, email: this.emails[0], main: true })
 
     await trx('user_role').insert({ role_id: role.role_id, user_id })
 
@@ -86,19 +77,16 @@ export default class BaseUser {
    * Updates this user in the database.
    * @param update.password - needs to be hashed!
    */
-  async update(update: UpdateBaseUserObj, transaction?: Transaction) {
+  async update(transaction?: Transaction) {
     const trx = transaction || db
 
-    let update_count = 0
-    const update_list: UpdateBaseUserObj = {}
+    const user_up: any = { ...this }
+    delete user_up.emails
+    delete user_up.roles
+    delete user_up.created_at
+    delete user_up.updated_at
 
-    for (const key in update) {
-      update_list[key] = update[key]
-      this[key] = update[key]
-      update_count++
-    }
-
-    update_count && (await trx('user').update(update_list).where({ user_id: this.user_id }))
+    await trx('user').update(user_up).where({ user_id: this.user_id })
 
     this.updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ')
   }
@@ -115,7 +103,7 @@ export default class BaseUser {
    * Checks if an user (email) is already registered, and returns its id if so.
    */
   static async exist(email: string) {
-    const user_id: number = await db('user')
+    const user_id: number = await db('email')
       .select('user_id')
       .where({ email })
       .then(row => (row[0] ? row[0].user_id : null))

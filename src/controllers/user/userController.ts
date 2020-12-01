@@ -36,7 +36,9 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
     const file = new File(picture)
     if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 403)
     const uuid = await file.update('profile', 'image/png', user.avatar)
-    await user.update({ avatar: uuid })
+    user.avatar = uuid
+
+    await user.update()
 
     return res.status(200).send({ success: true, message: 'Avatar uploaded!', object: uuid })
   } catch (error) {
@@ -64,22 +66,20 @@ route.post('/request-role', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/complete-register', permission(['base user']), async (req: Request, res: Response) => { // decide what happens to the user role when it request to complete register 
-  const { _user_id, city, address, postal_code, phone, role, form_data } = req.body
-  const address_info = { city, address, postal_code }
-  const user_info = { phone, role }
+route.post('/complete-register', permission(['base user']), async (req: Request, res: Response) => {
+  const { _user_id, cpf, phone, role, form_data } = req.body
+  const user_info = { cpf, phone, role }
   const data = JSON.stringify(form_data)
 
   try {
-    Data.validate(address_info, 'address')
     Data.validate(user_info, 'complete_register')
     if (!data) throw new ArisError('Form data not provided!', 403) // CREATE VALIDATION
 
     const user = await User.getUser(_user_id)
     const { role_id } = await Role.getRole(role)
 
-    const aris_user = new User(user)
-    await aris_user.update({ phone, address_info })
+    const aris_user = new User({ ...user, cpf, phone })
+    await aris_user.update()
     await aris_user.updateRole('aris user', 'base user')
 
     const request = new RoleReq({ user_id: aris_user.user_id, role_id, data, status: 'awaiting' })
@@ -96,21 +96,25 @@ route.post('/complete-register', permission(['base user']), async (req: Request,
 })
 
 route.post('/update', async (req: Request, res: Response) => {
-  const { _user_id, name, surname, birthday, phone, password, new_password, city, address, postal_code } = req.body
-  const address_info = { city, address, postal_code }
+  const { _user_id, name, surname, birthday, phone, password, new_password } = req.body
   const user_info = { name, surname, birthday, phone, password, new_password }
 
   try {
     Data.validate(user_info, 'user_patch')
-    Data.validate(address_info, 'user_patch_address')
 
-    const user = await User.getUser(_user_id)
+    const user: any = await User.getUser(_user_id)
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
 
     const new_hash = new_password && (await argon.hash(new_password))
-    user.roles.some(role => role === 'base user')
-      ? await user.update({ name, surname, birthday, password: new_hash })
-      : await user.update({ name, surname, birthday, phone, password: new_hash, address_info })
+
+    if (name) user.name = name
+    if (surname) user.surname = surname
+    if (birthday) user.birthday = birthday
+    if (new_hash) user.password = new_hash
+
+    if (typeof user === typeof User) if (phone) user.phone = phone
+
+    await user.update()
 
     const response: any = { ...user }
     delete response.password
@@ -121,7 +125,7 @@ route.post('/update', async (req: Request, res: Response) => {
     return res.status(result.status).send(result.send)
   }
 })
-
+// Improve
 route.post('/delete', async (req: Request, res: Response) => {
   const { _user_id, password } = req.body
 

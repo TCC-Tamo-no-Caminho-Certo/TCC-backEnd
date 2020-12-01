@@ -7,7 +7,6 @@ import redis from '../services/redis'
 import UserUtils from '../utils/user'
 import { v4 as uuidv4 } from 'uuid'
 import Data from '../utils/data'
-import config from '../config'
 import crypto from 'crypto'
 import argon from 'argon2'
 
@@ -16,7 +15,7 @@ const route = express.Router()
 
 route.get('/api/validate-session', async (req: Request, res: Response) => {
   try {
-    return res.status(200).send({ success: true, message: 'Session validated!' })
+    return res.status(200).send({ success: true, message: 'Valid session!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Validate session')
     return res.status(result.status).send(result.send)
@@ -53,7 +52,7 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
   const { name, surname, email, birthday, password } = req.body
-  const user_info = { name, surname, email, birthday, password }
+  const user_info = { name, surname, emails: [email], birthday, password }
 
   try {
     Data.validate(user_info, 'register')
@@ -76,13 +75,11 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
   const { token } = req.params
 
   try {
-    Data.validate({ token }, 'token')
+    Data.validate(token, 'token')
 
     const reply = await redis.client.getAsync(`register.${token}`)
-    if (!reply) {
-      if (config.environment == 'development') throw new ArisError('Invalid token!', 403)
-      return res.redirect('/')
-    }
+    if (!reply) throw new ArisError('Invalid token!', 403)
+
     const user_info = JSON.parse(reply)
 
     const user = new BaseUser(user_info)
@@ -91,8 +88,7 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
 
     redis.client.del(`register.${token}`)
 
-    if (config.environment == 'development') return res.status(200).send({ success: true, message: 'Register complete!' })
-    return res.redirect('/')
+    return res.status(200).send({ success: true, message: 'Register complete!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Confirm registration')
     return res.status(result.status).send(result.send)
@@ -103,13 +99,13 @@ route.post('/api/forgot-password', captcha, async (req: Request, res: Response) 
   const { email } = req.body
 
   try {
-    Data.validate({ email }, 'forgot_password')
+    Data.validate({ email }, 'email')
 
     const id = await User.exist(email)
     if (!id) throw new ArisError('User don`t exist!', 403)
 
     const token = crypto.randomBytes(3).toString('hex')
-    console.log(token)
+
     redis.client.setex(`reset.${token}`, 3600, id.toString())
     await Mail.forgotPass({ to: email, token })
 
@@ -124,7 +120,7 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
   const { token, password } = req.body
 
   try {
-    Data.validate({ token }, 'token')
+    Data.validate(token, 'token')
 
     const reply = await redis.client.getAsync(`reset.${token}`)
     if (!reply) throw new ArisError('Invalid token!', 403)
@@ -132,11 +128,12 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
 
     if (!password) return res.status(200).send({ success: true, message: 'Valid reset token!' })
 
-    Data.validate({ password }, 'reset_password')
+    Data.validate(password, 'password')
 
     const user = await User.getUser(id)
     const new_hash = await argon.hash(password)
-    await user.update({ password: new_hash })
+    user.password = new_hash
+    await user.update()
 
     redis.client.del(`reset.${token}`)
 

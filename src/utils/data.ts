@@ -111,90 +111,87 @@ export default class Data {
   }
 
   // Client data
-  static validate(data: Object, type: keyof typeof schema_list) {
-    const schema_list = {
-      token: joi.object({
-        token: joi.string().required()
-      }),
+  static validate(data: any, type: keyof typeof schema_list) {
+    const primitive = {
+      auth: {
+        token: joi.string(),
+        remember: joi.bool()
+      },
 
-      register: joi.object({
-        email: joi.string().email().required(),
-        name: joi
-          .string()
-          .regex(/^([a-zà-ú]\s?)+$/i)
-          .required(),
+      user: {
+        email: joi.string().email(),
+
+        name: joi.string().regex(/^([a-zà-ú]\s?)+$/i),
+
         surname: joi
           .string()
           .regex(/^([a-zà-ú]\s?)+$/i)
           .required(),
-        password: joi.string().required(),
-        birthday: joi
-          .string()
-          .regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/)
-          .required()
+
+        password: joi.string(),
+
+        birthday: joi.string().regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/),
+
+        phone: joi.string().regex(/^\(\d\d\)\d{5}-\d{4}$/),
+
+        role: joi.string().equal('professor', 'student', 'customer', 'evaluator', 'moderator')
+      },
+
+      address: {
+        city: joi.string().regex(/^([a-zà-ú]\s?)+$/i),
+        address: joi.string(),
+        postal_code: joi.string().regex(/^\d{5}-\d{3}$/)
+      }
+    }
+
+    const schema_list = {
+      token: primitive.auth.token.required(),
+
+      email: primitive.user.email.required(),
+
+      password: primitive.user.password.required(),
+
+      register: joi.object({
+        email: joi.array().items(joi.string().email()).required(),
+        name: primitive.user.name.required(),
+        surname: primitive.user.surname.required(),
+        password: primitive.user.password.required(),
+        birthday: primitive.user.birthday.required()
       }),
 
       complete_register: joi.object({
-        phone: joi
-          .string()
-          .regex(/^\(\d\d\)\d{5}-\d{4}$/)
-          .allow(null),
-        role: joi.string().equal('professor', 'student', 'customer').required()
+        phone: primitive.user.phone.allow(null),
+        role: primitive.user.role.required()
       }),
 
       user_patch: joi.object({
-        name: joi
-          .string()
-          .regex(/^([a-zà-ú]\s?)+$/i)
-          .allow(null),
-        surname: joi
-          .string()
-          .regex(/^([a-zà-ú]\s?)+$/i)
-          .allow(null),
-        birthday: joi
-          .string()
-          .regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/),
-        phone: joi
-          .string()
-          .regex(/^\(\d\d\)\d{5}-\d{4}$/)
-          .allow(null),
-        new_password: joi.string(),
-        password: joi.string().required()
+        name: primitive.user.name.allow(null),
+        surname: primitive.user.surname.allow(null),
+        birthday: primitive.user.birthday.allow(null),
+        phone: primitive.user.phone.allow(null),
+        new_password: primitive.user.password,
+        password: primitive.user.password.required()
       }),
 
-      user_patch_address: joi
-        .object({
-          city: joi.string().regex(/^([a-zà-ú]\s?)+$/i),
-          address: joi.string(),
-          postal_code: joi.string().regex(/^\d{5}-\d{3}$/)
-        })
-        .with('address', 'city')
-        .with('address', 'postal_code'),
+      // user_patch_address: joi
+      //   .object({
+      //     city: primitive.address.city,
+      //     address: primitive.address.address,
+      //     postal_code: primitive.address.postal_code
+      //   })
+      //   .with('address', 'city')
+      //   .with('address', 'postal_code'),
 
       login: joi.object({
-        email: joi.string().email().required(),
-        password: joi.string().required(),
-        remember: joi.boolean().allow(null)
-      }),
-
-      forgot_password: joi.object({
-        email: joi.string().email().required()
-      }),
-
-      reset_password: joi.object({
-        password: joi.string().required()
+        email: primitive.user.email.required(),
+        password: primitive.user.password.required(),
+        remember: primitive.auth.remember.allow(null)
       }),
 
       address: joi.object({
-        city: joi
-          .string()
-          .required()
-          .regex(/^([a-zà-ú]\s?)+$/i),
-        address: joi.string().required(),
-        postal_code: joi
-          .string()
-          .required()
-          .regex(/^\d{5}-\d{3}$/)
+        city: primitive.address.city.required(),
+        address: primitive.address.address.required(),
+        postal_code: primitive.address.postal_code.required()
       }),
 
       proposal_get: joi.object({
