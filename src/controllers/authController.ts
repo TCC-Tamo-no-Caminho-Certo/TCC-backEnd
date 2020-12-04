@@ -52,7 +52,7 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
   const { name, surname, email, birthday, password } = req.body
-  const user_info = { name, surname, emails: [email], birthday, password }
+  const user_info = { name, surname, emails: [{ email, main: true }], birthday, password }
 
   try {
     Data.validate(user_info, 'register')

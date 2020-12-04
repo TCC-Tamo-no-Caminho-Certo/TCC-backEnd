@@ -3,11 +3,17 @@ import ArisError from '../../utils/arisError'
 import { Transaction } from 'knex'
 import db from '../../database'
 
+interface Email {
+  email: string
+  main: boolean
+  options?: {[key: string]: any}
+}
+
 export interface ArisBaseUser {
   user_id?: number
   name: string
   surname: string
-  emails: string[]
+  emails: Email[]
   avatar?: string
   birthday: string
   password: string
@@ -19,7 +25,7 @@ export default class BaseUser {
   user_id: number
   name: string
   surname: string
-  emails: string[]
+  emails: Email[]
   avatar: string
   birthday: string
   password: string
@@ -48,8 +54,8 @@ export default class BaseUser {
    * @param User.password - needs to be hashed!
    */
   async insert() {
-    const hasUser = await BaseUser.exist(this.emails[0])
-    if (hasUser) throw new ArisError('User already exists', 400)
+    const hasUser = await BaseUser.exist(this.emails[0].email)
+    if (hasUser) throw new ArisError('User already exists!', 400)
 
     const trx = await db.transaction()
 
@@ -66,7 +72,7 @@ export default class BaseUser {
       .then(row => row[0])
     this.user_id = user_id
 
-    await trx('email').insert({ user_id, email: this.emails[0], main: true })
+    await trx('email').insert({ user_id, email: this.emails[0].email, main: this.emails[0].main })
 
     await trx('user_role').insert({ role_id: role.role_id, user_id })
 
@@ -81,6 +87,7 @@ export default class BaseUser {
     const trx = transaction || db
 
     const user_up: any = { ...this }
+    delete user_up.user_id
     delete user_up.emails
     delete user_up.roles
     delete user_up.created_at
