@@ -35,41 +35,37 @@ export default class User extends BaseUser {
    * Adds a role for this user in the database.
    */
   async addRole(role_id: number) {
-    const trx = await db.transaction()
-    const role = await Role.getRole(role_id, trx)
+    const role = await Role.getRole(role_id)
 
     if (this.roles.some(role => role === 'aris user')) {
-      const { role_id: base_id } = await Role.getRole('aris user', trx)
-      await trx('user_role').update({ role_id }).where({ user_id: this.user_id, role_id: base_id })
+      const { role_id: base_id } = await Role.getRole('aris user')
+      await db('user_role').update({ role_id }).where({ user_id: this.user_id, role_id: base_id })
       this.roles = [role.title]
     } else {
-      await trx('user_role').insert({ user_id: this.user_id, role_id })
+      await db('user_role').insert({ user_id: this.user_id, role_id })
       this.roles.push(role.title)
     }
-
-    await trx.commit()
   }
 
   /**
    * Updates a role for this user in the database.
    */
   async updateRole(new_role: RoleTypes, prev_role: RoleTypes) {
-    const trx = await db.transaction()
+    const n_role = await Role.getRole(new_role)
+    const p_role = await Role.getRole(prev_role)
 
-    const n_role = await Role.getRole(new_role, trx)
-    const p_role = await Role.getRole(prev_role, trx)
-
-    await trx('user_role').update({ role_id: n_role.role_id }).where({ role_id: p_role.role_id })
-    this.roles.map(role => (role === p_role.title ? n_role.title : role))
-
-    await trx.commit()
+    await db('user_role').update({ role_id: n_role.role_id }).where({ role_id: p_role.role_id })
+    this.roles = this.roles.map(role => (role === p_role.title ? n_role.title : role))
   }
 
   /**
    * Removes a role for this user in the database.
    */
   async removeRole(role_id: number) {
+    const r_role = await Role.getRole(role_id)
+
     await db('user_role').del().where({ user_id: this.user_id, role_id })
+    this.roles = this.roles.filter(role => role !== r_role.title)
   }
 
   /**
