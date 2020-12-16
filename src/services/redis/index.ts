@@ -8,8 +8,10 @@ declare module 'redis' {
   export interface RedisClient extends NodeJS.EventEmitter {
     setexAsync(key: string, seconds: number, value: string): Promise<void>
     setAsync(key: string, value: string): Promise<void>
+    delAsync(arg1: string | string[]): Promise<number>
     getAsync(key: string): Promise<string>
-    delAsync(arg1: string | string[]): Promise<boolean>
+    ttlAsync(key: string): Promise<number>
+    flushallAsync(): Promise<string>
   }
 }
 

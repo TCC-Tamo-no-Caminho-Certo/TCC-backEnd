@@ -1,31 +1,42 @@
-import { v4 as uuidv4 } from 'uuid'
-import config from '../../src/config'
-import HTTPMocks from 'node-mocks-http'
-import redis from '../../src/services/redis'
-import auth from '../../src/middlewares/auth'
-import captcha from '../../src/middlewares/recaptcha'
+import { RoleTypes } from '../../src/models/user/roleModel'
 import permission from '../../src/middlewares/permission'
+import auth from '../../src/middlewares/auth'
+import redis from '../../src/services/redis'
+import HTTPMocks from 'node-mocks-http'
+import config from '../../src/config'
+import { v4 as uuidv4 } from 'uuid'
 
 redis.initialize(config.redis.host, config.redis.port, config.redis.database, config.redis.password)
 
-describe('test middlewares', () => {
-  describe('auth', () => {
+describe('Test middlewares', () => {
+  describe('Auth', () => {
+    afterAll(async () => await redis.client.flushallAsync())
+
+    beforeAll(async () => await redis.client.flushallAsync())
+
     test('should allow access', async () => {
       const token = uuidv4()
       const req = HTTPMocks.createRequest({
         headers: {
-          authorization: `Bearer ${token}`
+          authorization: `Bearer 1-${token}`
         }
       })
       const res = HTTPMocks.createResponse()
       const next = jest.fn()
-      await redis.client.setAsync(`auth.${token}`, JSON.stringify({ id: 1, role: 'student' }))
-  
+      await redis.client.setAsync(
+        `auth.data.${1}`,
+        JSON.stringify({
+          id: 1,
+          roles: ['student']
+        })
+      )
+      await redis.client.setAsync(`auth.1-${token}`, '1')
       await auth(req, res, next)
+
       expect(next).toBeCalled()
     })
 
-    test('shouldn`t allow access if a token is not provided' , async () => {
+    test('shouldn`t allow access if a token is not provided', async () => {
       const req = HTTPMocks.createRequest({
         headers: {
           authorization: undefined
@@ -33,13 +44,13 @@ describe('test middlewares', () => {
       })
       const res = HTTPMocks.createResponse()
       const next = jest.fn()
-  
+
       await auth(req, res, next)
       expect(res.statusCode).toBe(403)
-      expect(res._getJSONData().message).toBe('No token provided!')
+      expect(res._getData().message).toBe('No token provided!')
     })
 
-    test('shouldn`t allow access if a token don`t have an identifier' , async () => {
+    test('shouldn`t allow access if a token don`t have an identifier', async () => {
       const token = uuidv4()
       const req = HTTPMocks.createRequest({
         headers: {
@@ -48,13 +59,13 @@ describe('test middlewares', () => {
       })
       const res = HTTPMocks.createResponse()
       const next = jest.fn()
-  
+
       await auth(req, res, next)
       expect(res.statusCode).toBe(403)
-      expect(res._getJSONData().message).toBe('Token error!')
+      expect(res._getData().message).toBe('Token error!')
     })
 
-    test('shouldn`t allow access if the token identifier is wrong' , async () => {
+    test('shouldn`t allow access if the token identifier is wrong', async () => {
       const token = uuidv4()
       const req = HTTPMocks.createRequest({
         headers: {
@@ -63,13 +74,13 @@ describe('test middlewares', () => {
       })
       const res = HTTPMocks.createResponse()
       const next = jest.fn()
-  
+
       await auth(req, res, next)
       expect(res.statusCode).toBe(403)
-      expect(res._getJSONData().message).toBe('Token malformated!')
+      expect(res._getData().message).toBe('Token malformated!')
     })
-    
-    test('shouldn`t allow access if the token isn`t in memory' , async () => {
+
+    test('shouldn`t allow access if the token isn`t in redis`s memory', async () => {
       const token = uuidv4()
       const req = HTTPMocks.createRequest({
         headers: {
@@ -78,46 +89,41 @@ describe('test middlewares', () => {
       })
       const res = HTTPMocks.createResponse()
       const next = jest.fn()
-      
+
       await auth(req, res, next)
       expect(res.statusCode).toBe(403)
-      expect(res._getJSONData().message).toBe('Invalid token!')
+      expect(res._getData().message).toBe('Invalid token!')
     })
   })
 
-  describe('permission', () => {
-    test('should allow access for all roles in de list', () => {
+  describe('Permission', () => {
+    test('should allow access for all roles in the list', () => {
+      const roles: RoleTypes[] = ['admin', 'base user', 'aris user', 'customer', 'professor', 'evaluator', 'moderator', 'student']
       const req = HTTPMocks.createRequest({
         body: {
-          _role: 'admin'
+          _roles: ['admin']
         }
       })
       const res = HTTPMocks.createResponse()
       const next = jest.fn()
-  
-      permission(['admin', 'professor', 'proponent', 'student'])(req, res, next)
 
-      req.body._role = 'professor'
-      permission(['admin', 'professor', 'proponent', 'student'])(req, res, next)
+      roles.forEach(role => {
+        req.body._roles = [role]
+        permission(roles)(req, res, next)
+      })
 
-      req.body._role = 'proponent'
-      permission(['admin', 'professor', 'proponent', 'student'])(req, res, next)
-
-      req.body._role = 'student'
-      permission(['admin', 'professor', 'proponent', 'student'])(req, res, next)
-
-      expect(next).toBeCalledTimes(4)
+      expect(next).toBeCalledTimes(roles.length)
     })
 
     test('shouldn`t allow access for wrong roles', () => {
       const req = HTTPMocks.createRequest({
         body: {
-          _role: 'base user'
+          _roles: ['base user']
         }
       })
       const res = HTTPMocks.createResponse()
       const next = jest.fn()
-  
+
       permission(['admin', 'professor'])(req, res, next)
       expect(res.statusCode).toBe(403)
       expect(res._getData().success).toBe(false)

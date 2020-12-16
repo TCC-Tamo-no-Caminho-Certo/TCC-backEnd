@@ -9,7 +9,7 @@ export interface ArisUser extends ArisBaseUser {
   phone?: string
   roles: RoleTypes[]
 }
-
+// cant have more than one main email create a check!
 export default class User extends BaseUser {
   cpf: string
   phone?: string

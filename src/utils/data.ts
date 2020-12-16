@@ -152,7 +152,10 @@ export default class Data {
       password: primitive.user.password.required(),
 
       register: joi.object({
-        email: joi.array().items(joi.string().email()).required(),
+        emails: joi
+          .array()
+          .items(joi.object({ email: joi.string().email(), main: joi.bool() }))
+          .required(),
         name: primitive.user.name.required(),
         surname: primitive.user.surname.required(),
         password: primitive.user.password.required(),

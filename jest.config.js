@@ -3,7 +3,7 @@ module.exports = {
   // automock: false,
 
   // Stop running tests after `n` failures
-  bail: false,
+  bail: true,
 
   // Respect "browser" field in package.json when resolving modules
   // browser: false,
@@ -20,6 +20,7 @@ module.exports = {
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   collectCoverageFrom: [
     'src/**',
+    '!src/version.generated.ts',
     '!src/server.ts',
     '!src/app.ts',
     '!src/database/**',
@@ -148,7 +149,7 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-    "**/__tests__/**/*.test.ts?(x)",
+    "**/__tests__/unit/**/*.test.ts?(x)",
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
