@@ -86,7 +86,7 @@ export default class BaseUser {
   async update(transaction?: Transaction) {
     const trx = transaction || db
 
-    const user_up: any = { ...this }
+    const user_up: Partial<this> = { ...this }
     delete user_up.user_id
     delete user_up.emails
     delete user_up.roles

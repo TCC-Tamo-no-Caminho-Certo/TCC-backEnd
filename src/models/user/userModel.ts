@@ -73,29 +73,28 @@ export default class User extends BaseUser {
    * @param identifier - an user id or email
    */
   static async getUser(identifier: string | number): Promise<User | BaseUser> {
-    const trx = await db.transaction()
 
     let user_id =
       typeof identifier === 'string'
-        ? await trx('email')
+        ? await db('email')
             .select('user_id')
             .where({ email: identifier, main: true })
             .then(row => (row[0] ? row[0].user_id : null))
         : identifier
 
-    const user_info: ArisUser = await trx('user')
+    const user_info: ArisUser = await db('user')
       .where({ user_id })
       .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
     if (!user_info) throw new ArisError('User don`t exists!', 403)
 
-    const email_info = await trx('email')
+    const email_info = await db('email')
       .select('email', 'main', 'options')
       .where({ user_id: user_info.user_id })
       .then(row => (row[0] ? row : null))
     if (!email_info) throw new ArisError('Couldn`t found user emails!', 500)
     user_info.emails = email_info
 
-    const roles = await trx('user_role_view')
+    const roles = await db('user_role_view')
       .select('title')
       .where({ user_id: user_info.user_id })
       .then(row => (row[0] ? row.map(role => role.title) : null))
