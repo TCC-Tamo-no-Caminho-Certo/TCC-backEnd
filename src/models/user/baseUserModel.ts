@@ -44,7 +44,7 @@ export default class BaseUser {
     this.avatar = avatar || 'default'
     this.birthday = birthday
     this.password = password
-    this.roles = ['base user']
+    this.roles = ['guest']
     this.created_at = created_at
     this.updated_at = updated_at
   }

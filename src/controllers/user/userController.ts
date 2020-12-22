@@ -66,7 +66,7 @@ route.post('/request-role', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/complete-register', permission(['base user']), async (req: Request, res: Response) => {
+route.post('/complete-register', permission(['guest']), async (req: Request, res: Response) => {
   const { _user_id, cpf, phone, role, form_data } = req.body
   const user_info = { cpf, phone, role }
   const data = JSON.stringify(form_data)
@@ -80,7 +80,7 @@ route.post('/complete-register', permission(['base user']), async (req: Request,
 
     const aris_user = new User({ ...user, cpf, phone })
     await aris_user.update()
-    await aris_user.updateRole('aris user', 'base user')
+    await aris_user.updateRole('aris', 'guest')
 
     const request = new RoleReq({ user_id: aris_user.user_id, role_id, data, status: 'awaiting' })
     await request.insert()
@@ -124,8 +124,8 @@ route.post('/update', async (req: Request, res: Response) => {
     const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)
   }
-})
-// Improve
+})// Improve
+
 route.post('/delete', async (req: Request, res: Response) => {
   const { _user_id, password } = req.body
 

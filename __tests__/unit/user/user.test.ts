@@ -104,9 +104,9 @@ describe('Test user models', () => {
     describe('Role', () => {
       test('should update the role of an user', async () => {
         try {
-          expect(Aris_user.roles[0]).toBe('base user')
-          await Aris_user.updateRole('aris user', 'base user')
-          expect(Aris_user.roles[0]).toBe('aris user')
+          expect(Aris_user.roles[0]).toBe('guest')
+          await Aris_user.updateRole('aris', 'guest')
+          expect(Aris_user.roles[0]).toBe('aris')
         } catch (error) {
           console.log(error)
           expect(error).toBeUndefined()
@@ -117,7 +117,7 @@ describe('Test user models', () => {
         try {
           const { role_id } = await Role.getRole('student')
 
-          expect(Aris_user.roles).toEqual(expect.arrayContaining(['aris user']))
+          expect(Aris_user.roles).toEqual(expect.arrayContaining(['aris']))
           await Aris_user.addRole(role_id)
           expect(Aris_user.roles).toEqual(expect.arrayContaining(['student']))
         } catch (error) {

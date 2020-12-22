@@ -2,8 +2,8 @@ import knex from 'knex'
 
 const data = [
   { title: 'admin' },
-  { title: 'base user' },
-  { title: 'aris user' },
+  { title: 'guest' },
+  { title: 'aris' },
   { title: 'student' },
   { title: 'professor' },
   { title: 'moderator' },

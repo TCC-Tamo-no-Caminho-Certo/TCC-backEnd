@@ -37,8 +37,8 @@ export default class User extends BaseUser {
   async addRole(role_id: number) {
     const role = await Role.getRole(role_id)
 
-    if (this.roles.some(role => role === 'aris user')) {
-      const { role_id: base_id } = await Role.getRole('aris user')
+    if (this.roles.some(role => role === 'aris')) {
+      const { role_id: base_id } = await Role.getRole('aris')
       await db('user_role').update({ role_id }).where({ user_id: this.user_id, role_id: base_id })
       this.roles = [role.title]
     } else {
@@ -101,7 +101,7 @@ export default class User extends BaseUser {
     if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
     user_info.roles = roles
 
-    if (user_info.roles.some(role => role === 'base user')) return new BaseUser(user_info)
+    if (user_info.roles.some(role => role === 'guest')) return new BaseUser(user_info)
     return new User(user_info)
   }
 }

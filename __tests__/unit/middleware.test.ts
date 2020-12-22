@@ -98,7 +98,7 @@ describe('Test middlewares', () => {
 
   describe('Permission', () => {
     test('should allow access for all roles in the list', () => {
-      const roles: RoleTypes[] = ['admin', 'base user', 'aris user', 'customer', 'professor', 'evaluator', 'moderator', 'student']
+      const roles: RoleTypes[] = ['admin', 'guest', 'aris', 'customer', 'professor', 'evaluator', 'moderator', 'student']
       const req = HTTPMocks.createRequest({
         body: {
           _roles: ['admin']
