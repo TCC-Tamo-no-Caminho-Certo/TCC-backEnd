@@ -1,4 +1,5 @@
 import BaseUser from '../models/user/baseUserModel'
+import ValSchema, { P } from '../utils/validation'
 import captcha from '../middlewares/recaptcha'
 import User from '../models/user/userModel'
 import ArisError from '../utils/arisError'
@@ -6,7 +7,6 @@ import Mail from '../services/nodemailer'
 import redis from '../services/redis'
 import UserUtils from '../utils/user'
 import { v4 as uuidv4 } from 'uuid'
-import Data from '../utils/data'
 import crypto from 'crypto'
 import argon from 'argon2'
 
@@ -37,7 +37,11 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
   const { email, password, remember } = req.body
 
   try {
-    Data.validate({ email, password, remember }, 'login')
+    new ValSchema({
+      email: P.user.email.required(),
+      password: P.user.password.required(),
+      remember: P.auth.remember.allow(null)
+    }).validate({ email, password, remember })
 
     const user = await User.getUser(email)
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
@@ -52,10 +56,16 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
   const { name, surname, email, birthday, password } = req.body
-  const user_info = { name, surname, emails: [{ email, main: true }], birthday, password }
+  const user_info = { name, surname, emails: email, birthday, password }
 
   try {
-    Data.validate(user_info, 'register')
+    new ValSchema({
+      name: P.user.name.required(),
+      surname: P.user.surname.required(),
+      emails: P.user.email.required(),
+      birthday: P.user.birthday.required(),
+      password: P.user.password.required()
+    }).validate(user_info)
 
     const hasUser = await User.exist(email)
     if (hasUser) throw new ArisError('User already exists', 400)
@@ -75,7 +85,7 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
   const { token } = req.params
 
   try {
-    Data.validate(token, 'token')
+    new ValSchema(P.auth.token.required()).validate(token)
 
     const reply = await redis.client.getAsync(`register.${token}`)
     if (!reply) throw new ArisError('Invalid token!', 403)
@@ -99,7 +109,7 @@ route.post('/api/forgot-password', captcha, async (req: Request, res: Response) 
   const { email } = req.body
 
   try {
-    Data.validate({ email }, 'email')
+    new ValSchema(P.user.email.required()).validate(email)
 
     const id = await User.exist(email)
     if (!id) throw new ArisError('User don`t exist!', 403)
@@ -120,7 +130,7 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
   const { token, password } = req.body
 
   try {
-    Data.validate(token, 'token')
+    new ValSchema(P.auth.token.required()).validate(token)
 
     const reply = await redis.client.getAsync(`reset.${token}`)
     if (!reply) throw new ArisError('Invalid token!', 403)
@@ -128,7 +138,7 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
 
     if (!password) return res.status(200).send({ success: true, message: 'Valid reset token!' })
 
-    Data.validate(password, 'password')
+    new ValSchema(P.user.password.required()).validate(password)
 
     const user = await User.getUser(id)
     const new_hash = await argon.hash(password)

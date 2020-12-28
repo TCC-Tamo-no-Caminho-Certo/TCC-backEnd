@@ -1,11 +1,11 @@
 import RoleReq from '../../models/request/roleReqModel'
 import permission from '../../middlewares/permission'
+import ValSchema, { P } from '../../utils/validation'
 import Role from '../../models/user/roleModel'
 import User from '../../models/user/userModel'
 import ArisError from '../../utils/arisError'
 import UserUtils from '../../utils/user'
 import File from '../../utils/minio'
-import Data from '../../utils/data'
 import argon from 'argon2'
 
 import express, { Request, Response } from 'express'
@@ -72,7 +72,11 @@ route.post('/complete-register', permission(['guest']), async (req: Request, res
   const data = JSON.stringify(form_data)
 
   try {
-    Data.validate(user_info, 'complete_register')
+    new ValSchema({
+      cpf: P.user.cpf.required(),
+      phone: P.user.phone.allow(null),
+      role: P.user.role.equal('professor', 'student').required()
+    }).validate(user_info)
     if (!data) throw new ArisError('Form data not provided!', 403) // CREATE VALIDATION
 
     const user = await User.getUser(_user_id)
@@ -100,7 +104,14 @@ route.post('/update', async (req: Request, res: Response) => {
   const user_info = { name, surname, birthday, phone, password, new_password }
 
   try {
-    Data.validate(user_info, 'user_patch')
+    new ValSchema({
+      name: P.user.name.allow(null),
+      surname: P.user.surname.allow(null),
+      birthday: P.user.birthday.allow(null),
+      phone: P.user.phone.allow(null),
+      new_password: P.user.password.allow(null),
+      password: P.user.password.required()
+    }).validate(user_info)
 
     const user: any = await User.getUser(_user_id)
     if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
@@ -116,7 +127,7 @@ route.post('/update', async (req: Request, res: Response) => {
 
     await user.update()
 
-    const response: any = { ...user }
+    const response: Partial<User> = { ...user }
     delete response.password
 
     return res.status(200).send({ success: true, message: 'Update complete!', user: response })
@@ -124,7 +135,7 @@ route.post('/update', async (req: Request, res: Response) => {
     const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)
   }
-})// Improve
+}) // Improve
 
 route.post('/delete', async (req: Request, res: Response) => {
   const { _user_id, password } = req.body

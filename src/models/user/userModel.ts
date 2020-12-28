@@ -73,7 +73,6 @@ export default class User extends BaseUser {
    * @param identifier - an user id or email
    */
   static async getUser(identifier: string | number): Promise<User | BaseUser> {
-
     let user_id =
       typeof identifier === 'string'
         ? await db('email')

@@ -13,7 +13,7 @@ export interface ArisBaseUser {
   user_id?: number
   name: string
   surname: string
-  emails: Email[]
+  emails: Email[] | string
   avatar?: string
   birthday: string
   password: string
@@ -40,7 +40,7 @@ export default class BaseUser {
     this.user_id = user_id || 0 //Gives a temporary id when creating a new user
     this.name = name
     this.surname = surname
-    this.emails = emails
+    this.emails = typeof emails === 'string' ? [{email: emails, main: true}] : emails
     this.avatar = avatar || 'default'
     this.birthday = birthday
     this.password = password
