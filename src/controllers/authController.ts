@@ -98,7 +98,7 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
 
     redis.client.del(`register.${token}`)
 
-    return res.status(200).send({ success: true, message: 'Register complete!' })
+    return res.status(201).send({ success: true, message: 'Register complete!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Confirm registration')
     return res.status(result.status).send(result.send)

@@ -1,4 +1,5 @@
 import RoleReq from '../../models/request/roleReqModel'
+import ValSchema, { P } from '../../utils/validation'
 import User from '../../models/user/userModel'
 import ArisError from '../../utils/arisError'
 import UserUtils from '../../utils/user'
@@ -8,9 +9,28 @@ const route = express.Router()
 
 route.get('/get/:page', async (req: Request, res: Response) => {
   const page = parseInt(req.params.page)
+  const { ids, users_ids, roles_ids, status, created_at, updated_at } = req.body
+  const filters = {
+    ids,
+    users_ids,
+    roles_ids,
+    status,
+    created_at,
+    updated_at
+  }
 
   try {
-    const requests = await RoleReq.getAllRequests(page)
+    if (page <= 0) throw new ArisError('Invalid page number', 403)
+    new ValSchema({
+      ids: P.filter.ids.allow(null),
+      users_ids: P.filter.ids.allow(null),
+      roles_ids: P.filter.ids.allow(null),
+      status: P.filter.string.allow(null),
+      created_at: P.filter.date.allow(null),
+      updated_at: P.filter.date.allow(null)
+    }).validate(filters)
+
+    const requests = await RoleReq.getAllRequests(filters, page)
 
     return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
   } catch (error) {

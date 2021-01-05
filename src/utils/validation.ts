@@ -60,15 +60,12 @@ export default class ValSchema<T extends SchemaType> {
     },
 
     filter: {
-      ids: joi.array().items(joi.number()),
-      titles: joi.array().items(joi.string()),
-      version: joi.array().items(joi.number()),
-      status: joi.array().items(joi.string()),
-      categories: joi.array().items(joi.string()),
-      users: joi.array().items(joi.number()),
-      created_at: joi.array().items(joi.string()),
-      updated_at: joi.array().items(joi.string())
-    }
+      string: joi.array().items(joi.string()),
+      number: joi.array().items(joi.number()),
+      ids: joi.array().items(joi.number().integer().greater(0)),
+      names: joi.array().items(joi.string().regex(/^([a-zà-ú]\s?)+$/i)),
+      date: joi.array().items(joi.string().regex(/^2[01]\d{2}-[01]\d-[0123]\d$/)).length(2)
+    }// specify all filters validations
   }
 }
 

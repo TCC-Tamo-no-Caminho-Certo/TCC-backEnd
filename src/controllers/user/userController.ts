@@ -27,6 +27,34 @@ route.get('/get', async (req: Request, res: Response) => {
   }
 })
 
+route.get('/get/:page', async (req: Request, res: Response) => {
+  const page = parseInt(req.params.page)
+  const { ids, names, created_at, updated_at } = req.body
+  const filters = {
+    ids,
+    names,
+    created_at,
+    updated_at
+  }
+
+  try {
+    if (page <= 0) throw new ArisError('Invalid page number', 403)
+    new ValSchema({
+      ids: P.filter.ids.allow(null),
+      names: P.filter.names.allow(null),
+      created_at: P.filter.date.allow(null),
+      updated_at: P.filter.date.allow(null)
+    }).validate(filters)
+
+    const users = await User.getAllUsers(filters, page)
+
+    return res.status(200).send({ success: true, message: 'Get users info complete!', users})
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Get users info')
+    return res.status(result.status).send(result.send)
+  }
+})
+
 route.post('/avatar/upload', async (req: Request, res: Response) => {
   const { _user_id, picture } = req.body
 

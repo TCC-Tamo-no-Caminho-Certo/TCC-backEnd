@@ -4,6 +4,15 @@ import db from '../../database'
 
 type StatusTypes = 'accepted' | 'rejected' | 'awaiting'
 
+interface Filters {
+  ids?: number[]
+  users_ids?: number[]
+  roles_ids?: number[]
+  status?: StatusTypes[]
+  created_at?: [string, string]
+  updated_at?: [string, string]
+}
+
 interface UpdateAddRoleObj {
   data?: string
   status?: StatusTypes
@@ -62,14 +71,22 @@ export default class RoleReq {
     return await db('role_request').del().where({ request_id: this.request_id })
   }
 
-  static async getAllRequests(page: number = 1) {
+  static async getAllRequests(filters: Filters, page: number) {
     const result = await db('role_request')
+      .where(builder => {
+        filters.ids && filters.ids[0] ? builder.whereIn('request_id', filters.ids) : null
+        filters.users_ids && filters.users_ids[0] ? builder.whereIn('user_id', filters.users_ids) : null
+        filters.roles_ids && filters.roles_ids[0] ? builder.whereIn('role_id', filters.roles_ids) : null
+        filters.status && filters.status[0] ? builder.whereIn('status', filters.status) : null
+        filters.created_at && filters.created_at[0] ? builder.whereBetween('created_at', filters.created_at) : null
+        filters.updated_at && filters.updated_at[0] ? builder.whereBetween('updated_at', filters.updated_at) : null
+      })
       .offset((page - 1) * 5)
       .limit(5)
       .then(row => row.map(request => Data.parseDatetime(request)))
 
     return result
-  } // create filter
+  }
 
   static async getRequest(request_id: number) {
     const request_info = await db('role_request')

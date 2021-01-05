@@ -4,6 +4,13 @@ import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'
 import db from '../../database'
 
+interface Filters {
+  ids?: number[]
+  names?: string[]
+  created_at?: [string, string]
+  updated_at?: [string, string]
+}
+
 export interface ArisUser extends ArisBaseUser {
   cpf: string
   phone?: string
@@ -102,5 +109,53 @@ export default class User extends BaseUser {
 
     if (user_info.roles.some(role => role === 'guest')) return new BaseUser(user_info)
     return new User(user_info)
+  }
+
+  /**
+   * Select (with a filter or not) users.
+   */
+  static async getAllUsers(filters: Filters, page: number) {
+    const ids = await db('user')
+      .select('user_id')
+      .where(builder => {
+        filters.ids && filters.ids[0] ? builder.whereIn('user_id', filters.ids) : null
+        filters.names && filters.names[0] ? builder.whereIn('name', filters.names) : null
+        filters.created_at && filters.created_at[0] ? builder.whereBetween('created_at', filters.created_at) : null
+        filters.updated_at && filters.updated_at[0] ? builder.whereBetween('updated_at', filters.updated_at) : null
+      })
+      .offset((page - 1) * 5)
+      .limit(5)
+      .then(row => row.map(user => user.user_id))
+
+    const users_info = await db('user')
+      .whereIn('user_id', ids)
+      .then(async row => {
+        if (!row[0]) return null
+
+        const users = []
+        for (const user of row) {
+          Data.parseDatetime(user)
+
+          const emails = await db('email')
+            .select('email')
+            .where({ user_id: user.user_id })
+            .then(row => (row[0] ? row.map(email => email.email) : null))
+          user.emails = emails
+
+          const roles = await db('user_role_view')
+            .select('title')
+            .where({ user_id: user.user_id })
+            .then(row => (row[0] ? row.map(role => role.title) : null))
+          user.roles = roles
+
+          delete user.password
+          delete user.cpf
+          users.push(user)
+        }
+        return users
+      })
+    if (!users_info) throw new ArisError('Didn´t find users ids!', 403)
+
+    return users_info
   }
 }
