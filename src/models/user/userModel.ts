@@ -76,8 +76,8 @@ export default class User extends BaseUser {
   }
 
   /**
-   * returns an user if it`s registered in the database
-   * @param identifier - an user id or email
+   * returns an user if it`s registered in the database.
+   * @param identifier - an user id or email.
    */
   static async getUser(identifier: string | number): Promise<User | BaseUser> {
     let user_id =

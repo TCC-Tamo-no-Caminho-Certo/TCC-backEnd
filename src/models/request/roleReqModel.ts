@@ -37,6 +37,9 @@ export default class RoleReq {
   created_at?: string
   updated_at?: string
 
+  /**
+   * Creates a role request.
+   */
   constructor({ request_id, user_id, role_id, data, status }: ArisAddRole) {
     this.request_id = request_id || 0 //Gives a temporary id when creating a new request
     this.user_id = user_id
@@ -45,10 +48,16 @@ export default class RoleReq {
     this.status = status
   }
 
+  /**
+   * Inserts this role request in the database.
+   */
   async insert() {
     return await db('role_request').insert({ user_id: this.user_id, role_id: this.role_id, data: this.data, status: this.status })
   }
 
+  /**
+   * Updates this role request in the database.
+   */
   async update({ data, status }: UpdateAddRoleObj) {
     let update_count = 0
     const update_list: any = {}
@@ -67,10 +76,28 @@ export default class RoleReq {
     update_count && (await db('role_request').update(update_list).where({ request_id: this.request_id }))
   }
 
+  /**
+   * Deletes this role request in the database.
+   */
   async delete() {
     return await db('role_request').del().where({ request_id: this.request_id })
   }
 
+  /**
+   * returns a role request.
+   */
+  static async getRequest(request_id: number) {
+    const request_info = await db('role_request')
+      .where({ request_id })
+      .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
+    if (!request_info) throw new ArisError('Request not found!', 403)
+
+    return new RoleReq(request_info)
+  }
+
+  /**
+   * Select (with a filter or not) role requests.
+   */
   static async getAllRequests(filters: Filters, page: number) {
     const result = await db('role_request')
       .where(builder => {
@@ -86,14 +113,5 @@ export default class RoleReq {
       .then(row => row.map(request => Data.parseDatetime(request)))
 
     return result
-  }
-
-  static async getRequest(request_id: number) {
-    const request_info = await db('role_request')
-      .where({ request_id })
-      .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
-    if (!request_info) throw new ArisError('Request not found!', 403)
-
-    return new RoleReq(request_info)
   }
 }

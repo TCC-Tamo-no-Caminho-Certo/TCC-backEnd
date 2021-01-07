@@ -38,7 +38,7 @@ route.get('/get/:page', async (req: Request, res: Response) => {
     return res.status(result.status).send(result.send)
   }
 })
-// create filters
+
 route.post('/accept/:id', async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
@@ -90,5 +90,5 @@ route.post('/delete/:id', async (req: Request, res: Response) => {
     return res.status(result.status).send(result.send)
   }
 })
-// have to delete automatically if status is accepted or refused
+
 export default route

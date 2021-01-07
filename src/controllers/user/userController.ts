@@ -48,7 +48,7 @@ route.get('/get/:page', async (req: Request, res: Response) => {
 
     const users = await User.getAllUsers(filters, page)
 
-    return res.status(200).send({ success: true, message: 'Get users info complete!', users})
+    return res.status(200).send({ success: true, message: 'Get users info complete!', users })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Get users info')
     return res.status(result.status).send(result.send)
@@ -163,7 +163,7 @@ route.post('/update', async (req: Request, res: Response) => {
     const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)
   }
-}) // Improve
+})
 
 route.post('/delete', async (req: Request, res: Response) => {
   const { _user_id, password } = req.body
