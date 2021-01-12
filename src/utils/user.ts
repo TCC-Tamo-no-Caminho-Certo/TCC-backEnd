@@ -13,18 +13,18 @@ export default class UserUtils {
     const { user_id, roles } = user
     const token = uuidv4()
 
-    const data = JSON.parse(await redis.client.getAsync(`auth.data.${user_id}`))
+    const data = JSON.parse(await redis.client.getAsync(`auth:data:${user_id}`))
 
     if (!data) {
       await redis.client.setAsync(
-        `auth.data.${user_id}`,
+        `auth:data:${user_id}`,
         JSON.stringify({
           id: user_id,
           roles
         })
       )
     }
-    await redis.client.setexAsync(`auth.${user_id}-${token}`, remember ? 2592000 : 86400, user_id.toString())
+    await redis.client.setexAsync(`auth:${user_id}-${token}`, remember ? 2592000 : 86400, user_id.toString())
 
     return `${user_id}-${token}`
   }
@@ -35,9 +35,9 @@ export default class UserUtils {
   static async updateAccessTokenData(user: BaseUser | User) {
     const { user_id, roles } = user
 
-    await redis.client.delAsync(`auth.data.${user_id}`)
+    await redis.client.delAsync(`auth:data:${user_id}`)
     await redis.client.setAsync(
-      `auth.data.${user_id}`,
+      `auth:data:${user_id}`,
       JSON.stringify({
         id: user_id,
         roles
@@ -53,6 +53,6 @@ export default class UserUtils {
     const parts = auth.split(' ')
     const [, token] = parts
 
-    await redis.client.delAsync(`auth.${token}`)
+    await redis.client.delAsync(`auth:${token}`)
   }
 }
