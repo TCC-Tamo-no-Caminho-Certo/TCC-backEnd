@@ -1,3 +1,4 @@
+import { RoleTypes } from '../../models/user/roleModel'
 import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'
 import db from '../../database'
@@ -8,6 +9,8 @@ interface Filters {
   ids?: number[]
   users_ids?: number[]
   roles_ids?: number[]
+  name?: string
+  roles?: RoleTypes[]
   status?: StatusTypes[]
   created_at?: [string, string]
   updated_at?: [string, string]
@@ -99,14 +102,16 @@ export default class RoleReq {
    * Select (with a filter or not) role requests.
    */
   static async getAllRequests(filters: Filters, page: number) {
-    const result = await db('role_request')
+    const result = await db('role_request_view')
       .where(builder => {
-        filters.ids && filters.ids[0] ? builder.whereIn('request_id', filters.ids) : null
-        filters.users_ids && filters.users_ids[0] ? builder.whereIn('user_id', filters.users_ids) : null
-        filters.roles_ids && filters.roles_ids[0] ? builder.whereIn('role_id', filters.roles_ids) : null
-        filters.status && filters.status[0] ? builder.whereIn('status', filters.status) : null
-        filters.created_at && filters.created_at[0] ? builder.whereBetween('created_at', filters.created_at) : null
-        filters.updated_at && filters.updated_at[0] ? builder.whereBetween('updated_at', filters.updated_at) : null
+        if (filters.ids && filters.ids[0]) builder.whereIn('request_id', filters.ids)
+        if (filters.users_ids && filters.users_ids[0]) builder.whereIn('user_id', filters.users_ids)
+        if (filters.roles_ids && filters.roles_ids[0]) builder.whereIn('role_id', filters.roles_ids)
+        if (filters.status && filters.status[0]) builder.whereIn('status', filters.status)
+        if (filters.roles && filters.roles[0]) builder.whereIn('role', filters.roles)
+        if (filters.name) builder.where('full_name', 'like', `%${filters.name}%`)
+        if (filters.created_at) builder.whereBetween('created_at', filters.created_at)
+        if (filters.updated_at) builder.whereBetween('updated_at', filters.updated_at)
       })
       .offset((page - 1) * 5)
       .limit(5)

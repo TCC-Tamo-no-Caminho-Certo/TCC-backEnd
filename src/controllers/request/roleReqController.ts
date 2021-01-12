@@ -9,11 +9,11 @@ const route = express.Router()
 
 route.get('/get/:page', async (req: Request, res: Response) => {
   const page = parseInt(req.params.page)
-  const { ids, users_ids, roles_ids, status, created_at, updated_at } = req.body
+  const { ids, roles, name, status, created_at, updated_at } = req.body
   const filters = {
     ids,
-    users_ids,
-    roles_ids,
+    roles,
+    name,
     status,
     created_at,
     updated_at
@@ -23,8 +23,8 @@ route.get('/get/:page', async (req: Request, res: Response) => {
     if (page <= 0) throw new ArisError('Invalid page number', 403)
     new ValSchema({
       ids: P.filter.ids.allow(null),
-      users_ids: P.filter.ids.allow(null),
-      roles_ids: P.filter.ids.allow(null),
+      roles: P.filter.string.allow(null),
+      name: P.user.name.allow(null),
       status: P.filter.string.allow(null),
       created_at: P.filter.date.allow(null),
       updated_at: P.filter.date.allow(null)

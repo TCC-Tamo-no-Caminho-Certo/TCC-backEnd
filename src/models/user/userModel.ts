@@ -41,15 +41,15 @@ export default class User extends BaseUser {
   /**
    * Adds a role for this user in the database.
    */
-  async addRole(role_id: number) {
-    const role = await Role.getRole(role_id)
+  async addRole(identifier: number | RoleTypes) {
+    const role = await Role.getRole(identifier)
 
     if (this.roles.some(role => role === 'aris')) {
       const { role_id: base_id } = await Role.getRole('aris')
-      await db('user_role').update({ role_id }).where({ user_id: this.user_id, role_id: base_id })
+      await db('user_role').update({ role_id: role.role_id }).where({ user_id: this.user_id, role_id: base_id })
       this.roles = [role.title]
     } else {
-      await db('user_role').insert({ user_id: this.user_id, role_id })
+      await db('user_role').insert({ user_id: this.user_id, role_id: role.role_id })
       this.roles.push(role.title)
     }
   }
@@ -68,10 +68,10 @@ export default class User extends BaseUser {
   /**
    * Removes a role for this user in the database.
    */
-  async removeRole(role_id: number) {
-    const r_role = await Role.getRole(role_id)
+  async removeRole(identifier: number | RoleTypes) {
+    const r_role = await Role.getRole(identifier)
 
-    await db('user_role').del().where({ user_id: this.user_id, role_id })
+    await db('user_role').del().where({ user_id: this.user_id, role_id: r_role.role_id })
     this.roles = this.roles.filter(role => role !== r_role.title)
   }
 
@@ -118,10 +118,10 @@ export default class User extends BaseUser {
     const ids = await db('user')
       .select('user_id')
       .where(builder => {
-        filters.ids && filters.ids[0] ? builder.whereIn('user_id', filters.ids) : null
-        filters.names && filters.names[0] ? builder.whereIn('name', filters.names) : null
-        filters.created_at && filters.created_at[0] ? builder.whereBetween('created_at', filters.created_at) : null
-        filters.updated_at && filters.updated_at[0] ? builder.whereBetween('updated_at', filters.updated_at) : null
+        if (filters.ids && filters.ids[0]) builder.whereIn('user_id', filters.ids)
+        if (filters.names && filters.names[0]) builder.whereIn('name', filters.names)
+        if (filters.created_at && filters.created_at[0]) builder.whereBetween('created_at', filters.created_at)
+        if (filters.updated_at && filters.updated_at[0]) builder.whereBetween('updated_at', filters.updated_at)
       })
       .offset((page - 1) * 5)
       .limit(5)

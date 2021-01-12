@@ -80,7 +80,8 @@ route.post('/request-role', async (req: Request, res: Response) => {
   const data = JSON.stringify(form_data)
 
   try {
-    if (!data) throw new ArisError('Form data not provided!', 403) // CREATE VALIDATION
+    new ValSchema(P.user.role.equal('professor', 'student').required()).validate(role)
+    if (!data) throw new ArisError('Form data not provided!', 403)
 
     const { role_id } = await Role.getRole(role)
 
@@ -92,7 +93,7 @@ route.post('/request-role', async (req: Request, res: Response) => {
     const result = ArisError.errorHandler(error, 'Add Role')
     return res.status(result.status).send(result.send)
   }
-})
+}) // CREATE VALIDATION
 
 route.post('/complete-register', permission(['guest']), async (req: Request, res: Response) => {
   const { _user_id, cpf, phone, role, form_data } = req.body
@@ -125,7 +126,7 @@ route.post('/complete-register', permission(['guest']), async (req: Request, res
     const result = ArisError.errorHandler(error, 'Complete register')
     return res.status(result.status).send(result.send)
   }
-})
+}) // CREATE VALIDATION
 
 route.post('/update', async (req: Request, res: Response) => {
   const { _user_id, name, surname, birthday, phone, password, new_password } = req.body
