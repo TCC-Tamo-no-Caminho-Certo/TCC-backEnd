@@ -7,8 +7,9 @@ import UserUtils from '../../utils/user'
 import express, { Request, Response } from 'express'
 const route = express.Router()
 
-route.get('/get/:page', async (req: Request, res: Response) => {
+route.get('/get/:page/:limit', async (req: Request, res: Response) => {
   const page = parseInt(req.params.page)
+  const limit = parseInt(req.params.limit)
   const { ids, roles, name, status, created_at, updated_at } = req.body
   const filters = {
     ids,
@@ -20,7 +21,8 @@ route.get('/get/:page', async (req: Request, res: Response) => {
   }
 
   try {
-    if (page <= 0) throw new ArisError('Invalid page number', 403)
+    if (page <= 0) throw new ArisError('Invalid page number', 400)
+    if (limit <= 0) throw new ArisError('Invalid limit number', 400)
     new ValSchema({
       ids: P.filter.ids.allow(null),
       roles: P.filter.string.allow(null),
@@ -30,7 +32,7 @@ route.get('/get/:page', async (req: Request, res: Response) => {
       updated_at: P.filter.date.allow(null)
     }).validate(filters)
 
-    const requests = await RoleReq.getAllRequests(filters, page)
+    const requests = await RoleReq.getAllRequests(filters, page, limit)
 
     return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
   } catch (error) {

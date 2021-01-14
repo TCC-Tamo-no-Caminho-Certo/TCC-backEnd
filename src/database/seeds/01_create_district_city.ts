@@ -1,7 +1,6 @@
 import knex from 'knex'
 import axios from 'axios'
 
-// still not sure if store this fetch on DB or not
 export async function seed(knex: knex) {
   try {
     const trx = await knex.transaction()

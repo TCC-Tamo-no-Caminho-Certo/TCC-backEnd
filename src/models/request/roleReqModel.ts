@@ -87,6 +87,17 @@ export default class RoleReq {
   }
 
   /**
+   * Checks if an request already exists on the database.
+   */
+  static async exist(user_id: number, role: RoleTypes) {
+    const reply = await db('role_request_view')
+      .select('request_id')
+      .where({ user_id, role })
+      .then(row => (row[0] ? true : false))
+    return reply
+  }
+
+  /**
    * returns a role request.
    */
   static async getRequest(request_id: number) {
@@ -101,7 +112,7 @@ export default class RoleReq {
   /**
    * Select (with a filter or not) role requests.
    */
-  static async getAllRequests(filters: Filters, page: number) {
+  static async getAllRequests(filters: Filters, page: number, limit: number) {
     const result = await db('role_request_view')
       .where(builder => {
         if (filters.ids && filters.ids[0]) builder.whereIn('request_id', filters.ids)
@@ -113,8 +124,8 @@ export default class RoleReq {
         if (filters.created_at) builder.whereBetween('created_at', filters.created_at)
         if (filters.updated_at) builder.whereBetween('updated_at', filters.updated_at)
       })
-      .offset((page - 1) * 5)
-      .limit(5)
+      .offset((page - 1) * limit)
+      .limit(limit)
       .then(row => row.map(request => Data.parseDatetime(request)))
 
     return result

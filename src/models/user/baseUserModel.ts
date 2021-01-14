@@ -6,7 +6,7 @@ import db from '../../database'
 interface Email {
   email: string
   main: boolean
-  options?: {[key: string]: any}
+  options?: { [key: string]: any }
 }
 
 export interface ArisBaseUser {
@@ -20,7 +20,7 @@ export interface ArisBaseUser {
   created_at?: string
   updated_at?: string
 }
-
+// cant have more than one main email create a check!
 export default class BaseUser {
   user_id: number
   name: string
@@ -40,7 +40,7 @@ export default class BaseUser {
     this.user_id = user_id || 0 //Gives a temporary id when creating a new user
     this.name = name
     this.surname = surname
-    this.emails = typeof emails === 'string' ? [{email: emails, main: true}] : emails
+    this.emails = typeof emails === 'string' ? [{ email: emails, main: true }] : emails
     this.avatar = avatar || 'default'
     this.birthday = birthday
     this.password = password

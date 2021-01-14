@@ -16,11 +16,10 @@ export default class Minio {
     return types.some(type => this.stringData.length === 2 && this.stringData[0] === type)
   }
 
-  async createBuffer() {
-    // meke resize optional
+  async createBuffer(width: number = 512, height: number = 512) {
     const dataBuffer = Buffer.from(this.stringData[1], 'base64')
     const image = await Jimp.read(dataBuffer)
-    this.buffer = await image.resize(512, 512).getBufferAsync(Jimp.MIME_PNG)
+    this.buffer = await image.resize(width, height).getBufferAsync(Jimp.MIME_PNG)
   }
 
   async insert(bucket: string, content_type: string) {

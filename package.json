@@ -26,7 +26,6 @@
   },
   "homepage": "https://github.com/SteamsLab/dev_backend#readme",
   "dependencies": {
-    "@types/minio": "^7.0.7",
     "argon2": "^0.26.2",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
@@ -45,6 +44,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.12.7",
+    "@types/minio": "^7.0.7",
     "@types/bluebird": "^3.5.33",
     "@types/compression": "^1.7.0",
     "@types/cors": "^2.8.9",

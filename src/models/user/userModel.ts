@@ -6,7 +6,7 @@ import db from '../../database'
 
 interface Filters {
   ids?: number[]
-  names?: string[]
+  name?: string[]
   created_at?: [string, string]
   updated_at?: [string, string]
 }
@@ -16,7 +16,7 @@ export interface ArisUser extends ArisBaseUser {
   phone?: string
   roles: RoleTypes[]
 }
-// cant have more than one main email create a check!
+
 export default class User extends BaseUser {
   cpf: string
   phone?: string
@@ -57,7 +57,7 @@ export default class User extends BaseUser {
   /**
    * Updates a role for this user in the database.
    */
-  async updateRole(new_role: RoleTypes, prev_role: RoleTypes) {
+  async updateRole(prev_role: RoleTypes, new_role: RoleTypes) {
     const n_role = await Role.getRole(new_role)
     const p_role = await Role.getRole(prev_role)
 
@@ -119,7 +119,7 @@ export default class User extends BaseUser {
       .select('user_id')
       .where(builder => {
         if (filters.ids && filters.ids[0]) builder.whereIn('user_id', filters.ids)
-        if (filters.names && filters.names[0]) builder.whereIn('name', filters.names)
+        if (filters.name) builder.where('full_name', 'like', `%${filters.name}%`)
         if (filters.created_at && filters.created_at[0]) builder.whereBetween('created_at', filters.created_at)
         if (filters.updated_at && filters.updated_at[0]) builder.whereBetween('updated_at', filters.updated_at)
       })

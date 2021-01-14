@@ -17,7 +17,7 @@ route.get('/get', async (req: Request, res: Response) => {
   try {
     const user = await User.getUser(_user_id)
 
-    const response: any = { ...user }
+    const response: Partial<User>= { ...user }
     delete response.password
 
     return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
@@ -29,19 +29,19 @@ route.get('/get', async (req: Request, res: Response) => {
 
 route.get('/get/:page', async (req: Request, res: Response) => {
   const page = parseInt(req.params.page)
-  const { ids, names, created_at, updated_at } = req.body
+  const { ids, name, created_at, updated_at } = req.body
   const filters = {
     ids,
-    names,
+    name,
     created_at,
     updated_at
   }
 
   try {
-    if (page <= 0) throw new ArisError('Invalid page number', 403)
+    if (page <= 0) throw new ArisError('Invalid page number', 400)
     new ValSchema({
       ids: P.filter.ids.allow(null),
-      names: P.filter.names.allow(null),
+      name: P.user.name.allow(null),
       created_at: P.filter.date.allow(null),
       updated_at: P.filter.date.allow(null)
     }).validate(filters)
@@ -62,7 +62,7 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
     const user = await User.getUser(_user_id)
 
     const file = new File(picture)
-    if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 403)
+    if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
     const uuid = await file.update('profile', 'image/png', user.avatar)
     user.avatar = uuid
 
@@ -81,7 +81,9 @@ route.post('/request-role', async (req: Request, res: Response) => {
 
   try {
     new ValSchema(P.user.role.equal('professor', 'student').required()).validate(role)
-    if (!data) throw new ArisError('Form data not provided!', 403)
+    if (!data) throw new ArisError('Form data not provided!', 400)
+
+    if (await RoleReq.exist(_user_id, role)) throw new ArisError('Request already exists!', 400)
 
     const { role_id } = await Role.getRole(role)
 
@@ -106,14 +108,16 @@ route.post('/complete-register', permission(['guest']), async (req: Request, res
       phone: P.user.phone.allow(null),
       role: P.user.role.equal('professor', 'student').required()
     }).validate(user_info)
-    if (!data) throw new ArisError('Form data not provided!', 403) // CREATE VALIDATION
+    if (!data) throw new ArisError('Form data not provided!', 400)
+
+    if (await RoleReq.exist(_user_id, role)) throw new ArisError('Request already exists!', 400)
 
     const user = await User.getUser(_user_id)
     const { role_id } = await Role.getRole(role)
 
     const aris_user = new User({ ...user, cpf, phone })
     await aris_user.update()
-    await aris_user.updateRole('aris', 'guest')
+    await aris_user.updateRole('guest', 'aris')
 
     const request = new RoleReq({ user_id: aris_user.user_id, role_id, data, status: 'awaiting' })
     await request.insert()
@@ -142,8 +146,8 @@ route.post('/update', async (req: Request, res: Response) => {
       password: P.user.password.required()
     }).validate(user_info)
 
-    const user: any = await User.getUser(_user_id)
-    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
+    const user = await User.getUser(_user_id)
+    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
 
     const new_hash = new_password && (await argon.hash(new_password))
 
@@ -152,7 +156,7 @@ route.post('/update', async (req: Request, res: Response) => {
     if (birthday) user.birthday = birthday
     if (new_hash) user.password = new_hash
 
-    if (typeof user === typeof User) if (phone) user.phone = phone
+    if (typeof user === typeof User) if (phone) (user as User).phone = phone
 
     await user.update()
 
@@ -171,7 +175,7 @@ route.post('/delete', async (req: Request, res: Response) => {
 
   try {
     const user = await User.getUser(_user_id)
-    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
+    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
     await user.delete()
     UserUtils.logout(req)
 
