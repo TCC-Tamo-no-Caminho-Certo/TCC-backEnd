@@ -75,7 +75,7 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/request-role', async (req: Request, res: Response) => {
+route.post('/request-role', permission(['guest'], true), async (req: Request, res: Response) => {
   const { _user_id, role, form_data } = req.body
   const data = JSON.stringify(form_data)
 
