@@ -27,7 +27,7 @@ route.get('/get', async (req: Request, res: Response) => {
   }
 })
 
-route.get('/get/:page', async (req: Request, res: Response) => {
+route.post('/get/:page', async (req: Request, res: Response) => {
   const page = parseInt(req.params.page)
   const { ids, name, created_at, updated_at } = req.body
   const filters = {

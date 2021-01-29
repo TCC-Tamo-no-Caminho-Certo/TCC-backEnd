@@ -1,7 +1,7 @@
 import BaseUser from '../../../src/models/user/baseUserModel'
 import User from '../../../src/models/user/userModel'
 import Role from '../../../src/models/user/roleModel'
-
+// update user tests
 describe('Test user models', () => {
   const user = new BaseUser({
     name: 'test',

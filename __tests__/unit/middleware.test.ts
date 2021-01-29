@@ -7,7 +7,7 @@ import config from '../../src/config'
 import { v4 as uuidv4 } from 'uuid'
 
 redis.initialize(config.redis.host, config.redis.port, config.redis.database, config.redis.password)
-
+// update permission tests
 describe('Test middlewares', () => {
   describe('Auth', () => {
     afterAll(async () => await redis.client.flushallAsync())

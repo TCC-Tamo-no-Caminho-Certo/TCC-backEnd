@@ -7,7 +7,7 @@ import UserUtils from '../../utils/user'
 import express, { Request, Response } from 'express'
 const route = express.Router()
 
-route.get('/get/:page/:limit', async (req: Request, res: Response) => {
+route.post('/get/:page/:limit', async (req: Request, res: Response) => {
   const page = parseInt(req.params.page)
   const limit = parseInt(req.params.limit)
   const { ids, roles, name, status, created_at, updated_at } = req.body
