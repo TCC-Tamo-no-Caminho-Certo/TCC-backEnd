@@ -27,7 +27,6 @@ export default class ValSchema<T extends SchemaType> {
       email: joi.string().email(),
       name: joi.string().regex(/^([a-zà-ú]\s?)+$/i),
       surname: joi.string().regex(/^([a-zà-ú]\s?)+$/i),
-      cpf: joi.string().regex(/[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}/i),
       password: joi.string(),
       birthday: joi.string().regex(/^[12][8901]\d{2}-[01]\d-[0123]\d$/),
       phone: joi.string().regex(/^\(\d\d\)\d{5}-\d{4}$/),
@@ -64,8 +63,11 @@ export default class ValSchema<T extends SchemaType> {
       number: joi.array().items(joi.number()),
       ids: joi.array().items(joi.number().integer().greater(0)),
       names: joi.array().items(joi.string().regex(/^([a-zà-ú]\s?)+$/i)),
-      date: joi.array().items(joi.string().regex(/^2[01]\d{2}-[01]\d-[0123]\d$/)).length(2)
-    }// specify all filters validations
+      date: joi
+        .array()
+        .items(joi.string().regex(/^2[01]\d{2}-[01]\d-[0123]\d$/))
+        .length(2)
+    } // specify all filters validations
   }
 }
 

@@ -12,23 +12,20 @@ interface Filters {
 }
 
 export interface ArisUser extends ArisBaseUser {
-  cpf: string
   phone?: string
   roles: RoleTypes[]
 }
 
 export default class User extends BaseUser {
-  cpf: string
   phone?: string
 
   /**
    * Creates an user.
    */
-  constructor({ user_id, name, surname, emails, avatar, birthday, password, cpf, roles, phone, created_at, updated_at }: ArisUser) {
+  constructor({ user_id, name, surname, emails, avatar, birthday, password, roles, phone, created_at, updated_at }: ArisUser) {
     super({ user_id, name, surname, emails, avatar, birthday, password, created_at, updated_at })
     this.phone = phone
     this.roles = roles
-    this.cpf = cpf
   }
 
   /**

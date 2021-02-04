@@ -98,13 +98,12 @@ route.post('/request-role', permission(['guest'], true), async (req: Request, re
 }) // CREATE VALIDATION
 
 route.post('/complete-register', permission(['guest']), async (req: Request, res: Response) => {
-  const { _user_id, cpf, phone, role, form_data } = req.body
-  const user_info = { cpf, phone, role }
+  const { _user_id, phone, role, form_data } = req.body
+  const user_info = { phone, role }
   const data = JSON.stringify(form_data)
 
   try {
     new ValSchema({
-      cpf: P.user.cpf.required(),
       phone: P.user.phone.allow(null),
       role: P.user.role.equal('professor', 'student').required()
     }).validate(user_info)
@@ -115,7 +114,7 @@ route.post('/complete-register', permission(['guest']), async (req: Request, res
     const user = await User.getUser(_user_id)
     const { role_id } = await Role.getRole(role)
 
-    const aris_user = new User({ ...user, cpf, phone })
+    const aris_user = new User({ ...user, phone })
     await aris_user.update()
     await aris_user.updateRole('guest', 'aris')
 

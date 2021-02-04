@@ -44,7 +44,7 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
     }).validate({ email, password, remember })
 
     const user = await User.getUser(email)
-    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 403)
+    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
     const access_token = await UserUtils.generateAccessToken(user, remember)
 
     return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
@@ -88,7 +88,7 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
     new ValSchema(P.auth.token.required()).validate(token)
 
     const reply = await redis.client.getAsync(`register.${token}`)
-    if (!reply) throw new ArisError('Invalid token!', 403)
+    if (!reply) throw new ArisError('Invalid token!', 400)
 
     const user_info = JSON.parse(reply)
 
@@ -112,7 +112,7 @@ route.post('/api/forgot-password', captcha, async (req: Request, res: Response) 
     new ValSchema(P.user.email.required()).validate(email)
 
     const id = await User.exist(email)
-    if (!id) throw new ArisError('User don`t exist!', 403)
+    if (!id) throw new ArisError('User don`t exist!', 400)
 
     const token = crypto.randomBytes(3).toString('hex')
 
@@ -133,7 +133,7 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
     new ValSchema(P.auth.token.required()).validate(token)
 
     const reply = await redis.client.getAsync(`reset.${token}`)
-    if (!reply) throw new ArisError('Invalid token!', 403)
+    if (!reply) throw new ArisError('Invalid token!', 400)
     const id = parseInt(reply)
 
     if (!password) return res.status(200).send({ success: true, message: 'Valid reset token!' })
