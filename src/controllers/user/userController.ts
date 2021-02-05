@@ -85,7 +85,7 @@ route.post('/request-role', permission(['guest'], true), async (req: Request, re
 
     if (await RoleReq.exist(_user_id, role)) throw new ArisError('Request already exists!', 400)
 
-    const { role_id } = await Role.getRole(role)
+    const { role_id } = Role.getRole(role)
 
     const request = new RoleReq({ user_id: _user_id, role_id, data, status: 'awaiting' })
     await request.insert()
@@ -108,7 +108,7 @@ route.post('/complete-register', permission(['guest']), async (req: Request, res
     if (await RoleReq.exist(_user_id, role)) throw new ArisError('Request already exists!', 400)
 
     const user = await User.getUser(_user_id)
-    const { role_id } = await Role.getRole(role)
+    const { role_id } = Role.getRole(role)
 
     const request = new RoleReq({ user_id: user.user_id, role_id, data, status: 'awaiting' })
     await request.insert()

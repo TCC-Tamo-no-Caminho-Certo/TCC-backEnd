@@ -4,6 +4,8 @@ import db from '../../database'
 
 export type RoleTypes = 'admin' | 'guest' | 'student' | 'professor' | 'customer' | 'evaluator' | 'moderator'
 
+let roles: Role[]
+
 export interface ArisRole {
   role_id?: number
   title: RoleTypes
@@ -32,12 +34,6 @@ export default class Role {
     this.role_id = role_id
   }
 
-  async linkWithUser(user_id: number, transaction?: Transaction) {
-    const trx = transaction || db
-
-    await trx('user_role').insert({ role_id: this.role_id, user_id })
-  }
-
   async update() {}
 
   async delete() {
@@ -51,24 +47,27 @@ export default class Role {
     return has_role ? true : false
   }
 
-  static async getRole(identifier: RoleTypes | number, transaction?: Transaction) {
-    const trx = transaction || db
-
-    const role_info = await trx('role')
-      .where(typeof identifier === 'string' ? { title: identifier } : { role_id: identifier })
-      .then(row => (row[0] ? row[0] : null))
-    if (!role_info) {
-      transaction && transaction.rollback()
-      throw new ArisError(`Role provided does't exists!`, 400)
-    }
-
-    return new Role(role_info)
+  static getRole(identifier: RoleTypes | number) {
+    const role = roles.find(role => typeof identifier === 'string' ? role.title === identifier : role.role_id = identifier)
+    if(!role) throw new ArisError(`Role provided does't exists!`, 400)
+    return role
   }
 
   static async getAllRoles() {
-      const roles = await db('role')
-        .then(row => (row[0] ? row : null))
+    const roles = await db('role').then(row => (row[0] ? row : false))
+    return roles
+  }
 
-      return roles
+  // -----USER_ROLE----- //
+
+  async linkWithUser(user_id: number, transaction?: Transaction) {
+    const trx = transaction || db
+
+    await trx('user_role').insert({ role_id: this.role_id, user_id })
   }
 }
+
+Role.getAllRoles().then(row => {
+  if (!row) throw new ArisError('Couldn´t get all roles', 500)
+  roles = row.map(role_info => new Role(role_info))
+})

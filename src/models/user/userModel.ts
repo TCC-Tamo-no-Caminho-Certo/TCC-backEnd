@@ -1,7 +1,7 @@
+import Email, { ArisEmail } from './emailModel'
 import Role, { RoleTypes } from './roleModel'
 import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'
-import Email, { ArisEmail } from './emailModel'
 import { Transaction } from 'knex'
 import db from '../../database'
 
@@ -63,7 +63,7 @@ export default class User {
   async insert() {
     const trx = await db.transaction()
 
-    const role = await Role.getRole(this.roles[0], trx)
+    const role = Role.getRole(this.roles[0])
 
     this.user_id = await trx('user')
       .insert({
@@ -126,7 +126,7 @@ export default class User {
       typeof identifier === 'string'
         ? await db('email')
             .select('user_id')
-            .where({ email: identifier, main: true })
+            .where({ address: identifier, main: true })
             .then(row => (row[0] ? row[0].user_id : null))
         : identifier
 
@@ -171,40 +171,16 @@ export default class User {
     const users = await db<ArisUser>('user')
       .whereIn('user_id', ids)
       .then(row => (row[0] ? row : null))
-    // .then(async row => {
-    //   if (!row[0]) return null
-
-    //   const users = []
-    //   for (const user of row) {
-    //     Data.parseDatetime(user)
-
-    //     const emails = await db('email')
-    //       .select('email')
-    //       .where({ user_id: user.user_id })
-    //       .then(row => (row[0] ? row.map(email => email.email) : null))
-    //     user.emails = emails
-
-    //     const roles = await db('user_role_view')
-    //       .select('title')
-    //       .where({ user_id: user.user_id })
-    //       .then(row => (row[0] ? row.map(role => role.title) : null))
-    //     user.roles = roles
-
-    //     delete user.password
-    //     users.push(user)
-    //   }
-    //   return users
-    // })
     if (!users) throw new ArisError('Didn´t find any user!', 400)
 
     const emails = await db('email')
       .whereIn('user_id', ids)
-      .then(row => (row[0] ? row.map(email => email.email) : null))
+      .then(row => (row[0] ? row : null))
     if (!emails) throw new ArisError('Couldn`t found user emails!', 500)
 
     const roles = await db('user_role_view')
       .whereIn('user_id', ids)
-      .then(row => (row[0] ? row.map(role => role.title) : null))
+      .then(row => (row[0] ? row : null))
     if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
 
     users.map(user => {
@@ -228,7 +204,7 @@ export default class User {
    * Adds a role for this user in the database.
    */
   async addRole(identifier: number | RoleTypes) {
-    const role = await Role.getRole(identifier)
+    const role = Role.getRole(identifier)
     await role.linkWithUser(this.user_id)
     this.roles.push(role.title)
   }
@@ -237,8 +213,8 @@ export default class User {
    * Updates a role for this user in the database.
    */
   async updateRole(prev_role: RoleTypes, new_role: RoleTypes) {
-    const n_role = await Role.getRole(new_role)
-    const p_role = await Role.getRole(prev_role)
+    const n_role = Role.getRole(new_role)
+    const p_role = Role.getRole(prev_role)
 
     await db('user_role').update({ role_id: n_role.role_id }).where({ role_id: p_role.role_id })
     this.roles = this.roles.map(role => (role === p_role.title ? n_role.title : role))
@@ -248,7 +224,7 @@ export default class User {
    * Removes a role for this user in the database.
    */
   async removeRole(identifier: number | RoleTypes) {
-    const r_role = await Role.getRole(identifier)
+    const r_role = Role.getRole(identifier)
 
     await db('user_role').del().where({ user_id: this.user_id, role_id: r_role.role_id })
     this.roles = this.roles.filter(role => role !== r_role.title)
