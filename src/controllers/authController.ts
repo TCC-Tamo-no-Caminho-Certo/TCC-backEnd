@@ -56,13 +56,13 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
   const { name, surname, email, birthday, password } = req.body
-  const user_info = { name, surname, emails: email, birthday, password }
+  const user_info = { name, surname, email, birthday, password }
 
   try {
     new ValSchema({
       name: P.user.name.required(),
       surname: P.user.surname.required(),
-      emails: P.user.email.required(),
+      email: P.user.email.required(),
       birthday: P.user.birthday.required(),
       password: P.user.password.required()
     }).validate(user_info)
@@ -91,10 +91,13 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
     if (!reply) throw new ArisError('Invalid token!', 400)
 
     const user_info = JSON.parse(reply)
+    const email_info = { address: user_info.email, main: true }
+    delete user_info.email
 
     const user = new BaseUser(user_info)
     user.password = await argon.hash(user.password)
     await user.insert()
+    await user.addEmail(email_info)
 
     redis.client.del(`register.${token}`)
 

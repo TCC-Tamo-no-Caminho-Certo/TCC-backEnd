@@ -32,20 +32,16 @@ export default class Role {
     this.role_id = role_id
   }
 
+  async linkWithUser(user_id: number, transaction?: Transaction) {
+    const trx = transaction || db
+
+    await trx('user_role').insert({ role_id: this.role_id, user_id })
+  }
+
   async update() {}
 
   async delete() {
     await db('role').del().where({ role_id: this.role_id })
-  }
-
-  static get = {
-    async allRoles() {
-      const roles = await db('role')
-        .select()
-        .then(row => (row[0] ? row : null))
-
-      return roles
-    }
   }
 
   static async exist(title: string) {
@@ -57,6 +53,7 @@ export default class Role {
 
   static async getRole(identifier: RoleTypes | number, transaction?: Transaction) {
     const trx = transaction || db
+
     const role_info = await trx('role')
       .where(typeof identifier === 'string' ? { title: identifier } : { role_id: identifier })
       .then(row => (row[0] ? row[0] : null))
@@ -66,5 +63,12 @@ export default class Role {
     }
 
     return new Role(role_info)
+  }
+
+  static async getAllRoles() {
+      const roles = await db('role')
+        .then(row => (row[0] ? row : null))
+
+      return roles
   }
 }

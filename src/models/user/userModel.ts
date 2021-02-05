@@ -2,6 +2,7 @@ import BaseUser, { ArisBaseUser } from './baseUserModel'
 import Role, { RoleTypes } from './roleModel'
 import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'
+import Email from './emailModel'
 import db from '../../database'
 
 interface Filters {
@@ -46,7 +47,7 @@ export default class User extends BaseUser {
       await db('user_role').update({ role_id: role.role_id }).where({ user_id: this.user_id, role_id: base_id })
       this.roles = [role.title]
     } else {
-      await db('user_role').insert({ user_id: this.user_id, role_id: role.role_id })
+      await role.linkWithUser(this.user_id)
       this.roles.push(role.title)
     }
   }
@@ -88,14 +89,14 @@ export default class User extends BaseUser {
     const user_info: ArisUser = await db('user')
       .where({ user_id })
       .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
-    if (!user_info) throw new ArisError('User don`t exists!', 403)
+    if (!user_info) throw new ArisError('User don`t exists!', 400)
 
     const email_info = await db('email')
-      .select('email', 'main', 'options')
+      .select('email_id', 'address', 'main', 'options')
       .where({ user_id: user_info.user_id })
       .then(row => (row[0] ? row : null))
     if (!email_info) throw new ArisError('Couldn`t found user emails!', 500)
-    user_info.emails = email_info
+    user_info.emails = email_info.map(email => new Email(email))
 
     const roles = await db('user_role_view')
       .select('title')
@@ -124,35 +125,49 @@ export default class User extends BaseUser {
       .limit(5)
       .then(row => row.map(user => user.user_id))
 
-    const users_info = await db('user')
+    const users = await db<ArisUser>('user')
       .whereIn('user_id', ids)
-      .then(async row => {
-        if (!row[0]) return null
+      .then(row => (row[0] ? row : null))
+    // .then(async row => {
+    //   if (!row[0]) return null
 
-        const users = []
-        for (const user of row) {
-          Data.parseDatetime(user)
+    //   const users = []
+    //   for (const user of row) {
+    //     Data.parseDatetime(user)
 
-          const emails = await db('email')
-            .select('email')
-            .where({ user_id: user.user_id })
-            .then(row => (row[0] ? row.map(email => email.email) : null))
-          user.emails = emails
+    //     const emails = await db('email')
+    //       .select('email')
+    //       .where({ user_id: user.user_id })
+    //       .then(row => (row[0] ? row.map(email => email.email) : null))
+    //     user.emails = emails
 
-          const roles = await db('user_role_view')
-            .select('title')
-            .where({ user_id: user.user_id })
-            .then(row => (row[0] ? row.map(role => role.title) : null))
-          user.roles = roles
+    //     const roles = await db('user_role_view')
+    //       .select('title')
+    //       .where({ user_id: user.user_id })
+    //       .then(row => (row[0] ? row.map(role => role.title) : null))
+    //     user.roles = roles
 
-          delete user.password
-          delete user.cpf
-          users.push(user)
-        }
-        return users
-      })
-    if (!users_info) throw new ArisError('Didn´t find users ids!', 403)
+    //     delete user.password
+    //     users.push(user)
+    //   }
+    //   return users
+    // })
+    if (!users) throw new ArisError('Didn´t find any user!', 400)
 
-    return users_info
-  }
+    const emails = await db('email')
+      .whereIn('user_id', ids)
+      .then(row => (row[0] ? row.map(email => email.email) : null))
+    if (!emails) throw new ArisError('Couldn`t found user emails!', 500)
+
+    const roles = await db('user_role_view')
+      .whereIn('user_id', ids)
+      .then(row => (row[0] ? row.map(role => role.title) : null))
+    if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
+
+    users.map(user => {
+      user.emails = emails.filter(email => email.user_id === user.user_id).map(email => new Email(email))
+      user.roles = roles.filter(role => role.user_id === user.user_id).map(role => role.title)
+    })
+    return users
+  } // organize data with map instead of for loop
 }

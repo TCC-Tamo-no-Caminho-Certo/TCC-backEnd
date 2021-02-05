@@ -1,4 +1,5 @@
 import BaseUser from '../../../src/models/user/baseUserModel'
+import Email from '../../../src/models/user/emailModel'
 import User from '../../../src/models/user/userModel'
 import Role from '../../../src/models/user/roleModel'
 // update user tests
@@ -7,7 +8,7 @@ describe('Test user models', () => {
     name: 'test',
     surname: 'test',
     birthday: '1897-10-11',
-    emails: [{ email: 'test@gmail.com', main: true }],
+    emails: [new Email({ address: 'test@gmail.com', main: true })],
     password: 'test'
   })
 
@@ -72,7 +73,7 @@ describe('Test user models', () => {
       test('should create an Aris user', async () => {
         try {
           await user.insert()
-          Aris_user = new User({ ...user, cpf: '467-954-789-35', phone: '(16)99856-8791' })
+          Aris_user = new User({ ...user, phone: '(16)99856-8791' })
           expect(await Aris_user.update()).toBeUndefined()
         } catch (error) {
           console.log(error)
@@ -187,7 +188,7 @@ describe('Test user models', () => {
       test('should get an user using the main email', async () => {
         try {
           const user = await User.getUser('test@gmail.com')
-          expect(user.emails[0].email).toBe('test@gmail.com')
+          expect(user.emails[0].address).toBe('test@gmail.com')
         } catch (error) {
           console.log(error)
           expect(error).toBeUndefined()
