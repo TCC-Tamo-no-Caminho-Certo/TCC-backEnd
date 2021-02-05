@@ -98,15 +98,11 @@ route.post('/request-role', permission(['guest'], true), async (req: Request, re
 }) // CREATE VALIDATION
 
 route.post('/complete-register', permission(['guest']), async (req: Request, res: Response) => {
-  const { _user_id, phone, role, form_data } = req.body
-  const user_info = { phone, role }
+  const { _user_id, role, form_data } = req.body
   const data = JSON.stringify(form_data)
 
   try {
-    new ValSchema({
-      phone: P.user.phone.allow(null),
-      role: P.user.role.equal('professor', 'student').required()
-    }).validate(user_info)
+    new ValSchema(P.user.role.equal('professor', 'student').required()).validate(role)
     if (!data) throw new ArisError('Form data not provided!', 400)
 
     if (await RoleReq.exist(_user_id, role)) throw new ArisError('Request already exists!', 400)
@@ -114,14 +110,10 @@ route.post('/complete-register', permission(['guest']), async (req: Request, res
     const user = await User.getUser(_user_id)
     const { role_id } = await Role.getRole(role)
 
-    const aris_user = new User({ ...user, phone })
-    await aris_user.update()
-    await aris_user.updateRole('guest', 'aris')
-
-    const request = new RoleReq({ user_id: aris_user.user_id, role_id, data, status: 'awaiting' })
+    const request = new RoleReq({ user_id: user.user_id, role_id, data, status: 'awaiting' })
     await request.insert()
 
-    const response: any = { ...aris_user }
+    const response: any = { ...user }
     delete response.password
 
     return res.status(200).send({ success: true, message: 'Register completed and request sended!', user: response })
@@ -129,7 +121,7 @@ route.post('/complete-register', permission(['guest']), async (req: Request, res
     const result = ArisError.errorHandler(error, 'Complete register')
     return res.status(result.status).send(result.send)
   }
-}) // CREATE VALIDATION
+}) // delete this route
 
 route.post('/update', async (req: Request, res: Response) => {
   const { _user_id, name, surname, birthday, phone, password, new_password } = req.body

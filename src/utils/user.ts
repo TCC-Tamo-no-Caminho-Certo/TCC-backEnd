@@ -1,4 +1,3 @@
-import BaseUser from '../models/user/baseUserModel'
 import User from '../models/user/userModel'
 import redis from '../services/redis'
 import { v4 as uuidv4 } from 'uuid'
@@ -9,7 +8,7 @@ export default class UserUtils {
   /**
    * Generate an access_token for the user.
    */
-  static async generateAccessToken(user: BaseUser | User, remember?: boolean) {
+  static async generateAccessToken(user: User, remember?: boolean) {
     const { user_id, roles } = user
     const token = uuidv4()
 
@@ -32,7 +31,7 @@ export default class UserUtils {
   /**
    * Updates access_token of an user.
    */
-  static async updateAccessTokenData(user: BaseUser | User) {
+  static async updateAccessTokenData(user: User) {
     const { user_id, roles } = user
 
     await redis.client.delAsync(`auth:data:${user_id}`)

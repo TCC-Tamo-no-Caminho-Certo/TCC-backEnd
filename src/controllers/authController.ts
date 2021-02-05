@@ -1,4 +1,3 @@
-import BaseUser from '../models/user/baseUserModel'
 import ValSchema, { P } from '../utils/validation'
 import captcha from '../middlewares/recaptcha'
 import User from '../models/user/userModel'
@@ -55,14 +54,15 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 })
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
-  const { name, surname, email, birthday, password } = req.body
-  const user_info = { name, surname, email, birthday, password }
+  const { name, surname, email, birthday, phone, password } = req.body
+  const user_info = { name, surname, email, phone, birthday, password }
 
   try {
     new ValSchema({
       name: P.user.name.required(),
       surname: P.user.surname.required(),
       email: P.user.email.required(),
+      phone: P.user.phone,
       birthday: P.user.birthday.required(),
       password: P.user.password.required()
     }).validate(user_info)
@@ -94,7 +94,7 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
     const email_info = { address: user_info.email, main: true }
     delete user_info.email
 
-    const user = new BaseUser(user_info)
+    const user = new User(user_info)
     user.password = await argon.hash(user.password)
     await user.insert()
     await user.addEmail(email_info)

@@ -1,8 +1,8 @@
-import BaseUser, { ArisBaseUser } from './baseUserModel'
 import Role, { RoleTypes } from './roleModel'
 import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'
-import Email from './emailModel'
+import Email, { ArisEmail } from './emailModel'
+import { Transaction } from 'knex'
 import db from '../../database'
 
 interface Filters {
@@ -12,72 +12,116 @@ interface Filters {
   updated_at?: [string, string]
 }
 
-export interface ArisUser extends ArisBaseUser {
+export interface ArisUser {
+  user_id?: number
+  name: string
+  surname: string
+  emails?: Email[]
   phone?: string
+  birthday: string
+  password: string
+  avatar?: string
   roles: RoleTypes[]
+  created_at?: string
+  updated_at?: string
 }
 
-export default class User extends BaseUser {
+export default class User {
+  user_id: number
+  name: string
+  surname: string
+  emails: Email[]
   phone?: string
+  birthday: string
+  password: string
+  avatar: string
+  roles: RoleTypes[]
+  created_at?: string
+  updated_at?: string
 
   /**
    * Creates an user.
    */
   constructor({ user_id, name, surname, emails, avatar, birthday, password, roles, phone, created_at, updated_at }: ArisUser) {
-    super({ user_id, name, surname, emails, avatar, birthday, password, created_at, updated_at })
+    this.user_id = user_id || 0 //Gives a temporary id when creating a new user
+    this.name = name
+    this.surname = surname
+    this.emails = emails || []
     this.phone = phone
+    this.birthday = birthday
+    this.password = password
+    this.avatar = avatar || 'default'
     this.roles = roles
+    this.created_at = created_at
+    this.updated_at = updated_at
   }
 
   /**
-   * Aris User can´t be inserted.
+   * Inserts this user in the database, if doesn't already registered.
+   * @param User.password - needs to be hashed!
    */
   async insert() {
-    throw new Error('Aris User can´t be inserted!')
+    const trx = await db.transaction()
+
+    const role = await Role.getRole(this.roles[0], trx)
+
+    this.user_id = await trx('user')
+      .insert({
+        name: this.name,
+        surname: this.surname,
+        birthday: this.birthday,
+        password: this.password,
+        active: true
+      })
+      .then(row => row[0])
+
+    await role.linkWithUser(this.user_id, trx)
+
+    await trx.commit()
+  } // Take role functions out of insert
+
+  /**
+   * Updates this user in the database.
+   * @param User.password - needs to be hashed!
+   */
+  async update(transaction?: Transaction) {
+    const trx = transaction || db
+
+    const user_up: Partial<this> = { ...this }
+    delete user_up.user_id
+    delete user_up.emails
+    delete user_up.roles
+    delete user_up.created_at
+    delete user_up.updated_at
+
+    await trx('user').update(user_up).where({ user_id: this.user_id })
+
+    this.updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ')
   }
 
   /**
-   * Adds a role for this user in the database.
+   * Delets this user in the database.
    */
-  async addRole(identifier: number | RoleTypes) {
-    const role = await Role.getRole(identifier)
-
-    if (this.roles.some(role => role === 'aris')) {
-      const { role_id: base_id } = await Role.getRole('aris')
-      await db('user_role').update({ role_id: role.role_id }).where({ user_id: this.user_id, role_id: base_id })
-      this.roles = [role.title]
-    } else {
-      await role.linkWithUser(this.user_id)
-      this.roles.push(role.title)
-    }
+  async delete() {
+    await db('user').del().where({ user_id: this.user_id })
   }
 
   /**
-   * Updates a role for this user in the database.
+   * Checks if an user is already registered, and returns its id if so.
    */
-  async updateRole(prev_role: RoleTypes, new_role: RoleTypes) {
-    const n_role = await Role.getRole(new_role)
-    const p_role = await Role.getRole(prev_role)
-
-    await db('user_role').update({ role_id: n_role.role_id }).where({ role_id: p_role.role_id })
-    this.roles = this.roles.map(role => (role === p_role.title ? n_role.title : role))
-  }
-
-  /**
-   * Removes a role for this user in the database.
-   */
-  async removeRole(identifier: number | RoleTypes) {
-    const r_role = await Role.getRole(identifier)
-
-    await db('user_role').del().where({ user_id: this.user_id, role_id: r_role.role_id })
-    this.roles = this.roles.filter(role => role !== r_role.title)
+  static async exist(email: string) {
+    const user_id: number | boolean = await db('email')
+      .select('user_id')
+      .where({ email })
+      .then(row => (row[0] ? row[0].user_id : false))
+    return user_id
   }
 
   /**
    * returns an user if it`s registered in the database.
    * @param identifier - an user id or email.
    */
-  static async getUser(identifier: string | number): Promise<User | BaseUser> {
+  static async getUser(identifier: string | number): Promise<User> {
     let user_id =
       typeof identifier === 'string'
         ? await db('email')
@@ -105,7 +149,6 @@ export default class User extends BaseUser {
     if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
     user_info.roles = roles
 
-    if (user_info.roles.some(role => role === 'guest')) return new BaseUser(user_info)
     return new User(user_info)
   }
 
@@ -170,4 +213,44 @@ export default class User extends BaseUser {
     })
     return users
   } // organize data with map instead of for loop
+
+  // -----EMAIL----- //
+
+  async addEmail({ address, main, options }: ArisEmail) {
+    const email = new Email({ address, main, options })
+    await email.insert(this.user_id)
+    this.emails.push(email)
+  }
+
+  // -----ROLE----- //
+
+  /**
+   * Adds a role for this user in the database.
+   */
+  async addRole(identifier: number | RoleTypes) {
+    const role = await Role.getRole(identifier)
+    await role.linkWithUser(this.user_id)
+    this.roles.push(role.title)
+  }
+
+  /**
+   * Updates a role for this user in the database.
+   */
+  async updateRole(prev_role: RoleTypes, new_role: RoleTypes) {
+    const n_role = await Role.getRole(new_role)
+    const p_role = await Role.getRole(prev_role)
+
+    await db('user_role').update({ role_id: n_role.role_id }).where({ role_id: p_role.role_id })
+    this.roles = this.roles.map(role => (role === p_role.title ? n_role.title : role))
+  }
+
+  /**
+   * Removes a role for this user in the database.
+   */
+  async removeRole(identifier: number | RoleTypes) {
+    const r_role = await Role.getRole(identifier)
+
+    await db('user_role').del().where({ user_id: this.user_id, role_id: r_role.role_id })
+    this.roles = this.roles.filter(role => role !== r_role.title)
+  }
 }
