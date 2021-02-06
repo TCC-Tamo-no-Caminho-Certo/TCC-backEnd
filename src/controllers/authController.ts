@@ -92,11 +92,12 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
 
     const user_info = JSON.parse(reply)
     const email_info = { address: user_info.email, main: true }
+    user_info.password = await argon.hash(user_info.password)
     delete user_info.email
 
     const user = new User(user_info)
-    user.password = await argon.hash(user.password)
     await user.insert()
+    await user.addRole('guest')
     await user.addEmail(email_info)
 
     redis.client.del(`register.${token}`)

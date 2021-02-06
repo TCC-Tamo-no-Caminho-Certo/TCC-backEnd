@@ -46,7 +46,7 @@ route.post('/accept/:id', async (req: Request, res: Response) => {
 
   try {
     const request = await RoleReq.getRequest(request_id)
-    const user = <User>await User.getUser(request.user_id)
+    const user = await User.getUser(request.user_id)
 
     await request.update({ status: 'accepted' })
     await user.addRole(request.role_id)

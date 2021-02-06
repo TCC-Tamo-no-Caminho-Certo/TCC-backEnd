@@ -21,7 +21,7 @@ export interface ArisUser {
   birthday: string
   password: string
   avatar?: string
-  roles: RoleTypes[]
+  roles?: RoleTypes[]
   created_at?: string
   updated_at?: string
 }
@@ -51,7 +51,7 @@ export default class User {
     this.birthday = birthday
     this.password = password
     this.avatar = avatar || 'default'
-    this.roles = roles
+    this.roles = roles || []
     this.created_at = created_at
     this.updated_at = updated_at
   }
@@ -63,8 +63,6 @@ export default class User {
   async insert() {
     const trx = await db.transaction()
 
-    const role = Role.getRole(this.roles[0])
-
     this.user_id = await trx('user')
       .insert({
         name: this.name,
@@ -75,10 +73,8 @@ export default class User {
       })
       .then(row => row[0])
 
-    await role.linkWithUser(this.user_id, trx)
-
     await trx.commit()
-  } // Take role functions out of insert
+  }
 
   /**
    * Updates this user in the database.
@@ -112,7 +108,7 @@ export default class User {
   static async exist(email: string) {
     const user_id: number | boolean = await db('email')
       .select('user_id')
-      .where({ email })
+      .where({ address: email })
       .then(row => (row[0] ? row[0].user_id : false))
     return user_id
   }
@@ -216,17 +212,16 @@ export default class User {
     const n_role = Role.getRole(new_role)
     const p_role = Role.getRole(prev_role)
 
-    await db('user_role').update({ role_id: n_role.role_id }).where({ role_id: p_role.role_id })
+    await db('user_role').update({ role_id: n_role.role_id }).where({ user_id: this.user_id, role_id: p_role.role_id })
     this.roles = this.roles.map(role => (role === p_role.title ? n_role.title : role))
-  }
+  } // MAYBE DELETE THIS
 
   /**
    * Removes a role for this user in the database.
    */
   async removeRole(identifier: number | RoleTypes) {
     const r_role = Role.getRole(identifier)
-
-    await db('user_role').del().where({ user_id: this.user_id, role_id: r_role.role_id })
+    await r_role.unLinkWithUser(this.user_id)
     this.roles = this.roles.filter(role => role !== r_role.title)
   }
 }
