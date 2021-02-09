@@ -1,8 +1,8 @@
-import proposalController from './proposal/proposalController'
-import categoryController from './proposal/categoryController'
-import roleReqController from './request/roleReqController'
-import statusController from './proposal/statusController'
-import userController from './user/userController'
+import proposalController from './proposal/proposal'
+import categoryController from './proposal/category'
+import roleReqController from './request/roleReq'
+import statusController from './proposal/status'
+import userController from './user/user'
 import authController from './authController'
 
 import permission from '../middlewares/permission'

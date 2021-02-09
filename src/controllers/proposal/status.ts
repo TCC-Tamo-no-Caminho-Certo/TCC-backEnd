@@ -1,4 +1,4 @@
-import Category from '../../models/proposal/categoryModel'
+import Status from '../../database/models/proposal/status'
 import permission from '../../middlewares/permission'
 import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'
@@ -8,8 +8,8 @@ const route = express.Router()
 
 route.get('/get', async (req: Request, res: Response) => {
   try {
-    const categories = await Category.get.allCategories()
-    res.status(200).send({ success: true, message: 'Fecth complete!', categories })
+    const status = await Status.get.allStatus()
+    res.status(200).send({ success: true, message: 'Fecth complete!', status })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
@@ -20,12 +20,12 @@ route.post('/post', permission(['admin']), async (req: Request, res: Response) =
   const { name, icon, description } = req.body
 
   try {
-    Data.validate({ name, icon, description }, 'category_post')
+    Data.validate({ name, icon, description }, 'status_post')
 
-    const category = new Category({ name, icon, description })
-    await category.insert()
+    const status = new Status({ name, icon, description })
+    await status.insert()
 
-    res.status(200).send({ success: true, message: 'Category created!', category })
+    res.status(200).send({ success: true, message: 'Status created!', status })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Creation')
     return res.status(result.status).send(result.send)
@@ -34,18 +34,18 @@ route.post('/post', permission(['admin']), async (req: Request, res: Response) =
 
 route.post('/update/:id', permission(['admin']), async (req: Request, res: Response) => {
   const { name, icon, description } = req.body
-  const category_id = parseInt(req.params.id)
+  const status_id = parseInt(req.params.id)
 
   try {
-    Data.validate({ name, icon, description }, 'category_patch')
+    Data.validate({ name, icon, description }, 'status_patch')
 
-    const category = await Category.getCategory(category_id)
-    await category.update({ name, icon, description })
+    const status = await Status.getStatus(status_id)
+    await status.update({ name, icon, description })
 
     res.status(200).send({
       success: true,
-      message: 'Category updated!',
-      category_id,
+      message: 'Status updated!',
+      status_id,
       name: name || 'Not updated',
       icon: icon || 'Not updated',
       description: description || 'Not updated'
@@ -57,16 +57,16 @@ route.post('/update/:id', permission(['admin']), async (req: Request, res: Respo
 })
 
 route.post('/delete/:id', permission(['admin']), async (req: Request, res: Response) => {
-  const category_id = parseInt(req.params.id)
+  const status_id = parseInt(req.params.id)
 
   try {
-    const category = await Category.getCategory(category_id)
-    await category.delete()
+    const status = await Status.getStatus(status_id)
+    await status.delete()
 
     res.status(200).send({
       success: true,
-      message: 'Category deleted!',
-      category_id
+      message: 'Status deleted!',
+      status_id
     })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Delete')

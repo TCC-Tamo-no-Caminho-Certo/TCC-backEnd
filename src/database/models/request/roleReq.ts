@@ -1,7 +1,7 @@
-import { RoleTypes } from '../../models/user/roleModel'
-import ArisError from '../../utils/arisError'
-import Data from '../../utils/data'
-import db from '../../database'
+import { RoleTypes } from '../user/role'
+import ArisError from '../../../utils/arisError'
+import Data from '../../../utils/data'
+import db from '../..'
 
 type StatusTypes = 'accepted' | 'rejected' | 'awaiting'
 
@@ -16,16 +16,12 @@ interface Filters {
   updated_at?: [string, string]
 }
 
-interface UpdateAddRoleObj {
-  data?: string
-  status?: StatusTypes
-}
-
 interface ArisAddRole {
   request_id?: number
   user_id: number
   role_id: number
   data: string
+  feedback?: string
   status: StatusTypes
   created_at?: string
   updated_at?: string
@@ -36,6 +32,7 @@ export default class RoleReq {
   user_id: number
   role_id: number
   data: string
+  feedback?: string
   status: StatusTypes
   created_at?: string
   updated_at?: string
@@ -43,11 +40,12 @@ export default class RoleReq {
   /**
    * Creates a role request.
    */
-  constructor({ request_id, user_id, role_id, data, status }: ArisAddRole) {
+  constructor({ request_id, user_id, role_id, data, feedback, status }: ArisAddRole) {
     this.request_id = request_id || 0 //Gives a temporary id when creating a new request
     this.user_id = user_id
     this.role_id = role_id
     this.data = data
+    this.feedback = feedback
     this.status = status
   }
 
@@ -61,22 +59,15 @@ export default class RoleReq {
   /**
    * Updates this role request in the database.
    */
-  async update({ data, status }: UpdateAddRoleObj) {
-    let update_count = 0
-    const update_list: any = {}
+  async update() {
+    const request_up: Partial<this> = { ...this }
+    delete request_up.request_id
+    delete request_up.user_id
+    delete request_up.role_id
+    delete request_up.created_at
+    delete request_up.updated_at
 
-    if (data) {
-      update_list.data = data
-      this.data = data
-      update_count++
-    }
-    if (status) {
-      update_list.status = status
-      this.status = status
-      update_count++
-    }
-
-    update_count && (await db('role_request').update(update_list).where({ request_id: this.request_id }))
+    await db('role_request').update(request_up).where({ request_id: this.request_id })
   }
 
   /**

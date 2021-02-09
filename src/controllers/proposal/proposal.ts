@@ -1,4 +1,4 @@
-import Proposal from '../../models/proposal/proposalModel'
+import Proposal from '../../database/models/proposal/proposal'
 import permission from '../../middlewares/permission'
 import ArisError from '../../utils/arisError'
 import Data from '../../utils/data'

@@ -1,13 +1,12 @@
 import ValSchema, { P } from '../utils/validation'
 import captcha from '../middlewares/recaptcha'
-import User from '../models/user/userModel'
 import ArisError from '../utils/arisError'
 import Mail from '../services/nodemailer'
 import redis from '../services/redis'
-import UserUtils from '../utils/user'
 import { v4 as uuidv4 } from 'uuid'
+import User from '../utils/user'
 import crypto from 'crypto'
-import argon from 'argon2'
+// MAYBE PASS REDIS, ARGON AND CRYPTO TO USER UTILS.
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
@@ -23,7 +22,7 @@ route.get('/api/validate-session', async (req: Request, res: Response) => {
 
 route.get('/api/logout', async (req: Request, res: Response) => {
   try {
-    UserUtils.logout(req)
+    User.deleteAccessToken(req)
 
     return res.status(200).send({ success: true, message: 'User logged out!' })
   } catch (error) {
@@ -43,8 +42,8 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
     }).validate({ email, password, remember })
 
     const user = await User.getUser(email)
-    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
-    const access_token = await UserUtils.generateAccessToken(user, remember)
+    await user.verifyPassword(password)
+    const access_token = await user.generateAccessToken(remember)
 
     return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
   } catch (error) {
@@ -67,7 +66,7 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
       password: P.user.password.required()
     }).validate(user_info)
 
-    const hasUser = await User.exist(email)
+    const hasUser = await User.existUser(email)
     if (hasUser) throw new ArisError('User already exists', 400)
 
     const token = uuidv4()
@@ -91,14 +90,10 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
     if (!reply) throw new ArisError('Invalid token!', 400)
 
     const user_info = JSON.parse(reply)
-    const email_info = { address: user_info.email, main: true }
-    user_info.password = await argon.hash(user_info.password)
+    const email_info = { address: user_info.email, options: {} }
     delete user_info.email
 
-    const user = new User(user_info)
-    await user.insert()
-    await user.addRole('guest')
-    await user.addEmail(email_info)
+    await User.createUser(user_info, email_info)
 
     redis.client.del(`register.${token}`)
 
@@ -107,7 +102,7 @@ route.get('/confirm-register/:token', async (req: Request, res: Response) => {
     const result = ArisError.errorHandler(error, 'Confirm registration')
     return res.status(result.status).send(result.send)
   }
-})
+}) // ADD OPTIONS ON EMAIL INFO
 
 route.post('/api/forgot-password', captcha, async (req: Request, res: Response) => {
   const { email } = req.body
@@ -115,7 +110,7 @@ route.post('/api/forgot-password', captcha, async (req: Request, res: Response) 
   try {
     new ValSchema(P.user.email.required()).validate(email)
 
-    const id = await User.exist(email)
+    const id = await User.existUser(email)
     if (!id) throw new ArisError('User don`t exist!', 400)
 
     const token = crypto.randomBytes(3).toString('hex')
@@ -145,9 +140,7 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
     new ValSchema(P.user.password.required()).validate(password)
 
     const user = await User.getUser(id)
-    const new_hash = await argon.hash(password)
-    user.password = new_hash
-    await user.update()
+    await user.updateUser({ password })
 
     redis.client.del(`reset.${token}`)
 

@@ -1,4 +1,4 @@
-import db from '../../database'
+import db from '../..'
 
 export default class Artefact {
   // async insert() {

@@ -1,3 +1,4 @@
+import Email from '../../../src/models/user/emailModel'
 import User from '../../../src/models/user/userModel'
 import UserUtils from '../../../src/utils/user'
 import redis from '../../../src/services/redis'
@@ -14,9 +15,8 @@ describe('Test user utils', () => {
       surname: 'test',
       birthday: '1897-10-11',
       roles: ['student'],
-      emails: [{ email: 'test@gmail.com', main: true }],
-      password: 'test',
-      cpf: '487-876-158-48'
+      emails: [new Email({ address: 'test@gmail.com', main: true })],
+      password: 'test'
     })
 
     beforeAll(async () => await redis.client.flushallAsync())

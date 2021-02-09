@@ -1,8 +1,7 @@
-import RoleReq from '../../models/request/roleReqModel'
+import RoleReq from '../../database/models/request/roleReq'
 import ValSchema, { P } from '../../utils/validation'
-import User from '../../models/user/userModel'
 import ArisError from '../../utils/arisError'
-import UserUtils from '../../utils/user'
+import User from '../../utils/user'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
@@ -48,10 +47,11 @@ route.post('/accept/:id', async (req: Request, res: Response) => {
     const request = await RoleReq.getRequest(request_id)
     const user = await User.getUser(request.user_id)
 
-    await request.update({ status: 'accepted' })
-    await user.addRole(request.role_id)
+    request.status = 'accepted'
+    await request.update()
+    user.roles.some(role => role === 'guest') ? await user.updateRole('guest', 'moderator'/*CONTINUE*/) : await user.addRole(request.role_id)
 
-    await UserUtils.updateAccessTokenData(user)
+    await user.updateAccessTokenData()
 
     return res.status(200).send({ success: true, message: 'Accept complete!' })
   } catch (error) {
@@ -65,12 +65,13 @@ route.post('/reject/:id', async (req: Request, res: Response) => {
 
   try {
     const request = await RoleReq.getRequest(request_id)
-    const user = <User>await User.getUser(request.user_id)
+    const user = await User.getUser(request.user_id)
 
-    await request.update({ status: 'rejected' })
+    request.status = 'rejected'
+    await request.update()
     await user.removeRole(request.role_id)
 
-    await UserUtils.updateAccessTokenData(user)
+    await user.updateAccessTokenData()
 
     return res.status(200).send({ success: true, message: 'Reject complete!' })
   } catch (error) {

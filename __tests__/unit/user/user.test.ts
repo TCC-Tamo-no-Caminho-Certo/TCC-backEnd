@@ -1,15 +1,15 @@
-import BaseUser from '../../../src/models/user/baseUserModel'
 import Email from '../../../src/models/user/emailModel'
 import User from '../../../src/models/user/userModel'
 import Role from '../../../src/models/user/roleModel'
 // update user tests
 describe('Test user models', () => {
-  const user = new BaseUser({
+  const user = new User({
     name: 'test',
     surname: 'test',
     birthday: '1897-10-11',
     emails: [new Email({ address: 'test@gmail.com', main: true })],
-    password: 'test'
+    password: 'test',
+    roles: ['guest']
   })
 
   describe('Base user model', () => {
@@ -20,14 +20,6 @@ describe('Test user models', () => {
         } catch (error) {
           console.log(error)
           expect(error).toBeUndefined()
-        }
-      })
-
-      test('shouldn`t insert an user if already exists', async () => {
-        try {
-          await user.insert()
-        } catch (error) {
-          expect(error).toHaveProperty('details', 'User already exists!')
         }
       })
     })
@@ -70,7 +62,7 @@ describe('Test user models', () => {
     let Aris_user: User
 
     describe('create', () => {
-      test('should create an Aris user', async () => {
+      test('should create an user', async () => {
         try {
           await user.insert()
           Aris_user = new User({ ...user, phone: '(16)99856-8791' })
@@ -81,11 +73,11 @@ describe('Test user models', () => {
         }
       })
 
-      test('shouldn`t be able to insert an Aris user', async () => {
+      test('shouldn`t insert an user if already exists', async () => {
         try {
-          await Aris_user.insert()
+          await user.insert()
         } catch (error) {
-          expect(error).toHaveProperty('message', 'Aris User can´t be inserted!')
+          expect(error).toHaveProperty('details', 'User already exists!')
         }
       })
     })
@@ -106,21 +98,8 @@ describe('Test user models', () => {
       test('should update the role of an user', async () => {
         try {
           expect(Aris_user.roles[0]).toBe('guest')
-          await Aris_user.updateRole('aris', 'guest')
-          expect(Aris_user.roles[0]).toBe('aris')
-        } catch (error) {
-          console.log(error)
-          expect(error).toBeUndefined()
-        }
-      })
-
-      test('should replace "aris user" role when is the first time that a role is added', async () => {
-        try {
-          const { role_id } = await Role.getRole('student')
-
-          expect(Aris_user.roles).toEqual(expect.arrayContaining(['aris']))
-          await Aris_user.addRole(role_id)
-          expect(Aris_user.roles).toEqual(expect.arrayContaining(['student']))
+          await Aris_user.updateRole('guest', 'student')
+          expect(Aris_user.roles[0]).toBe('student')
         } catch (error) {
           console.log(error)
           expect(error).toBeUndefined()

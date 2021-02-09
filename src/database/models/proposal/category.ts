@@ -1,6 +1,6 @@
-import ArisError from '../../utils/arisError'
+import ArisError from '../../../utils/arisError'
 import { Transaction } from 'knex'
-import db from '../../database'
+import db from '../..'
 
 export interface UpdateCategoryObj {
   name?: string

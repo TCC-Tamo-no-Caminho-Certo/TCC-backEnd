@@ -1,12 +1,10 @@
-import RoleReq from '../../models/request/roleReqModel'
-import permission from '../../middlewares/permission'
 import ValSchema, { P } from '../../utils/validation'
-import Role from '../../models/user/roleModel'
-import User from '../../models/user/userModel'
 import ArisError from '../../utils/arisError'
-import UserUtils from '../../utils/user'
 import File from '../../utils/minio'
+import User from '../../utils/user'
 import argon from 'argon2'
+
+// PASS ROLEREQ INTO USER MODEL
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
@@ -17,7 +15,11 @@ route.get('/get', async (req: Request, res: Response) => {
   try {
     const user = await User.getUser(_user_id)
 
-    const response: Partial<User>= { ...user }
+    const response: Partial<User['user']> & { emails: User['emails']; roles: User['roles'] } = {
+      ...user.user,
+      emails: user.emails,
+      roles: user.roles
+    }
     delete response.password
 
     return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
@@ -63,10 +65,9 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
 
     const file = new File(picture)
     if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
-    const uuid = await file.update('profile', 'image/png', user.avatar)
-    user.avatar = uuid
+    const uuid = await file.update('profile', 'image/png', user.user.avatar)
 
-    await user.update()
+    await user.updateUser({ avatar: uuid })
 
     return res.status(200).send({ success: true, message: 'Avatar uploaded!', object: uuid })
   } catch (error) {
@@ -75,20 +76,16 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/request-role', permission(['guest'], true), async (req: Request, res: Response) => {
-  const { _user_id, role, form_data } = req.body
+route.post('/request-role', async (req: Request, res: Response) => {
+  const { _user_id, role, ...form_data } = req.body
   const data = JSON.stringify(form_data)
 
   try {
     new ValSchema(P.user.role.equal('professor', 'student').required()).validate(role)
     if (!data) throw new ArisError('Form data not provided!', 400)
 
-    if (await RoleReq.exist(_user_id, role)) throw new ArisError('Request already exists!', 400)
-
-    const { role_id } = Role.getRole(role)
-
-    const request = new RoleReq({ user_id: _user_id, role_id, data, status: 'awaiting' })
-    await request.insert()
+    const user = await User.getUser(_user_id)
+    await user.requestRole(role, form_data)
 
     return res.status(200).send({ success: true, message: 'Add role request sended!' })
   } catch (error) {
@@ -96,32 +93,6 @@ route.post('/request-role', permission(['guest'], true), async (req: Request, re
     return res.status(result.status).send(result.send)
   }
 }) // CREATE VALIDATION
-
-route.post('/complete-register', permission(['guest']), async (req: Request, res: Response) => {
-  const { _user_id, role, form_data } = req.body
-  const data = JSON.stringify(form_data)
-
-  try {
-    new ValSchema(P.user.role.equal('professor', 'student').required()).validate(role)
-    if (!data) throw new ArisError('Form data not provided!', 400)
-
-    if (await RoleReq.exist(_user_id, role)) throw new ArisError('Request already exists!', 400)
-
-    const user = await User.getUser(_user_id)
-    const { role_id } = Role.getRole(role)
-
-    const request = new RoleReq({ user_id: user.user_id, role_id, data, status: 'awaiting' })
-    await request.insert()
-
-    const response: any = { ...user }
-    delete response.password
-
-    return res.status(200).send({ success: true, message: 'Register completed and request sended!', user: response })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Complete register')
-    return res.status(result.status).send(result.send)
-  }
-}) // delete this route
 
 route.post('/update', async (req: Request, res: Response) => {
   const { _user_id, name, surname, birthday, phone, password, new_password } = req.body
@@ -138,20 +109,14 @@ route.post('/update', async (req: Request, res: Response) => {
     }).validate(user_info)
 
     const user = await User.getUser(_user_id)
-    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
+    await user.verifyPassword(password)
+    await user.updateUser({ name, surname, birthday, phone, password: new_password })
 
-    const new_hash = new_password && (await argon.hash(new_password))
-
-    if (name) user.name = name
-    if (surname) user.surname = surname
-    if (birthday) user.birthday = birthday
-    if (new_hash) user.password = new_hash
-
-    if (typeof user === typeof User) if (phone) (user as User).phone = phone
-
-    await user.update()
-
-    const response: Partial<User> = { ...user }
+    const response: Partial<User['user']> & { emails: User['emails']; roles: User['roles'] } = {
+      ...user.user,
+      emails: user.emails,
+      roles: user.roles
+    }
     delete response.password
 
     return res.status(200).send({ success: true, message: 'Update complete!', user: response })
@@ -166,9 +131,9 @@ route.post('/delete', async (req: Request, res: Response) => {
 
   try {
     const user = await User.getUser(_user_id)
-    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
-    await user.delete()
-    UserUtils.logout(req)
+    await user.verifyPassword(password)
+    await user.deleteUser()
+    User.deleteAccessToken(req, true)
 
     return res.status(200).send({ success: true, message: 'Delete complete!', user })
   } catch (error) {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { RoleTypes } from '../models/user/roleModel'
+import { RoleTypes } from '../database/models/user/role'
 
 export default (roles: RoleTypes[], not_allowed: boolean = false) => {
   return (req: Request, res: Response, next: NextFunction) => {
