@@ -49,7 +49,7 @@ route.post('/accept/:id', async (req: Request, res: Response) => {
 
     request.status = 'accepted'
     await request.update()
-    user.roles.some(role => role === 'guest') ? await user.updateRole('guest', 'moderator'/*CONTINUE*/) : await user.addRole(request.role_id)
+    user.get('roles').some(role => role === 'guest') ? await user.updateRole('guest', request.role_id) : await user.addRole(request.role_id)
 
     await user.updateAccessTokenData()
 

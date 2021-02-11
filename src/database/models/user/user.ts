@@ -88,34 +88,15 @@ export default class User {
    */
   async delete(transaction?: Transaction) {
     const txn = transaction || db
-    
-    await txn('user').del().where({ user_id: this.user_id })
-  }
 
-  /**
-   * Checks if an user is already registered, and returns its id if so.
-   */
-  static async exist(email: string) {
-    const user_id: number | boolean = await db('email')
-      .select('user_id')
-      .where({ address: email })
-      .then(row => (row[0] ? row[0].user_id : false))
-    return user_id
+    await txn('user').del().where({ user_id: this.user_id })
   }
 
   /**
    * returns an user if it`s registered in the database.
    * @param identifier - an user id or email.
    */
-  static async get(identifier: string | number): Promise<User> {
-    let user_id =
-      typeof identifier === 'string'
-        ? await db('email')
-            .select('user_id')
-            .where({ address: identifier, main: true })
-            .then(row => (row[0] ? row[0].user_id : null))
-        : identifier
-
+  static async get(user_id: number): Promise<User> {
     const user_info = await db('user')
       .where({ user_id })
       .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
@@ -140,7 +121,7 @@ export default class User {
       .limit(5)
       .then(row => row.map(user => user.user_id))
 
-    const users = await db<UserCtor>('user')
+    const users = await db<Omit<User, 'insert' | 'update' | 'delete'>>('user')
       .whereIn('user_id', ids)
       .then(row => (row[0] ? row : null))
     if (!users) throw new ArisError('Didn´t find any user!', 400)

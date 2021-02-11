@@ -2,7 +2,6 @@ import ValSchema, { P } from '../../utils/validation'
 import ArisError from '../../utils/arisError'
 import File from '../../utils/minio'
 import User from '../../utils/user'
-import argon from 'argon2'
 
 // PASS ROLEREQ INTO USER MODEL
 
@@ -14,13 +13,7 @@ route.get('/get', async (req: Request, res: Response) => {
 
   try {
     const user = await User.getUser(_user_id)
-
-    const response: Partial<User['user']> & { emails: User['emails']; roles: User['roles'] } = {
-      ...user.user,
-      emails: user.emails,
-      roles: user.roles
-    }
-    delete response.password
+    const response = user.format()
 
     return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
   } catch (error) {
@@ -65,11 +58,11 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
 
     const file = new File(picture)
     if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
-    const uuid = await file.update('profile', 'image/png', user.user.avatar)
+    const uuid = await file.update('profile', 'image/png', user.get('avatar'))
 
     await user.updateUser({ avatar: uuid })
 
-    return res.status(200).send({ success: true, message: 'Avatar uploaded!', object: uuid })
+    return res.status(200).send({ success: true, message: 'Avatar uploaded!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Upload avatar')
     return res.status(result.status).send(result.send)
@@ -112,12 +105,7 @@ route.post('/update', async (req: Request, res: Response) => {
     await user.verifyPassword(password)
     await user.updateUser({ name, surname, birthday, phone, password: new_password })
 
-    const response: Partial<User['user']> & { emails: User['emails']; roles: User['roles'] } = {
-      ...user.user,
-      emails: user.emails,
-      roles: user.roles
-    }
-    delete response.password
+    const response = user.format()
 
     return res.status(200).send({ success: true, message: 'Update complete!', user: response })
   } catch (error) {
@@ -133,9 +121,9 @@ route.post('/delete', async (req: Request, res: Response) => {
     const user = await User.getUser(_user_id)
     await user.verifyPassword(password)
     await user.deleteUser()
-    User.deleteAccessToken(req, true)
+    await User.deleteAccessToken(req, true)
 
-    return res.status(200).send({ success: true, message: 'Delete complete!', user })
+    return res.status(200).send({ success: true, message: 'Delete complete!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Delete')
     return res.status(result.status).send(result.send)

@@ -29,23 +29,6 @@ export default class Role {
     return role
   }
 
-  static async getUserRoles(user_id: number): Promise<RoleTypes[]> {
-    const roles = await db('user_role_view')
-      .select('title')
-      .where({ user_id })
-      .then(row => (row[0] ? row.map(role => role.title) : null))
-    if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
-    return roles
-  }
-
-  static async getUsersRoles(user_ids: number[]): Promise<{ user_id: number; title: RoleTypes }[]> {
-    const roles = await db('user_role_view')
-      .whereIn('user_id', user_ids)
-      .then(row => (row[0] ? row : null))
-    if (!roles) throw new ArisError('Couldn`t found users roles!', 500)
-    return roles
-  }
-
   static async getAll() {
     const roles = await db('role').then(row => (row[0] ? row : false))
     return roles
@@ -63,6 +46,23 @@ export default class Role {
     const trx = transaction || db
 
     await trx('user_role').del().where({ role_id: this.role_id, user_id })
+  }
+
+  static async getUserRoles(user_id: number): Promise<RoleTypes[]> {
+    const roles = await db('user_role_view')
+      .select('title')
+      .where({ user_id })
+      .then(row => (row[0] ? row.map(role => role.title) : null))
+    if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
+    return roles
+  }
+
+  static async getUsersRoles(user_ids: number[]): Promise<{ user_id: number; title: RoleTypes }[]> {
+    const roles = await db('user_role_view')
+      .whereIn('user_id', user_ids)
+      .then(row => (row[0] ? row : null))
+    if (!roles) throw new ArisError('Couldn`t found users roles!', 500)
+    return roles
   }
 }
 

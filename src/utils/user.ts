@@ -11,10 +11,12 @@ import argon from 'argon2'
 
 import { Request } from 'express'
 
+type FormattedUser = Omit<User, 'insert' | 'update' | 'delete'> & { emails: Email[]; roles: RoleTypes[] }
+
 export default class ArisUser {
-  user: User
-  emails: Email[]
-  roles: RoleTypes[]
+  private user: User
+  private emails: Email[]
+  private roles: RoleTypes[]
 
   private txn?: Transaction
 
@@ -24,11 +26,12 @@ export default class ArisUser {
     this.roles = roles
   }
 
-  // -----USER----- //
-
+  /**
+   * Creates an new user. 
+   */
   static async createUser(
     user_info: Omit<UserCtor, 'user_id' | 'avatar' | 'created_at' | 'updated_at'>,
-    email_info: Omit<EmailCtor, 'email_id' | 'main'>
+    email_info: Omit<EmailCtor, 'email_id' | 'user_id' | 'main'>
   ) {
     const tnx = await db.transaction()
 
@@ -36,8 +39,8 @@ export default class ArisUser {
 
     const user = new User(user_info)
     await user.insert(tnx)
-    const email = new Email({ ...email_info, main: true })
-    await email.insert(user.user_id, tnx)
+    const email = new Email({ ...email_info, user_id: user.user_id, main: true })
+    await email.insert(tnx)
     const role = Role.get('guest')
     await role.linkWithUser(user.user_id, tnx)
 
@@ -46,6 +49,30 @@ export default class ArisUser {
     return new ArisUser(user, [email], ['guest'])
   }
 
+  /**
+   * returns a parameter of the user.
+   * @param key -parameter to be returned.
+   */
+  get<T extends keyof FormattedUser>(key: T): FormattedUser[T] {
+    const aux_ob: FormattedUser = { ...this.user, emails: this.emails, roles: this.roles }
+    return aux_ob[key]
+  }
+
+  /**
+   * returns a formatted object of user infos.
+   */
+  format() {
+    const aux_ob: Partial<FormattedUser> = { ...this.user, emails: this.emails, roles: this.roles }
+    delete aux_ob.password
+    aux_ob.emails!.map((email: Partial<Email>) => delete email.user_id)
+    return <Omit<FormattedUser, 'password'>>aux_ob
+  }
+
+  // -----USER----- //
+
+  /**
+   * Updates the user`s information.
+   */
   async updateUser({ name, surname, birthday, password, phone, avatar }: Partial<Omit<UserCtor, 'user_id' | 'created_at' | 'updated_at'>>) {
     if (name) this.user.name = name
     if (surname) this.user.surname = surname
@@ -57,10 +84,17 @@ export default class ArisUser {
     await this.user.update()
   }
 
+  /**
+   * Deletes an user and everything associated with it.
+   */
   async deleteUser() {
     await this.user.delete()
   }
 
+  /**
+   * Verify the given password with the user`s hash.
+   * @param password -string to be verified with the user`s hash.
+   */
   async verifyPassword(password: string) {
     if (!(await argon.verify(this.user.password, password))) throw new ArisError('Incorrect password!', 400)
   }
@@ -68,9 +102,9 @@ export default class ArisUser {
   /**
    * Checks if an user is already registered, and returns its id if so.
    */
-  static async existUser(email: string) {
-    const user_id: number | boolean = await User.exist(email)
-    return user_id
+  static async existUser(email_address: string) {
+    const email = await Email.get(email_address)
+    return email.main ? email.user_id : false
   }
 
   /**
@@ -78,7 +112,8 @@ export default class ArisUser {
    * @param identifier - an user id or email.
    */
   static async getUser(identifier: string | number) {
-    const user = await User.get(identifier)
+    const user_id = typeof identifier === 'string' ? (await Email.get(identifier)).user_id : identifier
+    const user = await User.get(user_id)
     const emails = await Email.getUserEmails(user.user_id)
     const roles = await Role.getUserRoles(user.user_id)
 
@@ -89,27 +124,34 @@ export default class ArisUser {
    * Select (with a filter or not) users.
    */
   static async getAllUsers(filters: UserFilters, page: number) {
-    const users: any = await User.getAll(filters, page)
-    const ids = users.map((user: any) => user.user_id)
+    const users = await User.getAll(filters, page)
+    const ids = users.map(user => user.user_id)
     const emails = await Email.getUsersEmails(ids)
     const roles = await Role.getUsersRoles(ids)
 
-    users.map((user: any) => {
-      delete user.password
-      user.emails = emails.filter(email => email.user_id === user.user_id).map(email => new Email(email))
-      user.roles = roles.filter(role => role.user_id === user.user_id).map(role => role.title)
+    const formatted_users = users.map(user => {
+      const user_info = new User(user)
+      const emails_info = emails.filter(email => email.user_id === user.user_id).map(email => new Email(email))
+      const roles_info = roles.filter(role => role.user_id === user.user_id).map(role => role.title)
+      return new ArisUser(user_info, emails_info, roles_info).format()
     })
-    return users
+    return formatted_users
   }
 
   // -----EMAIL----- //
 
-  async addEmail(email_info: Omit<EmailCtor, 'email_id' | 'main'>) {
-    const email = new Email(email_info)
-    await email.insert(this.user.user_id, this.txn)
+  /**
+   * Adds an email for the user if it isn`t already registered.
+   */
+  async addEmail(email_info: Omit<EmailCtor, 'email_id' | 'user_id' | 'main'>) {
+    const email = new Email({ ...email_info, user_id: this.user.user_id })
+    await email.insert(this.txn)
     this.emails.push(email)
   }
 
+  /**
+   * Removes an email of the user.
+   */
   async removeEmail(address: string) {
     const email = this.emails.find(email => email.address === address)
     if (!email) throw new ArisError('Email address not vinculated to this user!', 400)
@@ -131,13 +173,13 @@ export default class ArisUser {
   /**
    * Updates a role for this user in the database.
    */
-  async updateRole(prev_role: RoleTypes, new_role: RoleTypes) {
-    const n_role = Role.get(new_role)
-    const p_role = Role.get(prev_role)
+  async updateRole(prev_identifier: number | RoleTypes, new_identifier: number | RoleTypes) {
+    const n_role = Role.get(new_identifier)
+    const p_role = Role.get(prev_identifier)
 
     await db('user_role').update({ role_id: n_role.role_id }).where({ user_id: this.user.user_id, role_id: p_role.role_id })
     this.roles = this.roles.map(role => (role === p_role.title ? n_role.title : role))
-  } // MAYBE DELETE THIS
+  }
 
   /**
    * Removes a role for this user in the database.
@@ -150,6 +192,11 @@ export default class ArisUser {
 
   // -----REQUESTS----- //
 
+  /**
+   * Makes a request for a new role if the user already don`t have it.
+   * @param role -role to be requested.
+   * @param data -info required for the role chosen.
+   */
   async requestRole(role: RoleTypes, data: string) {
     if (this.roles.some(user_role => user_role === role)) throw new ArisError('User already have this role!', 400)
     if (await RoleReq.exist(this.user.user_id, role)) throw new ArisError('Request already exists!', 400)

@@ -3,7 +3,7 @@ import categoryController from './proposal/category'
 import roleReqController from './request/roleReq'
 import statusController from './proposal/status'
 import userController from './user/user'
-import authController from './authController'
+import authController from './auth'
 
 import permission from '../middlewares/permission'
 import auth from '../middlewares/auth'
