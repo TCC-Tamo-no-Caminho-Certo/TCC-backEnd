@@ -27,7 +27,7 @@ export default class ArisUser {
   }
 
   /**
-   * Creates an new user. 
+   * Creates an new user.
    */
   static async createUser(
     user_info: Omit<UserCtor, 'user_id' | 'avatar' | 'created_at' | 'updated_at'>,
@@ -78,7 +78,7 @@ export default class ArisUser {
     if (surname) this.user.surname = surname
     if (birthday) this.user.birthday = birthday
     if (password) this.user.password = await argon.hash(password)
-    if (phone) this.user.phone = phone
+    if (phone || phone === null) this.user.phone = phone
     if (avatar) this.user.avatar = avatar
 
     await this.user.update()

@@ -31,7 +31,7 @@ route.post('/get/:page/:limit', async (req: Request, res: Response) => {
       updated_at: P.filter.date.allow(null)
     }).validate(filters)
 
-    const requests = await RoleReq.getAllRequests(filters, page, limit)
+    const requests = await RoleReq.getAll(filters, page, limit)
 
     return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
   } catch (error) {
@@ -44,7 +44,7 @@ route.post('/accept/:id', async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
-    const request = await RoleReq.getRequest(request_id)
+    const request = await RoleReq.get(request_id)
     const user = await User.getUser(request.user_id)
 
     request.status = 'accepted'
@@ -64,7 +64,7 @@ route.post('/reject/:id', async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
-    const request = await RoleReq.getRequest(request_id)
+    const request = await RoleReq.get(request_id)
     const user = await User.getUser(request.user_id)
 
     request.status = 'rejected'
@@ -84,7 +84,7 @@ route.post('/delete/:id', async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
-    const request = await RoleReq.getRequest(request_id)
+    const request = await RoleReq.get(request_id)
     await request.delete()
 
     return res.status(200).send({ success: true, message: 'Delete complete!' })

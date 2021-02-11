@@ -1,6 +1,5 @@
-import { RoleTypes } from '../user/role'
 import ArisError from '../../../utils/arisError'
-import Data from '../../../utils/data'
+import { RoleTypes } from '../user/role'
 import db from '../..'
 
 type StatusTypes = 'accepted' | 'rejected' | 'awaiting'
@@ -91,10 +90,10 @@ export default class RoleReq {
   /**
    * returns a role request.
    */
-  static async getRequest(request_id: number) {
+  static async get(request_id: number) {
     const request_info = await db('role_request')
       .where({ request_id })
-      .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
+      .then(row => (row[0] ? row[0] : null))
     if (!request_info) throw new ArisError('Request not found!', 403)
 
     return new RoleReq(request_info)
@@ -103,8 +102,8 @@ export default class RoleReq {
   /**
    * Select (with a filter or not) role requests.
    */
-  static async getAllRequests(filters: Filters, page: number, limit: number) {
-    const result = await db('role_request_view')
+  static async getAll(filters: Filters, page: number, limit: number) {
+    const requests = await db('role_request_view')
       .where(builder => {
         if (filters.ids && filters.ids[0]) builder.whereIn('request_id', filters.ids)
         if (filters.users_ids && filters.users_ids[0]) builder.whereIn('user_id', filters.users_ids)
@@ -117,8 +116,9 @@ export default class RoleReq {
       })
       .offset((page - 1) * limit)
       .limit(limit)
-      .then(row => row.map(request => Data.parseDatetime(request)))
+      .then(row => (row[0] ? row : null))
+    if (!requests) throw new ArisError('Didn´t find any request!', 400)
 
-    return result
+    return requests
   }
 }

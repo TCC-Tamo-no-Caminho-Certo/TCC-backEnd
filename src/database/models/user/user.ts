@@ -1,5 +1,4 @@
 import ArisError from '../../../utils/arisError'
-import Data from '../../../utils/data'
 import { Transaction } from 'knex'
 import db from '../..'
 
@@ -77,6 +76,7 @@ export default class User {
 
     const user_up: Partial<this> = { ...this }
     delete user_up.user_id
+    delete user_up.full_name
     delete user_up.created_at
     delete user_up.updated_at
 
@@ -99,7 +99,7 @@ export default class User {
   static async get(user_id: number): Promise<User> {
     const user_info = await db('user')
       .where({ user_id })
-      .then(row => (row[0] ? Data.parseDatetime(row[0]) : null))
+      .then(row => (row[0] ? row[0] : null))
     if (!user_info) throw new ArisError('User don`t exists!', 400)
 
     return new User(user_info)
@@ -109,8 +109,7 @@ export default class User {
    * Select (with a filter or not) users.
    */
   static async getAll(filters: UserFilters, page: number) {
-    const ids = await db('user')
-      .select('user_id')
+    const users = await db<Omit<User, 'insert' | 'update' | 'delete'>>('user')
       .where(builder => {
         if (filters.ids && filters.ids[0]) builder.whereIn('user_id', filters.ids)
         if (filters.name) builder.where('full_name', 'like', `%${filters.name}%`)
@@ -119,12 +118,9 @@ export default class User {
       })
       .offset((page - 1) * 5)
       .limit(5)
-      .then(row => row.map(user => user.user_id))
-
-    const users = await db<Omit<User, 'insert' | 'update' | 'delete'>>('user')
-      .whereIn('user_id', ids)
       .then(row => (row[0] ? row : null))
     if (!users) throw new ArisError('Didn´t find any user!', 400)
+
     return users
   }
 }
