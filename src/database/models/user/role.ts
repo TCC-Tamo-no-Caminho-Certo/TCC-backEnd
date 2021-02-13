@@ -6,7 +6,7 @@ export type RoleTypes = 'admin' | 'guest' | 'student' | 'professor' | 'customer'
 
 let roles: Role[]
 
-export interface ArisRole {
+export interface RoleCtor {
   role_id?: number
   title: RoleTypes
 }
@@ -18,13 +18,13 @@ export default class Role {
   /**
    * Creates a role.
    */
-  constructor({ role_id, title }: ArisRole) {
-    this.role_id = role_id ? role_id : 0
+  constructor({ role_id, title }: RoleCtor) {
+    this.role_id = role_id || 0 //Gives a temporary id when creating a new role
     this.title = title
   }
 
   static get(identifier: RoleTypes | number) {
-    const role = roles.find(role => (typeof identifier === 'string' ? role.title === identifier : (role.role_id = identifier)))
+    const role = roles.find(role => (typeof identifier === 'string' ? role.title === identifier : role.role_id === identifier))
     if (!role) throw new ArisError(`Role provided does't exists!`, 400)
     return role
   }
@@ -37,32 +37,36 @@ export default class Role {
   // -----USER_ROLE----- //
 
   async linkWithUser(user_id: number, transaction?: Transaction) {
-    const trx = transaction || db
+    const txn = transaction || db
 
-    await trx('user_role').insert({ role_id: this.role_id, user_id })
+    await txn('user_role').insert({ role_id: this.role_id, user_id })
   }
 
   async unLinkWithUser(user_id: number, transaction?: Transaction) {
-    const trx = transaction || db
+    const txn = transaction || db
 
-    await trx('user_role').del().where({ role_id: this.role_id, user_id })
+    await txn('user_role').del().where({ role_id: this.role_id, user_id })
   }
 
-  static async getUserRoles(user_id: number): Promise<RoleTypes[]> {
-    const roles = await db('user_role_view')
-      .select('title')
+  static async getUserRoles(user_id: number) {
+    const roles = await db('user_role')
       .where({ user_id })
-      .then(row => (row[0] ? row.map(role => role.title) : null))
+      .then(row => (row[0] ? row : null))
     if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
-    return roles
+
+    return roles.map(role => Role.get(role.role_id))
   }
 
-  static async getUsersRoles(user_ids: number[]): Promise<{ user_id: number; title: RoleTypes }[]> {
-    const roles = await db('user_role_view')
-      .whereIn('user_id', user_ids)
+  static async getUsersRoles(users_ids: number[]) {
+    const result: { [user_id: number]: Role[] } = {}
+    const roles = await db('user_role')
+      .whereIn('user_id', users_ids)
       .then(row => (row[0] ? row : null))
     if (!roles) throw new ArisError('Couldn`t found users roles!', 500)
-    return roles
+
+    roles.map(role => (result[role.user_id] ? result[role.user_id].push(Role.get(role.role_id)) : (result[role.user_id] = [Role.get(role.role_id)])))
+
+    return result
   }
 }
 

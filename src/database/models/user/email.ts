@@ -47,7 +47,7 @@ export default class Email {
   }
 
   static async exist(address: string) {
-    const result = await db<Omit<Email, 'insert' | 'update' | 'delete'> & { user_id: number }>('email')
+    const result = await db<Omit<Email, 'insert' | 'update' | 'delete'>>('email')
       .where({ address })
       .then(row => (row[0] ? true : false))
     return result
@@ -64,19 +64,19 @@ export default class Email {
 
   static async getUserEmails(user_id: number) {
     const email_info = await db('email')
-      .select('email_id', 'address', 'main', 'options')
       .where({ user_id })
       .then(row => (row[0] ? row : null))
     if (!email_info) throw new ArisError('Couldn`t found user emails!', 500)
+
     return email_info.map(email => new Email(email))
   }
 
   static async getUsersEmails(user_ids: number[]) {
-    const emails = await db<Omit<Email, 'insert' | 'update' | 'delete'> & { user_id: number }>('email')
+    const emails = await db('email')
       .whereIn('user_id', user_ids)
       .then(row => (row[0] ? row : null))
     if (!emails) throw new ArisError('Couldn`t found users emails!', 500)
 
-    return emails
+    return emails.map(email => new Email(email))
   }
 }

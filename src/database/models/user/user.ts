@@ -96,11 +96,11 @@ export default class User {
    * returns an user if it`s registered in the database.
    * @param identifier - an user id or email.
    */
-  static async get(user_id: number): Promise<User> {
+  static async get(user_id: number) {
     const user_info = await db('user')
       .where({ user_id })
       .then(row => (row[0] ? row[0] : null))
-    if (!user_info) throw new ArisError('User don`t exists!', 400)
+    if (!user_info) throw new ArisError('User not found!', 400)
 
     return new User(user_info)
   }
@@ -121,6 +121,6 @@ export default class User {
       .then(row => (row[0] ? row : null))
     if (!users) throw new ArisError('Didn´t find any user!', 400)
 
-    return users
+    return users.map(user => new User(user))
   }
 }
