@@ -79,12 +79,12 @@ export default class RoleReq {
   /**
    * Checks if an request already exists on the database.
    */
-  static async exist(user_id: number, role: RoleTypes) {
-    const reply = await db('role_request_view')
+  static async exist(user_id: number, role_id: number) {
+    const result = await db('role_request')
       .select('request_id')
-      .where({ user_id, role })
+      .where({ user_id, role_id })
       .then(row => (row[0] ? true : false))
-    return reply
+    return result
   }
 
   /**

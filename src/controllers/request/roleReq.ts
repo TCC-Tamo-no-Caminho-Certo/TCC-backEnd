@@ -79,7 +79,7 @@ route.post('/reject/:id', async (req: Request, res: Response) => {
     return res.status(result.status).send(result.send)
   }
 })
-// create route to give feedback
+
 route.post('/delete/:id', async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
