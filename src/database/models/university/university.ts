@@ -35,7 +35,17 @@ export default class University {
       .then(row => row[0])
   }
 
-  async update() {}
+  /**
+   * Updates this university in the database.
+   */
+  async update(transaction?: Transaction) {
+    const txn = transaction || db
+
+    const university_up: Partial<this> = { ...this }
+    delete university_up.university_id
+
+    await txn('university').update(university_up).where({ university_id: this.university_id })
+  }
 
   async delete(transaction?: Transaction) {
     const txn = transaction || db

@@ -41,7 +41,7 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
       remember: P.auth.remember.allow(null)
     }).validate({ email, password, remember })
 
-    const user = await User.getUser(email)
+    const user = await User.get(email)
     await user.verifyPassword(password)
     const access_token = await user.generateAccessToken(remember)
 
@@ -66,7 +66,7 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
       password: P.user.password.required()
     }).validate(user_info)
 
-    const hasUser = await User.existUser(email)
+    const hasUser = await User.exist(email)
     if (hasUser) throw new ArisError('User already exists', 400)
 
     const token = uuidv4()
@@ -110,7 +110,7 @@ route.post('/api/forgot-password', captcha, async (req: Request, res: Response) 
   try {
     new ValSchema(P.user.email.required()).validate(email)
 
-    const id = await User.existUser(email)
+    const id = await User.exist(email)
     if (!id) throw new ArisError('User don`t exist!', 400)
 
     const token = crypto.randomBytes(3).toString('hex')
@@ -139,7 +139,7 @@ route.post('/api/reset-password', captcha, async (req: Request, res: Response) =
 
     new ValSchema(P.user.password.required()).validate(password)
 
-    const user = await User.getUser(id)
+    const user = await User.get(id)
     await user.updateUser({ password })
 
     redis.client.del(`reset.${token}`)

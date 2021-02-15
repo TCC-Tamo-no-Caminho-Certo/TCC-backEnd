@@ -66,7 +66,7 @@ export default class Email {
     const email_info = await db('email')
       .where({ user_id })
       .then(row => (row[0] ? row : null))
-    if (!email_info) throw new ArisError('Couldn`t found user emails!', 500)
+    if (!email_info) throw new ArisError('Couldn`t find user emails!', 500)
 
     return email_info.map(email => new Email(email))
   }
@@ -75,7 +75,7 @@ export default class Email {
     const emails = await db('email')
       .whereIn('user_id', user_ids)
       .then(row => (row[0] ? row : null))
-    if (!emails) throw new ArisError('Couldn`t found users emails!', 500)
+    if (!emails) throw new ArisError('Couldn`t find users emails!', 500)
 
     return emails.map(email => new Email(email))
   }

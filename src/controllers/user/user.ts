@@ -12,7 +12,7 @@ route.get('/get', async (req: Request, res: Response) => {
   const { _user_id } = req.body
 
   try {
-    const user = await User.getUser(_user_id)
+    const user = await User.get(_user_id)
     const response = user.format()
 
     return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
@@ -41,7 +41,7 @@ route.post('/get/:page', async (req: Request, res: Response) => {
       updated_at: P.filter.date.allow(null)
     }).validate(filters)
 
-    const users = await User.getAllUsers(filters, page)
+    const users = await User.getAll(filters, page)
 
     return res.status(200).send({ success: true, message: 'Get users info complete!', users })
   } catch (error) {
@@ -54,7 +54,7 @@ route.post('/avatar/upload', async (req: Request, res: Response) => {
   const { _user_id, picture } = req.body
 
   try {
-    const user = await User.getUser(_user_id)
+    const user = await User.get(_user_id)
 
     const file = new File(picture)
     if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
@@ -77,7 +77,7 @@ route.post('/request-role', async (req: Request, res: Response) => {
     new ValSchema(P.user.role.equal('professor', 'student').required()).validate(role)
     if (!data) throw new ArisError('Form data not provided!', 400)
 
-    const user = await User.getUser(_user_id)
+    const user = await User.get(_user_id)
     await user.requestRole(role, form_data)
 
     return res.status(200).send({ success: true, message: 'Add role request sended!' })
@@ -101,7 +101,7 @@ route.post('/update', async (req: Request, res: Response) => {
       password: P.user.password.required()
     }).validate(user_info)
 
-    const user = await User.getUser(_user_id)
+    const user = await User.get(_user_id)
     await user.verifyPassword(password)
     await user.updateUser({ name, surname, birthday, phone, password: new_password })
 
@@ -118,7 +118,7 @@ route.post('/delete', async (req: Request, res: Response) => {
   const { _user_id, password } = req.body
 
   try {
-    const user = await User.getUser(_user_id)
+    const user = await User.get(_user_id)
     await user.verifyPassword(password)
     await user.deleteUser()
     await User.deleteAccessToken(req, true)

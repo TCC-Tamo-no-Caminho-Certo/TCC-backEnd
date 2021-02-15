@@ -1,6 +1,7 @@
 .env.development
 yarn.lock
 coverage
+notes.txt
 .env
 .config
 .prettierrc.json

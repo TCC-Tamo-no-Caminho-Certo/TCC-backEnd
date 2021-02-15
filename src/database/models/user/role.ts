@@ -29,8 +29,7 @@ export default class Role {
     return role
   }
 
-  static async getAll() {
-    const roles = await db('role').then(row => (row[0] ? row : false))
+  static getAll() {
     return roles
   }
 
@@ -52,17 +51,17 @@ export default class Role {
     const roles = await db('user_role')
       .where({ user_id })
       .then(row => (row[0] ? row : null))
-    if (!roles) throw new ArisError('Couldn`t found user roles!', 500)
+    if (!roles) throw new ArisError('Couldn`t find user`s roles!', 500)
 
     return roles.map(role => Role.get(role.role_id))
   }
 
-  static async getUsersRoles(users_ids: number[]) {
+  static async getUsersRoles(user_ids: number[]) {
     const result: { [user_id: number]: Role[] } = {}
     const roles = await db('user_role')
-      .whereIn('user_id', users_ids)
+      .whereIn('user_id', user_ids)
       .then(row => (row[0] ? row : null))
-    if (!roles) throw new ArisError('Couldn`t found users roles!', 500)
+    if (!roles) throw new ArisError('Couldn`t find users roles!', 500)
 
     roles.map(role => (result[role.user_id] ? result[role.user_id].push(Role.get(role.role_id)) : (result[role.user_id] = [Role.get(role.role_id)])))
 
@@ -70,7 +69,7 @@ export default class Role {
   }
 }
 
-Role.getAll().then(row => {
-  if (!row) throw new ArisError('Couldn´t get all roles', 500)
+db('role').then(row => {
+  if (!row[0]) throw new ArisError('Couldn´t get all roles', 500)
   roles = row.map(role_info => new Role(role_info))
 })
