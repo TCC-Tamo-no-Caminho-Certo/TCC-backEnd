@@ -52,10 +52,8 @@ export default class Campus {
     await txn('campus').del().where({ campus_id: this.campus_id })
   }
 
-  static async get(campus_id: number, transaction?: Transaction) {
-    const txn = transaction || db
-
-    const campus_info = await txn('user')
+  static async get(campus_id: number) {
+    const campus_info = await db('user')
       .where({ campus_id })
       .then(row => (row[0] ? row[0] : null))
     if (!campus_info) throw new ArisError('Campus not found!', 400)
@@ -63,10 +61,8 @@ export default class Campus {
     return new Campus(campus_info)
   }
 
-  static async getAll(filters: CampusFilters, page: number, transaction?: Transaction) {
-    const txn = transaction || db
-
-    const campus = await txn<Omit<Campus, 'insert' | 'update' | 'delete'>>('campus')
+  static async getAll(filters: CampusFilters, page: number) {
+    const campus = await db<CampusCtor>('campus')
       .where(builder => {
         if (filters.ids && filters.ids[0]) builder.whereIn('campus_id', filters.ids)
         if (filters.university_ids && filters.university_ids[0]) builder.whereIn('university_id', filters.university_ids)

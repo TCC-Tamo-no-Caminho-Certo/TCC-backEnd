@@ -1,5 +1,6 @@
 import Campus, { CampusCtor, CampusFilters } from '../database/models/university/campus'
 import Course, { CourseCtor, CourseTypes } from '../database/models/university/course'
+import ArisError from './arisError'
 import { Transaction } from 'knex'
 import db from '../database'
 
@@ -115,5 +116,22 @@ export default class ArisCampus {
     const r_course = Course.get(course_name)
     await r_course.unLinkWithCampus(this.campus.campus_id)
     this.courses = this.courses.filter(course => course.course_id !== r_course.course_id)
+  }
+
+  // -----TRANSACTION----- //
+
+  /**
+   * creates a database transaction.
+   */
+  async createTxn() {
+    this.txn = await db.transaction()
+  }
+
+  /**
+   * commits the transaction.
+   */
+  async commitTxn() {
+    if (!this.txn) throw new ArisError('Transaction wasn´t created!', 500)
+    await this.txn.commit()
   }
 }

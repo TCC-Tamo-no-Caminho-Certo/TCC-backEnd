@@ -53,10 +53,8 @@ export default class University {
     await txn('university').del().where({ university_id: this.university_id })
   }
 
-  static async get(university_id: number, transaction?: Transaction) {
-    const txn = transaction || db
-
-    const university_info = await txn('university')
+  static async get(university_id: number) {
+    const university_info = await db('university')
       .where({ university_id })
       .then(row => (row[0] ? row[0] : null))
     if (!university_info) throw new ArisError('University not found!', 400)
@@ -64,10 +62,8 @@ export default class University {
     return new University(university_info)
   }
 
-  static async getAll(filters: UniversityFilters, page: number, transaction?: Transaction) {
-    const txn = transaction || db
-
-    const universities = await txn<UniversityCtor>('university')
+  static async getAll(filters: UniversityFilters, page: number) {
+    const universities = await db<UniversityCtor>('university')
       .where(builder => {
         if (filters.ids && filters.ids[0]) builder.whereIn('university_id', filters.ids)
         if (filters.name) builder.where('name', 'like', `%${filters.name}%`)

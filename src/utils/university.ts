@@ -1,5 +1,6 @@
 import University, { UniversityCtor, UniversityFilters } from '../database/models/university/university'
 import Campus, { FormattedCampus } from './campus'
+import ArisError from './arisError'
 import { Transaction } from 'knex'
 import db from '../database'
 
@@ -70,5 +71,22 @@ export default class ArisUniversity {
 
   async deleteUniversity() {
     await this.university.delete()
+  }
+
+  // -----TRANSACTION----- //
+
+  /**
+   * creates a database transaction.
+   */
+  async createTxn() {
+    this.txn = await db.transaction()
+  }
+
+  /**
+   * commits the transaction.
+   */
+  async commitTxn() {
+    if (!this.txn) throw new ArisError('Transaction wasn´t created!', 500)
+    await this.txn.commit()
   }
 }
