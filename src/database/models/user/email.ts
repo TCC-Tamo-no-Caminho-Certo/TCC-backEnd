@@ -2,6 +2,13 @@ import ArisError from '../../../utils/arisError'
 import { Transaction } from 'knex'
 import db from '../..'
 
+export interface EmailFilters {
+  email_id?: number | number[]
+  user_id?: number | number[]
+  address?: string | string[]
+  main?: boolean
+}
+
 export interface EmailCtor {
   email_id?: number
   user_id: number
@@ -11,72 +18,81 @@ export interface EmailCtor {
 }
 
 export default class Email {
-  email_id: number
-  user_id: number
-  address: string
-  main: boolean
-  options?: { [key: string]: any }
+  protected email_id: number
+  protected user_id: number
+  protected address: string
+  protected main: boolean
+  protected options: { [key: string]: any }
 
-  constructor({ email_id, user_id, address, main = false, options }: EmailCtor) {
+  protected constructor({ email_id, user_id, address, main, options }: EmailCtor) {
     this.email_id = email_id || 0 //Gives a temporary id when creating a new email
     this.user_id = user_id
     this.address = address
-    this.main = main
-    this.options = options
+    this.main = main || false
+    this.options = options || {}
   }
 
-  async insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
-
-    if (await Email.exist(this.address)) {
-      transaction && transaction.rollback()
-      throw new ArisError('Email already registered!', 400)
-    }
 
     this.email_id = await txn('email')
       .insert({ user_id: this.user_id, address: this.address, main: this.main, options: this.options })
       .then(row => row[0])
   }
 
-  async update() {}
+  protected async _update(transaction?: Transaction) {
+    const txn = transaction || db
 
-  async delete(transaction?: Transaction) {
+    const email_up = { address: this.address, main: this.main, options: this.options }
+
+    await txn('email').update(email_up).where({ email_id: this.email_id })
+  }
+
+  protected async _delete(transaction?: Transaction) {
     const txn = transaction || db
 
     await txn('email').del().where({ email_id: this.email_id })
   }
 
-  static async exist(address: string) {
-    const result = await db<Omit<Email, 'insert' | 'update' | 'delete'>>('email')
+  protected static async _exist(address: string) {
+    const result = await db<Required<EmailCtor>>('email')
       .where({ address })
       .then(row => (row[0] ? true : false))
     return result
   }
 
-  static async get(address: string) {
-    const email_info = await db('email')
-      .where({ address })
-      .then(row => (row[0] ? row[0] : null))
-    if (!email_info) throw new ArisError('Email not found!', 400)
+  protected static async _get(filter: EmailFilters) {
+    const email_info = await db<Required<EmailCtor>>('email')
+      .where(builder => {
+        let key: keyof EmailFilters
+        for (key in filter) {
+          Array.isArray(filter[key]) ? builder.whereIn(<string>key, <Array<any>>filter[key]) : builder.where({ [key]: filter[key] })
+        }
+      })
+      .then(row => (row[0] ? row : null))
+    if (!email_info) throw new ArisError('No email found!', 400)
 
-    return new Email(email_info)
+    return email_info
   }
 
-  static async getUserEmails(user_id: number) {
-    const email_info = await db('email')
-      .where({ user_id })
+  protected static async _getAll(filters: EmailFilters, pagination: { page: number; limit?: number } = { page: 1, limit: 50 }) {
+    const { page, limit = 50 } = pagination
+    const emails_info = await db<Required<EmailCtor>>('email')
+      .where(builder => {
+        let key: keyof EmailFilters
+        for (key in filters) {
+          Array.isArray(filters[key]) ? builder.whereIn(<string>key, <any[]>filters[key]) : builder.where({ [key]: filters[key] })
+        }
+        // if (filters.email_id) builder.whereIn('email_id', filters.email_id)
+        // if (filters.user_id) builder.whereIn('user_id', filters.user_id)
+        // if (filters.address) builder.whereIn('address', filters.address)
+        // if (filters.main) builder.where({ main: filters.main })
+      })
+      .offset((page - 1) * limit)
+      .limit(limit)
       .then(row => (row[0] ? row : null))
-    if (!email_info) throw new ArisError('Couldn`t find user emails!', 500)
+    if (!emails_info) throw new ArisError('Didn´t find any email!', 400)
 
-    return email_info.map(email => new Email(email))
-  }
-
-  static async getUsersEmails(user_ids: number[]) {
-    const emails = await db('email')
-      .whereIn('user_id', user_ids)
-      .then(row => (row[0] ? row : null))
-    if (!emails) throw new ArisError('Couldn`t find users emails!', 500)
-
-    return emails.map(email => new Email(email))
+    return emails_info
   }
 }
