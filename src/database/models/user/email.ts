@@ -61,37 +61,20 @@ export default class Email {
     return result
   }
 
-  protected static async _get(filter: EmailFilters) {
-    const email_info = await db<Required<EmailCtor>>('email')
-      .where(builder => {
-        let key: keyof EmailFilters
-        for (key in filter) {
-          Array.isArray(filter[key]) ? builder.whereIn(<string>key, <Array<any>>filter[key]) : builder.where({ [key]: filter[key] })
-        }
-      })
-      .then(row => (row[0] ? row : null))
-    if (!email_info) throw new ArisError('No email found!', 400)
+  protected static async _get(filter: EmailFilters, pagination: Pagination = { page: 1, per_page: 50 }) {
+    const { page, per_page = 50 } = pagination
+    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
-    return email_info
-  }
+    const base_query = db<Required<EmailCtor>>('email').where(builder => {
+      let key: keyof EmailFilters
+      for (key in filter) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
+    })
 
-  protected static async _getAll(filters: EmailFilters, pagination: { page: number; limit?: number } = { page: 1, limit: 50 }) {
-    const { page, limit = 50 } = pagination
-    const emails_info = await db<Required<EmailCtor>>('email')
-      .where(builder => {
-        let key: keyof EmailFilters
-        for (key in filters) {
-          Array.isArray(filters[key]) ? builder.whereIn(<string>key, <any[]>filters[key]) : builder.where({ [key]: filters[key] })
-        }
-        // if (filters.email_id) builder.whereIn('email_id', filters.email_id)
-        // if (filters.user_id) builder.whereIn('user_id', filters.user_id)
-        // if (filters.address) builder.whereIn('address', filters.address)
-        // if (filters.main) builder.where({ main: filters.main })
-      })
-      .offset((page - 1) * limit)
-      .limit(limit)
-      .then(row => (row[0] ? row : null))
-    if (!emails_info) throw new ArisError('Didn´t find any email!', 400)
+    if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
+    base_query.then(row => (row[0] ? row : null))
+
+    const emails_info = await base_query
+    if (!emails_info) throw new ArisError('No email found!', 400)
 
     return emails_info
   }

@@ -1,5 +1,6 @@
 import Student, { StudentCtor, StudentFilters } from '../../database/models/user/student'
 import ArisError from '../arisError'
+
 import { Transaction } from 'knex'
 import db from '../../database'
 
@@ -38,8 +39,8 @@ export default class ArisStudent extends Student {
   /**
    * Returns an Aris student.
    */
-  static async get<T extends StudentFilters>(filter: T) {
-    const students_info = await this._get(filter)
+  static async get<T extends StudentFilters>(filter: T, pagination?: Pagination) {
+    const students_info = await this._get(filter, pagination)
 
     return <T extends { user_id: number } | { ar: number } ? [ArisStudent] : ArisStudent[]>(
       students_info.map(student => new ArisStudent(student))

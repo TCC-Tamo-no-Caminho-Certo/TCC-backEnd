@@ -35,7 +35,7 @@ export default class RoleReq extends User_Role {
    * Creates a role request.
    */
   protected constructor({ request_id, user_id, role_id, data, feedback, status, created_at, updated_at }: RoleReqCtor) {
-    super({user_id, role_id})
+    super({ user_id, role_id })
     this.request_id = request_id || 0 //Gives a temporary id when creating a new request
     this.data = data
     this.feedback = feedback
@@ -85,48 +85,26 @@ export default class RoleReq extends User_Role {
   }
 
   /**
-   * returns a role request.
+   * Select (with a filter or not) role requests.
    */
-  protected static async _get(filter: RoleReqFilters) {
-    const request_info = await db<Required<RoleReqCtor>>('role_request')
-      .where(builder => {
-        let key: keyof RoleReqFilters
-        for (key in filter) {
-          if (key === 'created_at' || key === 'updated_at') builder.whereBetween(<string>key, <[string, string]>filter[key])
-          Array.isArray(filter[key]) ? builder.whereIn(<string>key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
-        }
-      })
-      .then(row => (row[0] ? row : null))
+  protected static async _get(filter: RoleReqFilters, pagination: Pagination = { page: 1, per_page: 50 }) {
+    const { page, per_page = 50 } = pagination
+    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
+
+    const base_query = db<Required<RoleReqCtor>>('role_request').where(builder => {
+      let key: keyof RoleReqFilters
+      for (key in filter) {
+        if (key === 'created_at' || key === 'updated_at') builder.whereBetween(key, <[string, string]>filter[key])
+        Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
+      }
+    })
+
+    if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
+    base_query.then(row => (row[0] ? row : null))
+
+    const request_info = await base_query
     if (!request_info) throw new ArisError('No request found!', 400)
 
     return request_info
-  }
-
-  /**
-   * Select (with a filter or not) role requests.
-   */
-  protected static async _getAll(filters: RoleReqFilters, page: number, limit: number) {
-    const requests = await db<Required<RoleReqCtor>>('role_request')
-      .where(builder => {
-        let key: keyof RoleReqFilters
-        for (key in filters) {
-          if (key === 'created_at' || key === 'updated_at') builder.whereBetween(<string>key, <[string, string]>filters[key])
-          Array.isArray(filters[key]) ? builder.whereIn(<string>key, <any[]>filters[key]) : builder.where({ [key]: filters[key] })
-        }
-        // if (filters.ids && filters.ids[0]) builder.whereIn('request_id', filters.ids)
-        // if (filters.users_ids && filters.users_ids[0]) builder.whereIn('user_id', filters.users_ids)
-        // if (filters.roles_ids && filters.roles_ids[0]) builder.whereIn('role_id', filters.roles_ids)
-        // if (filters.status && filters.status[0]) builder.whereIn('status', filters.status)
-        // if (filters.roles && filters.roles[0]) builder.whereIn('role', filters.roles)
-        // if (filters.name) builder.where('full_name', 'like', `%${filters.name}%`)
-        // if (filters.created_at) builder.whereBetween('created_at', filters.created_at)
-        // if (filters.updated_at) builder.whereBetween('updated_at', filters.updated_at)
-      })
-      .offset((page - 1) * limit)
-      .limit(limit)
-      .then(row => (row[0] ? row : null))
-    if (!requests) throw new ArisError('Didn´t find any request!', 400)
-
-    return requests
   }
 }

@@ -2,13 +2,6 @@ import ArisError from '../../../utils/arisError'
 import { Transaction } from 'knex'
 import db from '../..'
 
-export type CourseTypes =
-  | 'Ciência da Computação'
-  | 'Engenharia da Computação'
-  | 'Engenharia Mecânica'
-  | 'Engenharia de Produção'
-  | 'Sistemas de Informação'
-
 let courses: Course[]
 
 export interface CourseCtor {

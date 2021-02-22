@@ -1,8 +1,6 @@
 import ArisError from '../../../utils/arisError'
 import db from '../..'
 
-export type RoleTypes = 'admin' | 'guest' | 'student' | 'professor' | 'customer' | 'evaluator' | 'moderator'
-
 const roles: Required<RoleCtor>[] = []
 
 db<Required<RoleCtor>>('role').then(row => {

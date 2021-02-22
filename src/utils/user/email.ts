@@ -1,5 +1,6 @@
 import Email, { EmailCtor, EmailFilters } from '../../database/models/user/email'
 import ArisError from '../arisError'
+
 import { Transaction } from 'knex'
 import db from '../../database'
 
@@ -38,12 +39,12 @@ export default class ArisEmail extends Email {
   }
 
   /**
-   * Returns an Aris email.
+   * Returns an Aris email array.
    */
-  static async get<T extends EmailFilters>(filter: T) {
-    const emails_info = await this._get(filter)
+  static async get<T extends EmailFilters>(filter: T, pagination?: Pagination) {
+    const emails_info = await this._get(filter, pagination)
 
-    return <T extends { address: string } | { email_id: number } ? [ArisEmail] : ArisEmail[]>emails_info.map(email => new ArisEmail(email))
+    return <T extends { email_id: number } | { address: string } ? [ArisEmail] : ArisEmail[]>emails_info.map(email => new ArisEmail(email))
   }
 
   /**

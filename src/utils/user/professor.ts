@@ -1,5 +1,6 @@
 import Professor, { ProfessorCtor, ProfessorFilters } from '../../database/models/user/professor'
 import ArisError from '../arisError'
+
 import { Transaction } from 'knex'
 import db from '../../database'
 
@@ -38,8 +39,8 @@ export default class ArisProfessor extends Professor {
   /**
    * Returns an Aris professor.
    */
-  static async get<T extends ProfessorFilters>(filter: T) {
-    const professors_info = await this._get(filter)
+  static async get<T extends ProfessorFilters>(filter: T, pagination?: Pagination) {
+    const professors_info = await this._get(filter, pagination)
 
     return <T extends { user_id: number } | { lattes: string } ? [ArisProfessor] : ArisProfessor[]>(
       professors_info.map(professor => new ArisProfessor(professor))

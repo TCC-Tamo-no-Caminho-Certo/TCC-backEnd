@@ -1,11 +1,12 @@
-import Role, { RoleTypes } from '../../database/models/user/role'
 import User_Role from '../../database/models/user/user_role'
 import Professor from '../../database/models/user/professor'
 import Student from '../../database/models/user/student'
+import Role from '../../database/models/user/role'
 import ArisError from '../arisError'
+import Request from './roleReq'
+
 import { Transaction } from 'knex'
 import db from '../../database'
-import Request from './roleReq'
 
 type FormattedRole = { user_id: number; title: RoleTypes }
 
@@ -33,7 +34,7 @@ export default class ArisRole extends User_Role {
    * Returns an Aris role.
    */
   static async get<T extends boolean = false>(user_id: number | number[], formatted?: T) {
-    const roles_info = await super.n_get(user_id)
+    const roles_info = await this.n_get(user_id)
 
     return <T extends true ? FormattedRole[] : ArisRole[]>(
       roles_info.map(role_info => (formatted ? new ArisRole(role_info).format() : new ArisRole(role_info)))
@@ -41,7 +42,7 @@ export default class ArisRole extends User_Role {
   }
 
   async delete() {
-    await super.n_delete(this.txn)
+    await this.n_delete(this.txn)
   }
 
   // -----COMPLEMENTARY CLASSES----- //

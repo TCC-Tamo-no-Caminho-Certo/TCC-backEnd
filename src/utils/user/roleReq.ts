@@ -1,5 +1,5 @@
 import RoleReq, { RoleReqCtor, RoleReqFilters } from '../../database/models/user/roleReq'
-import Role, { RoleTypes } from '../../database/models/user/role'
+import Role from '../../database/models/user/role'
 import ArisError from '../arisError'
 import Professor from './professor'
 import Student from './student'
@@ -66,9 +66,10 @@ export default class ArisRoleReq extends RoleReq {
     return aux_ob
   }
 
-  static async get(filters: RoleReqFilters, page: number, limit: number) {
-    const requests = await RoleReq._getAll(filters, page, limit)
-    return requests.map(request => new ArisRoleReq(request))
+  static async get<T extends RoleReqFilters>(filters: T, pagination?: Pagination) {
+    const requests = await RoleReq._get(filters, pagination)
+
+    return <T extends { request_id: number } ? [ArisRoleReq] : ArisRoleReq[]>requests.map(request => new ArisRoleReq(request))
   }
 
   /**

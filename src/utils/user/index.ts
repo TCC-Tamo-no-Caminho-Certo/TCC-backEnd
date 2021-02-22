@@ -1,5 +1,4 @@
 import User, { UserCtor, UserFilters } from '../../database/models/user/user'
-import { RoleTypes } from '../../database/models/user/role'
 import redis from '../../services/redis'
 import ArisError from '../arisError'
 import Email from './email'
@@ -66,23 +65,12 @@ export default class ArisUser extends User {
   }
 
   /**
-   * returns an Aris user.
-   * @param identifier - an user id or email.
+   * Returns an Aris user array.
    */
-  static async get(identifier: string | number) {
-    const user_id = typeof identifier === 'string' ? (await Email.get({ address: identifier }))[0].get('user_id') : identifier
-    const user = await this._get(user_id)
+  static async get<T extends UserFilters>(filter: T, pagination?: Pagination) {
+    const users = await this._get(filter, pagination)
 
-    return new ArisUser(user)
-  }
-
-  /**
-   * Select (with a filter or not) users.
-   */
-  static async getAll(filters: UserFilters, page: number, formatted?: boolean) {
-    const users = await this._getAll(filters, page)
-
-    return users.map(user => (formatted ? new ArisUser(user).format() : new ArisUser(user)))
+    return <T extends { user_id: number } ? [ArisUser] : ArisUser[]>users.map(user => new ArisUser(user))
   }
 
   /**
