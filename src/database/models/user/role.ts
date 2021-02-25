@@ -1,3 +1,4 @@
+import { RoleTypes } from '../../../types'
 import ArisError from '../../../utils/arisError'
 import db from '../..'
 
@@ -25,13 +26,13 @@ export default class Role<T extends RoleTypes = RoleTypes> {
     this.title = title
   }
 
-  static get<T extends RoleTypes | number>(identifier: T) {
+  static find<T extends RoleTypes | number>(identifier: T) {
     const role = roles.find(role => (typeof identifier === 'string' ? role.title === identifier : role.role_id === identifier))
     if (!role) throw new ArisError(`Role provided does't exists!`, 400)
     return <T extends RoleTypes ? Required<RoleCtor<T>> : Required<RoleCtor>>role
   }
 
-  static getAll() {
+  static findAll() {
     return roles
   }
 }

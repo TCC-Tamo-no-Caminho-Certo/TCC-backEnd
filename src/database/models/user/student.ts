@@ -1,29 +1,38 @@
 import ArisError from '../../../utils/arisError'
+import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
 
 export interface StudentFilters {
   user_id?: number | number[]
+  course_id?: number | number[]
+  campus_id?: number | number[]
   ar?: number | number[]
   semester?: number | number[]
 }
 
 export interface StudentCtor {
   user_id: number
+  course_id: number
+  campus_id: number
   ar: number
   semester: number
 }
 
 export default class Student {
   protected user_id: number
+  protected course_id: number
+  protected campus_id: number
   protected ar: number
   protected semester: number
 
   /**
    * Creates an student.
    */
-  protected constructor({ user_id, ar, semester }: StudentCtor) {
+  protected constructor({ user_id, course_id, campus_id, ar, semester }: StudentCtor) {
     this.user_id = user_id
+    this.course_id = course_id
+    this.campus_id = campus_id
     this.ar = ar
     this.semester = semester
   }
@@ -36,6 +45,8 @@ export default class Student {
 
     await txn<Required<StudentCtor>>('student').insert({
       user_id: this.user_id,
+      course_id: this.course_id,
+      campus_id: this.campus_id,
       ar: this.ar,
       semester: this.semester
     })
@@ -64,21 +75,21 @@ export default class Student {
   /**
    * returns an student if it`s registered in the database.
    */
-  protected static async _get(filter: StudentFilters, pagination: Pagination = { page: 1, per_page: 50 }) {
-    const { page, per_page = 50 } = pagination
+  protected static async _find(filter: StudentFilters, pagination?: Pagination) {
+    const page: number = pagination?.page || 1,
+      per_page: number = pagination?.per_page || 50
+    if (page <= 0) throw new ArisError('Invalid page value', 400)
     if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
     const base_query = db<Required<StudentCtor>>('student').where(builder => {
       let key: keyof StudentFilters
-      for (key in filter) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
+      for (key in filter)
+        if (filter[key]) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
     })
 
     if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
     base_query.then(row => (row[0] ? row : null))
 
-    const student_info = await base_query
-    if (!student_info) throw new ArisError('No student found!', 400)
-
-    return student_info
+    return await base_query
   }
 }
