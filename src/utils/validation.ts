@@ -18,6 +18,8 @@ export default class ValSchema<T extends SchemaType> {
   }
 
   static primitive = {
+    joi: joi,
+
     auth: {
       token: joi.string(),
       remember: joi.bool()
