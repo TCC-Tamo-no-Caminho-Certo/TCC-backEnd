@@ -4,15 +4,16 @@ import ArisError from '../arisError'
 import Email from './email'
 import Role from './role'
 
+import { Pagination, RoleTypes } from '../../types'
+
 import { v4 as uuidv4 } from 'uuid'
+import { Request } from 'express'
 import argon from 'argon2'
 
 import { Transaction } from 'knex'
 import db from '../../database'
 
-import { Request } from 'express'
-
-type FormattedUser = Required<Omit<UserCtor, 'password' | 'phone'>> & Pick<UserCtor, 'phone'>
+type GetUser = Required<Omit<UserCtor, 'phone'>> & Pick<UserCtor, 'phone'>
 
 export default class ArisUser extends User {
   private txn?: Transaction
@@ -33,8 +34,8 @@ export default class ArisUser extends User {
    * returns a parameter of user.
    * @param key -parameter to be returned.
    */
-  get<T extends keyof FormattedUser>(key: T): FormattedUser[T] {
-    const aux_ob = this.format()
+  get<T extends keyof GetUser>(key: T): GetUser[T] {
+    const aux_ob = { ...this.format(), password: this.password }
     return aux_ob[key]
   }
 
@@ -42,7 +43,7 @@ export default class ArisUser extends User {
    * returns a formatted object of user infos.
    */
   format() {
-    const aux_ob: FormattedUser = {
+    const aux_ob: Omit<GetUser, 'password'> = {
       user_id: this.user_id,
       name: this.name,
       surname: this.surname,
@@ -60,15 +61,15 @@ export default class ArisUser extends User {
    * Checks if an user is already registered, and returns its id if so.
    */
   static async exist(email_address: string) {
-    const [email] = await Email.get({ address: email_address })
+    const [email] = await Email.find({ address: email_address })
     return email.get('main') ? email.get('user_id') : false
   }
 
   /**
    * Returns an Aris user array.
    */
-  static async get<T extends UserFilters>(filter: T, pagination?: Pagination) {
-    const users = await this._get(filter, pagination)
+  static async find<T extends UserFilters>(filter: T, pagination?: Pagination) {
+    const users = await this._find(filter, pagination)
 
     return <T extends { user_id: number } ? [ArisUser] : ArisUser[]>users.map(user => new ArisUser(user))
   }

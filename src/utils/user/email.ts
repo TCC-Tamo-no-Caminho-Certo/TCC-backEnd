@@ -1,10 +1,12 @@
 import Email, { EmailCtor, EmailFilters } from '../../database/models/user/email'
 import ArisError from '../arisError'
 
+import { Pagination } from '../../types'
+
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type FormattedEmail = Required<EmailCtor>
+type GetEmail = Required<EmailCtor>
 
 export default class ArisEmail extends Email {
   private txn?: Transaction
@@ -25,8 +27,8 @@ export default class ArisEmail extends Email {
    * returns a parameter of email.
    * @param key -parameter to be returned.
    */
-  get<T extends keyof FormattedEmail>(key: T): FormattedEmail[T] {
-    const aux_ob = this.format()
+  get<T extends keyof GetEmail>(key: T): GetEmail[T] {
+    const aux_ob = { ...this.format(), user_id: this.user_id }
     return aux_ob[key]
   }
 
@@ -34,15 +36,15 @@ export default class ArisEmail extends Email {
    * returns a formatted object of email infos.
    */
   format() {
-    const aux_ob: FormattedEmail = { email_id: this.email_id, user_id: this.user_id, address: this.address, main: this.main, options: this.options }
+    const aux_ob: Omit<GetEmail, 'user_id'> = { email_id: this.email_id, address: this.address, main: this.main, options: this.options }
     return aux_ob
   }
 
   /**
    * Returns an Aris email array.
    */
-  static async get<T extends EmailFilters>(filter: T, pagination?: Pagination) {
-    const emails_info = await this._get(filter, pagination)
+  static async find<T extends EmailFilters>(filter: T, pagination?: Pagination) {
+    const emails_info = await this._find(filter, pagination)
 
     return <T extends { email_id: number } | { address: string } ? [ArisEmail] : ArisEmail[]>emails_info.map(email => new ArisEmail(email))
   }

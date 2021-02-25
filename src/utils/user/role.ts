@@ -1,14 +1,16 @@
-import User_Role from '../../database/models/user/user_role'
+import User_Role, { User_RoleCtor, User_RoleFilters } from '../../database/models/user/user_role'
 import Professor from '../../database/models/user/professor'
 import Student from '../../database/models/user/student'
 import Role from '../../database/models/user/role'
 import ArisError from '../arisError'
 import Request from './roleReq'
 
+import { Pagination, RoleTypes } from '../../types'
+
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type FormattedRole = { user_id: number; title: RoleTypes }
+type GetRole = Required<User_RoleCtor> & { title: RoleTypes }
 
 export default class ArisRole extends User_Role {
   private txn?: Transaction
@@ -17,8 +19,8 @@ export default class ArisRole extends User_Role {
    * returns a parameter of role.
    * @param key -parameter to be returned.
    */
-  get<T extends keyof FormattedRole>(key: T): FormattedRole[T] {
-    const aux_ob = this.format()
+  get<T extends keyof GetRole>(key: T): GetRole[T] {
+    const aux_ob = { user_id: this.user_id, role_id: this.role_id, title: this.format() }
     return aux_ob[key]
   }
 
@@ -26,19 +28,16 @@ export default class ArisRole extends User_Role {
    * returns a formatted object of role infos.
    */
   format() {
-    const aux_ob: FormattedRole = { user_id: this.user_id, title: Role.get(this.role_id).title }
-    return aux_ob
+    return Role.find(this.role_id).title
   }
 
   /**
    * Returns an Aris role.
    */
-  static async get<T extends boolean = false>(user_id: number | number[], formatted?: T) {
-    const roles_info = await this.n_get(user_id)
+  static async find(filter: User_RoleFilters, pagination?: Pagination) {
+    const roles_info = await this.n_find(filter, pagination)
 
-    return <T extends true ? FormattedRole[] : ArisRole[]>(
-      roles_info.map(role_info => (formatted ? new ArisRole(role_info).format() : new ArisRole(role_info)))
-    )
+    return roles_info.map(role_info => new ArisRole(role_info))
   }
 
   async delete() {

@@ -1,10 +1,12 @@
 import Student, { StudentCtor, StudentFilters } from '../../database/models/user/student'
 import ArisError from '../arisError'
 
+import { Pagination } from '../../types'
+
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type FormattedStudent = Required<StudentCtor>
+type GetStudent = Required<StudentCtor>
 
 export default class ArisStudent extends Student {
   private txn?: Transaction
@@ -23,8 +25,8 @@ export default class ArisStudent extends Student {
    * returns a parameter of student.
    * @param key -parameter to be returned.
    */
-  get<T extends keyof FormattedStudent>(key: T): FormattedStudent[T] {
-    const aux_ob = this.format()
+  get<T extends keyof GetStudent>(key: T): GetStudent[T] {
+    const aux_ob = { ...this.format(), user_id: this.user_id }
     return aux_ob[key]
   }
 
@@ -32,19 +34,22 @@ export default class ArisStudent extends Student {
    * returns a formatted object of student infos.
    */
   format() {
-    const aux_ob: FormattedStudent = { user_id: this.user_id, ar: this.ar, semester: this.semester }
+    const aux_ob: Omit<GetStudent, 'user_id'> = {
+      campus_id: this.campus_id,
+      course_id: this.course_id,
+      ar: this.ar,
+      semester: this.semester
+    }
     return aux_ob
   }
 
   /**
    * Returns an Aris student.
    */
-  static async get<T extends StudentFilters>(filter: T, pagination?: Pagination) {
-    const students_info = await this._get(filter, pagination)
+  static async find<T extends StudentFilters>(filter: T, pagination?: Pagination) {
+    const students_info = await this._find(filter, pagination)
 
-    return <T extends { user_id: number } | { ar: number } ? [ArisStudent] : ArisStudent[]>(
-      students_info.map(student => new ArisStudent(student))
-    )
+    return <T extends { user_id: number } | { ar: number } ? [ArisStudent] : ArisStudent[]>students_info.map(student => new ArisStudent(student))
   }
 
   /**

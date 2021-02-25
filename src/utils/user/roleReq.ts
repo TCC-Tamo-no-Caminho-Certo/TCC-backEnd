@@ -1,8 +1,10 @@
-import RoleReq, { RoleReqCtor, RoleReqFilters } from '../../database/models/user/roleReq'
+import RoleReq, { RoleReqCtor, RoleReqFilters } from '../../database/models/user/role_request'
 import Role from '../../database/models/user/role'
 import ArisError from '../arisError'
 import Professor from './professor'
 import Student from './student'
+
+import { Pagination, RoleTypes } from '../../types'
 
 import { Transaction } from 'knex'
 import db from '../../database'
@@ -11,7 +13,7 @@ type Parameter<T extends (args: any) => any> = T extends (args: infer P) => any 
 type ProfessorCtor = Parameter<typeof Professor.create>
 type StudentCtor = Parameter<typeof Student.create>
 
-type FormattedRoleReq = Required<Omit<RoleReqCtor, 'data' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'feedback'>
+type GetRoleReq = Required<Omit<RoleReqCtor, 'data' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'feedback'>
 
 export default class ArisRoleReq extends RoleReq {
   private txn?: Transaction
@@ -33,7 +35,7 @@ export default class ArisRoleReq extends RoleReq {
   ): Promise<void> {
     if (user_roles.some(user_role => user_role === role)) throw new ArisError('User already have this role!', 400)
 
-    const { role_id } = Role.get(role)
+    const { role_id } = Role.find(role)
     const data = role_info && JSON.stringify(role_info)
 
     const request = new ArisRoleReq({ user_id, role_id, data })
@@ -44,7 +46,7 @@ export default class ArisRoleReq extends RoleReq {
    * returns a parameter of role request.
    * @param key -parameter to be returned.
    */
-  get<T extends keyof FormattedRoleReq>(key: T): FormattedRoleReq[T] {
+  get<T extends keyof GetRoleReq>(key: T): GetRoleReq[T] {
     const aux_ob = this.format()
     return aux_ob[key]
   }
@@ -53,7 +55,7 @@ export default class ArisRoleReq extends RoleReq {
    * returns a formatted object of role request infos.
    */
   format() {
-    const aux_ob: FormattedRoleReq = {
+    const aux_ob: GetRoleReq = {
       request_id: this.request_id,
       user_id: this.user_id,
       role_id: this.role_id,
@@ -66,8 +68,8 @@ export default class ArisRoleReq extends RoleReq {
     return aux_ob
   }
 
-  static async get<T extends RoleReqFilters>(filters: T, pagination?: Pagination) {
-    const requests = await RoleReq._get(filters, pagination)
+  static async find<T extends RoleReqFilters>(filters: T, pagination?: Pagination) {
+    const requests = await RoleReq._find(filters, pagination)
 
     return <T extends { request_id: number } ? [ArisRoleReq] : ArisRoleReq[]>requests.map(request => new ArisRoleReq(request))
   }
@@ -83,21 +85,21 @@ export default class ArisRoleReq extends RoleReq {
   }
 
   async delete() {
-    await super._delete(this.txn)
+    await this._delete(this.txn)
   }
 
   async accept(user_roles: RoleTypes[]) {
     if (user_roles.some(role => role === 'guest')) {
-      await super.n_update(Role.get('guest').role_id, this.txn)
-      user_roles = user_roles.filter(role => (role === 'guest' ? Role.get(this.role_id).title : role))
+      await this.n_update(Role.find('guest').role_id, this.txn)
+      user_roles = user_roles.filter(role => (role === 'guest' ? Role.find(this.role_id).title : role))
     } else {
-      await super.n_insert(this.txn)
-      user_roles.push(Role.get(this.role_id).title)
+      await this.n_insert(this.txn)
+      user_roles.push(Role.find(this.role_id).title)
     }
 
-    Role.get(this.role_id).title === 'professor'
+    Role.find(this.role_id).title === 'professor'
       ? await Professor.create(JSON.parse(<string>this.data))
-      : Role.get(this.role_id).title === 'student'
+      : Role.find(this.role_id).title === 'student'
       ? await Student.create(JSON.parse(<string>this.data))
       : undefined
 

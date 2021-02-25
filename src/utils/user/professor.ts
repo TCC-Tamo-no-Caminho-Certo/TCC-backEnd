@@ -1,10 +1,12 @@
 import Professor, { ProfessorCtor, ProfessorFilters } from '../../database/models/user/professor'
 import ArisError from '../arisError'
 
+import { Pagination } from '../../types'
+
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type FormattedProfessor = Required<Omit<ProfessorCtor, 'lattes'>> & Pick<ProfessorCtor, 'lattes'>
+type GetProfessor = Required<Omit<ProfessorCtor, 'lattes'>> & Pick<ProfessorCtor, 'lattes'>
 
 export default class ArisProfessor extends Professor {
   private txn?: Transaction
@@ -23,8 +25,8 @@ export default class ArisProfessor extends Professor {
    * returns a parameter of professor.
    * @param key -parameter to be returned.
    */
-  get<T extends keyof FormattedProfessor>(key: T): FormattedProfessor[T] {
-    const aux_ob = this.format()
+  get<T extends keyof GetProfessor>(key: T): GetProfessor[T] {
+    const aux_ob = { ...this.format(), user_id: this.user_id }
     return aux_ob[key]
   }
 
@@ -32,15 +34,21 @@ export default class ArisProfessor extends Professor {
    * returns a formatted object of professor infos.
    */
   format() {
-    const aux_ob: FormattedProfessor = { user_id: this.user_id, full_time: this.full_time, postgraduated: this.postgraduated, lattes: this.lattes }
+    const aux_ob: Omit<GetProfessor, 'user_id'> = {
+      campus_id: this.campus_id,
+      course_id: this.course_id,
+      full_time: this.full_time,
+      postgraduated: this.postgraduated,
+      lattes: this.lattes
+    }
     return aux_ob
   }
 
   /**
    * Returns an Aris professor.
    */
-  static async get<T extends ProfessorFilters>(filter: T, pagination?: Pagination) {
-    const professors_info = await this._get(filter, pagination)
+  static async find<T extends ProfessorFilters>(filter: T, pagination?: Pagination) {
+    const professors_info = await this._find(filter, pagination)
 
     return <T extends { user_id: number } | { lattes: string } ? [ArisProfessor] : ArisProfessor[]>(
       professors_info.map(professor => new ArisProfessor(professor))
