@@ -1,4 +1,5 @@
 import ArisError from '../../../utils/arisError'
+import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
 
@@ -15,20 +16,20 @@ export interface CampusCtor {
 }
 
 export default class Campus {
-  campus_id: number
-  university_id: number
-  name: string
+  protected campus_id: number
+  protected university_id: number
+  protected name: string
 
-  constructor({ campus_id, university_id, name }: CampusCtor) {
+  protected constructor({ campus_id, university_id, name }: CampusCtor) {
     this.campus_id = campus_id || 0 //Gives a temporary id when creating a new campus
     this.university_id = university_id
     this.name = name
   }
 
-  async insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
 
-    this.campus_id = await txn('campus')
+    this.campus_id = await txn<Required<CampusCtor>>('campus')
       .insert({ university_id: this.university_id, name: this.name })
       .then(row => row[0])
   }
@@ -36,61 +37,34 @@ export default class Campus {
   /**
    * Updates this campus in the database.
    */
-  async update(transaction?: Transaction) {
+  protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const campus_up: Partial<this> = { ...this }
-    delete campus_up.campus_id
-    delete campus_up.university_id
+    const campus_up = { name: this.name }
 
-    await txn('campus').update(campus_up).where({ campus_id: this.campus_id })
+    await txn<Required<CampusCtor>>('campus').update(campus_up).where({ campus_id: this.campus_id })
   }
 
-  async delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn('campus').del().where({ campus_id: this.campus_id })
+    await txn<Required<CampusCtor>>('campus').del().where({ campus_id: this.campus_id })
   }
 
-  static async get(campus_id: number) {
-    const campus_info = await db('user')
-      .where({ campus_id })
-      .then(row => (row[0] ? row[0] : null))
-    if (!campus_info) throw new ArisError('Campus not found!', 400)
+  protected static async _find(filter: CampusFilters, pagination?: Pagination) {
+    let page: number = pagination?.page || 1,
+      per_page: number = pagination?.per_page || 50
+    if (page <= 0) throw new ArisError('Invalid page value', 400)
+    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
-    return new Campus(campus_info)
-  }
+    const base_query = db<Required<CampusCtor>>('campus').where(builder => {
+      let key: keyof CampusFilters
+      for (key in filter)
+        if (filter[key]) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
+    })
 
-  static async getAll(filters: CampusFilters, page: number) {
-    const campus = await db<CampusCtor>('campus')
-      .where(builder => {
-        if (filters.ids && filters.ids[0]) builder.whereIn('campus_id', filters.ids)
-        if (filters.university_ids && filters.university_ids[0]) builder.whereIn('university_id', filters.university_ids)
-        if (filters.name) builder.where('name', 'like', `%${filters.name}%`)
-      })
-      .offset((page - 1) * 5)
-      .limit(5)
-      .then(row => (row[0] ? row : null))
-    if (!campus) throw new ArisError('Didn´t find any campus!', 400)
+    if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
 
-    return campus.map(camp => new Campus(camp))
-  }
-
-  static async getUniversityCampus(university_id: number) {
-    const campus = await db('campus')
-      .where({ university_id })
-      .then(row => (row[0] ? row : null))
-    if (!campus) throw new ArisError('Couldn`t find universities campus!', 500)
-
-    return campus.map(camp => new Campus(camp))
-  }
-
-  static async getUniversitiesCampus(university_ids: number[]) {
-    const campus = await db('campus')
-      .whereIn('university_id', university_ids)
-      .then(row => (row[0] ? row : null))
-    if (!campus) throw new ArisError('Couldn`t find universities campus!', 500)
-
-    return campus.map(camp => new Campus(camp))
+    return await base_query
   }
 }

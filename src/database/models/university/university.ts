@@ -1,10 +1,11 @@
 import ArisError from '../../../utils/arisError'
+import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
 
 export interface UniversityFilters {
-  ids?: number[]
-  name?: string[]
+  university_id?: number | number[]
+  name?: string | string[]
 }
 
 export interface UniversityCtor {
@@ -15,22 +16,22 @@ export interface UniversityCtor {
 }
 
 export default class University {
-  university_id: number
-  name: string
-  professor_regex: RegExp
-  student_regex: RegExp
+  protected university_id: number
+  protected name: string
+  protected professor_regex: string
+  protected student_regex: string
 
-  constructor({ university_id, name, professor_regex, student_regex }: UniversityCtor) {
+  protected constructor({ university_id, name, professor_regex, student_regex }: UniversityCtor) {
     this.university_id = university_id || 0 //Gives a temporary id when creating a new university
     this.name = name
-    this.professor_regex = new RegExp(professor_regex)
-    this.student_regex = new RegExp(student_regex)
+    this.professor_regex = professor_regex
+    this.student_regex = student_regex
   }
 
-  async insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
 
-    this.university_id = await txn('university')
+    this.university_id = await txn<Required<UniversityCtor>>('university')
       .insert({ name: this.name, professor_regex: this.professor_regex, student_regex: this.student_regex })
       .then(row => row[0])
   }
@@ -38,41 +39,34 @@ export default class University {
   /**
    * Updates this university in the database.
    */
-  async update(transaction?: Transaction) {
+  protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const university_up: Partial<this> = { ...this }
-    delete university_up.university_id
+    const university_up = { name: this.name, professor_regex: this.professor_regex, student_regex: this.student_regex }
 
-    await txn('university').update(university_up).where({ university_id: this.university_id })
+    await txn<Required<UniversityCtor>>('university').update(university_up).where({ university_id: this.university_id })
   }
 
-  async delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn('university').del().where({ university_id: this.university_id })
+    await txn<Required<UniversityCtor>>('university').del().where({ university_id: this.university_id })
   }
 
-  static async get(university_id: number) {
-    const university_info = await db('university')
-      .where({ university_id })
-      .then(row => (row[0] ? row[0] : null))
-    if (!university_info) throw new ArisError('University not found!', 400)
+  protected static async _find(filter: UniversityFilters, pagination?: Pagination) {
+    let page: number = pagination?.page || 1,
+      per_page: number = pagination?.per_page || 50
+    if (page <= 0) throw new ArisError('Invalid page value', 400)
+    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
-    return new University(university_info)
-  }
+    const base_query = db<Required<UniversityCtor>>('university').where(builder => {
+      let key: keyof UniversityFilters
+      for (key in filter)
+        if (filter[key]) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
+    })
 
-  static async getAll(filters: UniversityFilters, page: number) {
-    const universities = await db<UniversityCtor>('university')
-      .where(builder => {
-        if (filters.ids && filters.ids[0]) builder.whereIn('university_id', filters.ids)
-        if (filters.name) builder.where('name', 'like', `%${filters.name}%`)
-      })
-      .offset((page - 1) * 5)
-      .limit(5)
-      .then(row => (row[0] ? row : null))
-    if (!universities) throw new ArisError('Didn´t find any university!', 400)
+    if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
 
-    return universities.map(university => new University(university))
+    return await base_query
   }
 }
