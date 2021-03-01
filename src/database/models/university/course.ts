@@ -2,7 +2,7 @@ import ArisError from '../../../utils/arisError'
 import { CourseTypes } from '../../../types'
 import db from '../..'
 
-let courses: Required<CourseCtor>[]
+let courses: Required<CourseCtor>[] = []
 
 db('course').then(row => {
   if (!row) throw new ArisError('Couldn´t get all courses', 500)

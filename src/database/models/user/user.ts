@@ -88,6 +88,7 @@ export default class User {
     }
 
     await txn<Required<UserCtor>>('user').update(user_up).where({ user_id: this.user_id })
+    this.updated_at = new Date().toUTCString()
   }
 
   /**

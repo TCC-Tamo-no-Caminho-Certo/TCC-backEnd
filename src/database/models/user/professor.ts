@@ -8,7 +8,7 @@ export interface ProfessorFilters {
   course_id?: number | number[]
   campus_id?: number | number[]
   full_time?: boolean
-  postgraduated?: boolean
+  postgraduate?: boolean
   lattes?: string | string[]
 }
 
@@ -17,7 +17,7 @@ export interface ProfessorCtor {
   course_id: number
   campus_id: number
   full_time: boolean
-  postgraduated: boolean
+  postgraduate: boolean
   lattes?: string
 }
 
@@ -26,18 +26,18 @@ export default class Professor {
   protected course_id: number
   protected campus_id: number
   protected full_time: boolean
-  protected postgraduated: boolean
+  protected postgraduate: boolean
   protected lattes?: string
 
   /**
    * Creates an professor.
    */
-  protected constructor({ user_id, course_id, campus_id, full_time, postgraduated, lattes }: ProfessorCtor) {
+  protected constructor({ user_id, course_id, campus_id, full_time, postgraduate, lattes }: ProfessorCtor) {
     this.user_id = user_id
     this.course_id = course_id
     this.campus_id = campus_id
     this.full_time = full_time
-    this.postgraduated = postgraduated
+    this.postgraduate = postgraduate
     this.lattes = lattes
   }
 
@@ -52,7 +52,7 @@ export default class Professor {
       course_id: this.course_id,
       campus_id: this.campus_id,
       full_time: this.full_time,
-      postgraduated: this.postgraduated,
+      postgraduate: this.postgraduate,
       lattes: this.lattes
     })
   }
@@ -63,7 +63,7 @@ export default class Professor {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const professor_up = { full_time: this.full_time, postgraduated: this.postgraduated, lattes: this.lattes }
+    const professor_up = { full_time: this.full_time, postgraduate: this.postgraduate, lattes: this.lattes }
 
     await txn<Required<ProfessorCtor>>('professor').update(professor_up).where({ user_id: this.user_id })
   }

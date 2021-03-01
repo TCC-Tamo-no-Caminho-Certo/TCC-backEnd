@@ -17,7 +17,7 @@ export interface RoleReqFilters {
 
 export interface RoleReqCtor extends User_RoleCtor {
   request_id?: number
-  data?: string
+  data?: object
   feedback?: string
   status?: StatusTypes
   created_at?: string
@@ -26,7 +26,7 @@ export interface RoleReqCtor extends User_RoleCtor {
 
 export default class RoleReq extends User_Role {
   protected request_id: number
-  protected data?: string
+  protected data?: object
   protected feedback?: string
   protected status: StatusTypes
   protected created_at: string
@@ -51,7 +51,7 @@ export default class RoleReq extends User_Role {
   protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn('role_request').insert({ user_id: this.user_id, role_id: this.role_id, data: this.data, status: this.status })
+    await txn('role_request').insert({ user_id: this.user_id, role_id: this.role_id, data: JSON.stringify(this.data), status: this.status })
   }
 
   /**
@@ -60,9 +60,10 @@ export default class RoleReq extends User_Role {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const request_up = { data: this.data, feedback: this.feedback, status: this.status }
+    const request_up = { data: JSON.stringify(this.data), feedback: this.feedback, status: this.status }
 
     await txn('role_request').update(request_up).where({ request_id: this.request_id })
+    this.updated_at = new Date().toUTCString()
   }
 
   /**
