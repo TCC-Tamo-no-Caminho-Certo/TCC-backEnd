@@ -13,6 +13,17 @@ export default class ArisCourse extends Campus_Course {
   private txn?: Transaction
 
   /**
+   * Adds an new course to a campus.
+   */
+  static async add(course: CourseTypes, campus_id: number) {
+    const course_id = Course.find(course).course_id
+    const camp_course = new ArisCourse({ campus_id, course_id })
+    await camp_course.n_insert()
+
+    return course
+  }
+
+  /**
    * returns a parameter of course.
    * @param key -parameter to be returned.
    */

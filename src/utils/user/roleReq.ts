@@ -25,18 +25,15 @@ export default class ArisRoleReq extends RoleReq {
    * @param role Role to be Requested
    * @param role_info Role info if needed
    */
-  static async create<T extends 'professor'>(user_id: number, user_roles: RoleTypes[], role: T, role_info: ProfessorCtor): Promise<void>
-  static async create<T extends 'student'>(user_id: number, user_roles: RoleTypes[], role: T, role_info: StudentCtor): Promise<void>
+  static async create(user_id: number, role: 'professor', role_info: Omit<ProfessorCtor, 'user_id'>): Promise<void>
+  static async create(user_id: number, role: 'student', role_info: Omit<StudentCtor, 'user_id'>): Promise<void>
+  static async create<T extends Exclude<RoleTypes, 'professor' | 'student'>>(user_id: number, role: T): Promise<void>
   static async create<T extends RoleTypes>(
     user_id: number,
-    user_roles: RoleTypes[],
     role: T,
-    role_info?: T extends 'professor' ? ProfessorCtor : T extends 'student' ? StudentCtor : never
+    data?: T extends 'professor' ? Omit<ProfessorCtor, 'user_id'> : T extends 'student' ? Omit<StudentCtor, 'user_id'> : never
   ): Promise<void> {
-    if (user_roles.some(user_role => user_role === role)) throw new ArisError('User already have this role!', 400)
-
     const { role_id } = Role.find(role)
-    const data = role_info && JSON.stringify(role_info)
 
     const request = new ArisRoleReq({ user_id, role_id, data })
     await request._insert()
@@ -98,9 +95,9 @@ export default class ArisRoleReq extends RoleReq {
     }
 
     Role.find(this.role_id).title === 'professor'
-      ? await Professor.create(JSON.parse(<string>this.data))
+      ? await Professor.create({ user_id: this.user_id, ...(<any>this.data) })
       : Role.find(this.role_id).title === 'student'
-      ? await Student.create(JSON.parse(<string>this.data))
+      ? await Student.create({ user_id: this.user_id, ...(<any>this.data) })
       : undefined
 
     this.status = 'accepted'

@@ -38,7 +38,7 @@ export default class ArisProfessor extends Professor {
       campus_id: this.campus_id,
       course_id: this.course_id,
       full_time: this.full_time,
-      postgraduated: this.postgraduated,
+      postgraduate: this.postgraduate,
       lattes: this.lattes
     }
     return aux_ob
@@ -58,9 +58,9 @@ export default class ArisProfessor extends Professor {
   /**
    * Updates the professor`s info.
    */
-  async update({ full_time, postgraduated, lattes }: Partial<Omit<ProfessorCtor, 'user_id'>>) {
+  async update({ full_time, postgraduate, lattes }: Partial<Omit<ProfessorCtor, 'user_id'>>) {
     if (full_time) this.full_time = full_time
-    if (postgraduated) this.postgraduated = postgraduated
+    if (postgraduate) this.postgraduate = postgraduate
     if (lattes) this.lattes = lattes
 
     await this._update(this.txn)

@@ -115,6 +115,7 @@ export default class ArisUser extends User {
    * Generates an access_token for the user.
    */
   static async generateAccessToken(user_id: number, roles: RoleTypes[], remember?: boolean) {
+    if (!roles || !user_id) throw new ArisError('Couldn`t update access token data!', 500)
     const token = uuidv4()
 
     const data = JSON.parse(await redis.client.getAsync(`auth:data:${user_id}`))
@@ -137,6 +138,7 @@ export default class ArisUser extends User {
    * Updates access_token_data of this user.
    */
   static async updateAccessTokenData(user_id: number, roles: RoleTypes[]) {
+    if (!roles || !user_id) throw new ArisError('Couldn`t update access token data!', 500)
     await redis.client.delAsync(`auth:data:${user_id}`)
     await redis.client.setAsync(
       `auth:data:${user_id}`,
