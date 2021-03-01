@@ -1,25 +1,21 @@
 import proposalController from './proposal/proposal'
 import categoryController from './proposal/category'
-import roleReqController from './request/roleReq'
 import statusController from './proposal/status'
-import userController from './user/user'
-import authController from './auth'
 
-import permission from '../middlewares/permission'
-import auth from '../middlewares/auth'
+import roleReqsController from './user/role/requests'
+import roleReqController from './user/role/request'
+import roleController from './user/role/role'
+
+import emailController from './user/email'
+import usersController from './user/users'
+import userController from './user/user'
+
+import authController from './auth'
 
 import { Application } from 'express'
 
 export default (app: Application) => {
   // ----Session---- //
-
-  // Auth/Permission (routes that needs to be authenticated)
-  app
-    .use('/api/logout', auth)
-    .use('/api/validate-session', auth)
-    .use('/api/proposal', auth)
-    .use('/api/user', auth)
-    .use('/api/request', auth, permission(['moderator']))
 
   // Proposal
   app
@@ -28,10 +24,13 @@ export default (app: Application) => {
     .use(`/api/proposal/status`, statusController)
 
   // User
-  app.use(`/api/user`, userController)
-
-  // Request
-  app.use('/api/request/role', roleReqController)
+  app
+    .use(`/api`, userController)
+    .use(`/api`, usersController)
+    .use(`/api/user`, emailController)
+    .use('/api/user', roleController)
+    .use('/api/user/role', roleReqController)
+    .use('/api/user/role', roleReqsController)
 
   // --------------- //
 
