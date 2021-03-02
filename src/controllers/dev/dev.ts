@@ -1,6 +1,4 @@
-import ValSchema, { P } from '../../utils/validation'
 import ArisError from '../../utils/arisError'
-import File from '../../utils/minio'
 import User from '../../utils/user'
 import lucene from '../../services/lucene'
 import logger from '../../services/logger'
@@ -18,12 +16,10 @@ Router.route('/reset-lucene')
       await lucene.deleteAll();
       const users = (await User.find({}) as User[])
       users.map(async user => {
-        logger.info('Adding user: ' + JSON.stringify(user.format()))
-        if (await lucene.add(user.get('user_id'), user.get('full_name'))) {
-          logger.info('Ok')
-        } else {
-          logger.info('Error')
-        }
+        let userId = user.get('user_id')
+        let name = user.get('full_name')
+        let succes = await lucene.add(userId, name)
+        logger.info(`Adding user ${userId} - ${name}: ${succes}`)
       })
 
       return res.status(200).send({ success: true, message: 'Lucene database reseted!' })

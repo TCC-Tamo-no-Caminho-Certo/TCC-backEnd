@@ -1,5 +1,4 @@
 import axios from "axios";
-import logger from '../../services/logger'
 
 interface SearchResult {
   score: number,
@@ -26,7 +25,6 @@ class SearchManager {
       data: name,
       quantity,
     })
-    logger.info(response.data)
     return response.data
   }
 
@@ -47,7 +45,6 @@ class SearchManager {
         },
       ],
     })
-    logger.info(response.data)
     return response.data.ok === true
   }
 
@@ -56,13 +53,11 @@ class SearchManager {
       field: 'id',
       data: id
     })
-    logger.info(response.data)
     return response.data.ok === true
   }
 
   async deleteAll() {
     let response = await axios.get(`${this.baseUrl}/delete-all`)
-    logger.info(response.data)
     return response.data.ok === true
   }
 }
