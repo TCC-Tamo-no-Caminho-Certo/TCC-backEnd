@@ -5,6 +5,7 @@ class MinioManager {
   publicBuckets: string[] = ['profile']
   privateBuckets: string[] = ['documents']
   public client: Minio.Client = <Minio.Client>{}
+  public enabled: boolean = false
 
   initialize(host: string, port: number, useSsl: boolean, accessKey: string, secretKey: string) {
     this.client = new Minio.Client({
@@ -82,7 +83,8 @@ class MinioManager {
         }
       })
     })
-    this.client.putObject
+    //this.client.putObject
+    this.enabled = true
   }
 
   newStatement(bucketName: string, action: string[], effect: string) {

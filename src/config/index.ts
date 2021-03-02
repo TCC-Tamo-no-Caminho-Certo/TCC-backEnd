@@ -45,18 +45,12 @@ export interface RedisConfig {
 
 // Minio
 export interface MinioConfig {
+  use: boolean
   host: string
   port: number
   useSsl: boolean
   accessKey: string
   secretKey: string
-}
-
-// JWT
-export interface JWTConfig {
-  privateKey: string
-  publicKey: string
-  resetSecret: string
 }
 
 // Captcha
@@ -83,6 +77,11 @@ export interface LoggingConfig {
   filename: string
 }
 
+// Search
+export interface SearchConfig {
+  use: boolean
+  baseUrl: string
+}
 class ConfigManager {
   environment: 'development' | 'production' = 'development'
 
@@ -121,17 +120,12 @@ class ConfigManager {
   }
 
   minio: MinioConfig = {
+    use: false,
     host: '127.0.0.1',
     port: 9000,
     useSsl: false,
     accessKey: '',
     secretKey: ''
-  }
-
-  jwt: JWTConfig = {
-    privateKey: '',
-    publicKey: '',
-    resetSecret: ''
   }
 
   captcha: CaptchaConfig = {
@@ -146,6 +140,11 @@ class ConfigManager {
       user: 'username',
       pass: null
     }
+  }
+
+  search: SearchConfig = {
+    use: false,
+    baseUrl: 'http://127.0.0.1:35750'
   }
 
   logging: LoggingConfig = {
@@ -169,10 +168,10 @@ class ConfigManager {
     this.database = config.database
     this.redis = config.redis
     this.minio = config.minio
-    this.jwt = config.jwt
     this.captcha = config.captcha
     this.mail = config.mail
     this.logging = config.logging
+    this.search = config.search
     this.environment = config.environment
   }
 }

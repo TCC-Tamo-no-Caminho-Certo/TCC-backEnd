@@ -5,6 +5,7 @@ import logger from './services/logger'
 import compression from 'compression'
 import redis from './services/redis'
 import minio from './services/minio'
+import lucene from './services/lucene'
 import express from 'express'
 import https from 'https'
 import http from 'http'
@@ -18,11 +19,18 @@ if (config.logging.use) {
   logger.info('Running ArisLabs Backend - ' + version.major + '.' + version.minor + '.' + version.patch + ' Build ' + version.build)
 }
 
+if (config.search.use) {
+  lucene.initialize(config.search.baseUrl)
+  logger.info(`Using search at ${config.search.baseUrl}`)
+}
+
 redis.initialize(config.redis.host, config.redis.port, config.redis.database, config.redis.password)
 logger.info(`Using redis at ${config.redis.host}:${config.redis.port}`)
 
-minio.initialize(config.minio.host, config.minio.port, config.minio.useSsl, config.minio.accessKey, config.minio.secretKey)
-logger.info(`Using minio at ${config.minio.host}:${config.minio.port}`)
+if (config.minio.use) {
+  minio.initialize(config.minio.host, config.minio.port, config.minio.useSsl, config.minio.accessKey, config.minio.secretKey)
+  logger.info(`Using minio at ${config.minio.host}:${config.minio.port}`)
+}
 
 // App Configuration
 
