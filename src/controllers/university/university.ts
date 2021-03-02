@@ -29,7 +29,7 @@ Router.post('/university', auth, permission(['admin']), async (req: Request, res
 Router.route('/university/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
     const { name, professor_regex, student_regex } = req.body
-    const university_id = parseInt(req.params.university_id)
+    const university_id = parseInt(req.params.id)
 
     try {
       new ValSchema({
@@ -51,7 +51,7 @@ Router.route('/university/:id')
   })
 
   .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const university_id = parseInt(req.params.university_id)
+    const university_id = parseInt(req.params.id)
 
     try {
       new ValSchema(P.joi.number().positive().required()).validate(university_id)
@@ -81,7 +81,7 @@ Router.get('/universities', auth, async (req: Request, res: Response) => {
     const universities = await University.find({}, pagination)
     const result = universities.map(university => university.format())
 
-    return res.status(200).send({ success: true, message: 'Get Universities complete!', universities: result })
+    return res.status(200).send({ success: true, message: 'Get universities complete!', universities: result })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Get Universities')
     return res.status(result.status).send(result.send)

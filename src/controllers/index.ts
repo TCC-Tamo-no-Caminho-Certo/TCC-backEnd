@@ -1,3 +1,7 @@
+import universityController from './university/university'
+import campusController from './university/campus'
+import courseController from './university/course'
+
 import proposalController from './proposal/proposal'
 import categoryController from './proposal/category'
 import statusController from './proposal/status'
@@ -19,18 +23,21 @@ export default (app: Application) => {
 
   // Proposal
   app
-    .use(`/api/proposal`, proposalController)
-    .use(`/api/proposal/category`, categoryController)
-    .use(`/api/proposal/status`, statusController)
+    .use('/api/proposal', proposalController)
+    .use('/api/proposal/category', categoryController)
+    .use('/api/proposal/status', statusController)
 
   // User
   app
-    .use(`/api`, userController)
-    .use(`/api`, usersController)
-    .use(`/api/user`, emailController)
-    .use('/api/user', roleController)
-    .use('/api/user/role', roleReqController)
-    .use('/api/user/role', roleReqsController)
+    .use('/api', userController, usersController)
+    .use('/api/user', emailController, roleController)
+    .use('/api/user/role', roleReqController, roleReqsController)
+
+  // University
+  app
+    .use('/api', universityController)
+    .use('/api/university', campusController)
+    .use('/api/university/campus', courseController)
 
   // --------------- //
 
