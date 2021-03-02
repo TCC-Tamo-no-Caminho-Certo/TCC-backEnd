@@ -21,7 +21,7 @@ export default class ArisUser extends User {
   /**
    * Creates an new user.
    */
-  static async create(user_info: Omit<UserCtor, 'user_id' | 'avatar' | 'created_at' | 'updated_at'>) {
+  static async create(user_info: Omit<UserCtor, 'user_id' | 'avatar_uuid' | 'created_at' | 'updated_at'>) {
     user_info.password = await argon.hash(user_info.password)
 
     const user = new ArisUser(user_info)
@@ -50,7 +50,7 @@ export default class ArisUser extends User {
       full_name: this.full_name,
       phone: this.phone,
       birthday: this.birthday,
-      avatar: this.avatar,
+      avatar_uuid: this.avatar_uuid,
       created_at: this.created_at,
       updated_at: this.updated_at
     }
@@ -77,13 +77,13 @@ export default class ArisUser extends User {
   /**
    * Updates the user`s information.
    */
-  async update({ name, surname, birthday, password, phone, avatar }: Partial<Omit<UserCtor, 'user_id' | 'created_at' | 'updated_at'>>) {
+  async update({ name, surname, birthday, password, phone, avatar_uuid }: Partial<Omit<UserCtor, 'user_id' | 'created_at' | 'updated_at'>>) {
     if (name) this.name = name
     if (surname) this.surname = surname
     if (birthday) this.birthday = birthday
     if (password) this.password = await argon.hash(password)
     if (phone || phone === null) this.phone = phone
-    if (avatar) this.avatar = avatar
+    if (avatar_uuid) this.avatar_uuid = avatar_uuid
 
     await this._update(this.txn)
   }

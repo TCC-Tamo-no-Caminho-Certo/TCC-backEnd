@@ -1,5 +1,4 @@
 import User_Role, { User_RoleCtor } from './user_role'
-import ArisError from '../../../utils/arisError'
 import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
@@ -18,6 +17,7 @@ export interface RoleReqFilters {
 export interface RoleReqCtor extends User_RoleCtor {
   request_id?: number
   data?: object
+  doc_uuid?: string
   feedback?: string
   status?: StatusTypes
   created_at?: string
@@ -27,6 +27,7 @@ export interface RoleReqCtor extends User_RoleCtor {
 export default class RoleReq extends User_Role {
   protected request_id: number
   protected data?: object
+  protected doc_uuid?: string
   protected feedback?: string
   protected status: StatusTypes
   protected created_at: string
@@ -35,10 +36,11 @@ export default class RoleReq extends User_Role {
   /**
    * Creates a role request.
    */
-  protected constructor({ request_id, user_id, role_id, data, feedback, status, created_at, updated_at }: RoleReqCtor) {
+  protected constructor({ request_id, user_id, role_id, data, doc_uuid, feedback, status, created_at, updated_at }: RoleReqCtor) {
     super({ user_id, role_id })
     this.request_id = request_id || 0 //Gives a temporary id when creating a new request
     this.data = data
+    this.doc_uuid = doc_uuid
     this.feedback = feedback
     this.status = status || 'awaiting'
     this.created_at = created_at || ''
@@ -51,7 +53,13 @@ export default class RoleReq extends User_Role {
   protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn('role_request').insert({ user_id: this.user_id, role_id: this.role_id, data: JSON.stringify(this.data), status: this.status })
+    await txn('role_request').insert({
+      user_id: this.user_id,
+      role_id: this.role_id,
+      data: JSON.stringify(this.data),
+      doc_uuid: this.doc_uuid,
+      status: this.status
+    })
   }
 
   /**
@@ -60,7 +68,7 @@ export default class RoleReq extends User_Role {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const request_up = { data: JSON.stringify(this.data), feedback: this.feedback, status: this.status }
+    const request_up = { doc_uuid: this.doc_uuid, data: JSON.stringify(this.data), feedback: this.feedback, status: this.status }
 
     await txn('role_request').update(request_up).where({ request_id: this.request_id })
     this.updated_at = new Date().toUTCString()
@@ -92,8 +100,6 @@ export default class RoleReq extends User_Role {
   protected static async _find(filter: RoleReqFilters, pagination?: Pagination) {
     const page: number = pagination?.page || 1,
       per_page: number = pagination?.per_page || 50
-    if (page <= 0) throw new ArisError('Invalid page value', 400)
-    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
     const base_query = db<Required<RoleReqCtor>>('role_request').where(builder => {
       let key: keyof RoleReqFilters

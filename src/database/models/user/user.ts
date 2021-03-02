@@ -1,4 +1,3 @@
-import ArisError from '../../../utils/arisError'
 import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
@@ -20,7 +19,7 @@ export interface UserCtor {
   phone?: string
   birthday: string
   password: string
-  avatar?: string
+  avatar_uuid?: string
   created_at?: string
   updated_at?: string
 }
@@ -33,14 +32,14 @@ export default class User {
   protected phone?: string
   protected birthday: string
   protected password: string
-  protected avatar: string
+  protected avatar_uuid: string
   protected created_at: string
   protected updated_at: string
 
   /**
    * Creates an user.
    */
-  protected constructor({ user_id, name, surname, full_name, avatar, birthday, password, phone, created_at, updated_at }: UserCtor) {
+  protected constructor({ user_id, name, surname, full_name, avatar_uuid, birthday, password, phone, created_at, updated_at }: UserCtor) {
     this.user_id = user_id || 0 //Gives a temporary id when creating a new user
     this.name = name
     this.surname = surname
@@ -48,7 +47,7 @@ export default class User {
     this.phone = phone
     this.birthday = birthday
     this.password = password
-    this.avatar = avatar || 'default'
+    this.avatar_uuid = avatar_uuid || 'default'
     this.created_at = created_at || ''
     this.updated_at = updated_at || ''
   }
@@ -84,7 +83,7 @@ export default class User {
       phone: this.phone,
       birthday: this.birthday,
       password: this.password,
-      avatar: this.avatar
+      avatar_uuid: this.avatar_uuid
     }
 
     await txn<Required<UserCtor>>('user').update(user_up).where({ user_id: this.user_id })

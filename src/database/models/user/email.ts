@@ -1,4 +1,3 @@
-import ArisError from '../../../utils/arisError'
 import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
@@ -65,8 +64,6 @@ export default class Email {
   protected static async _find(filter: EmailFilters, pagination?: Pagination) {
     const page: number = pagination?.page || 1,
       per_page: number = pagination?.per_page || 50
-    if (page <= 0) throw new ArisError('Invalid page value', 400)
-    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
     const base_query = db<Required<EmailCtor>>('email').where(builder => {
       let key: keyof EmailFilters

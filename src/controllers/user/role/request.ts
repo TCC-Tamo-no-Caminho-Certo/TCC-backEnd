@@ -10,7 +10,7 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.post('/request/professor', auth, permission(['!professor']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, _roles, inst_email, doc, university_id, campus_id, course_id, full_time, postgraduate, lattes } = req.body
+  const { _user_id: user_id, inst_email, doc, university_id, campus_id, course_id, full_time, postgraduate, lattes } = req.body
 
   try {
     new ValSchema({
@@ -31,14 +31,17 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       const emails = await User.Email.find({ user_id })
 
       if (emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
+
+      await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes })
     } else if (doc) {
       const file = new File(doc)
       if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      await file.insert('doc', 'image/png')
+      const doc_uuid = await file.insert('doc', 'image/png')
+
+      await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes }, doc_uuid)
     } else throw new ArisError('Bad request', 400)
 
-    await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes })
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })
   } catch (error) {
@@ -48,7 +51,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 })
 
 Router.post('/request/student', auth, permission(['!student']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, _roles, inst_email, doc, university_id, campus_id, course_id, ar, semester } = req.body
+  const { _user_id: user_id, inst_email, doc, university_id, campus_id, course_id, ar, semester } = req.body
 
   try {
     new ValSchema({
@@ -68,14 +71,16 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       const emails = await User.Email.find({ user_id })
 
       if (emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
+
+      await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester })
     } else if (doc) {
       const file = new File(doc)
       if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      await file.insert('doc', 'image/png')
-    } else throw new ArisError('Bad request', 400)
+      const doc_uuid = await file.insert('doc', 'image/png')
 
-    await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester })
+      await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester }, doc_uuid)
+    } else throw new ArisError('Bad request', 400)
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })
   } catch (error) {
@@ -85,7 +90,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
 })
 
 Router.post('/request/moderator', auth, permission(['professor']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, _roles } = req.body
+  const { _user_id: user_id } = req.body
 
   try {
     await User.Role.Request.create(user_id, 'moderator')

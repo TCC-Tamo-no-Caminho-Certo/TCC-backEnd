@@ -42,10 +42,10 @@ export default class ArisCourse extends Campus_Course {
   /**
    * Returns an Aris course.
    */
-  static async find(filter: Campus_CourseFilters, pagination?: Pagination) {
+  static async find<T extends Campus_CourseFilters>(filter: T, pagination?: Pagination) {
     const courses_info = await this.n_find(filter, pagination)
 
-    return courses_info.map(course_info => new ArisCourse(course_info))
+    return <T extends { course_id: number } ? [ArisCourse] : ArisCourse[]>courses_info.map(course_info => new ArisCourse(course_info))
   }
 
   async delete() {

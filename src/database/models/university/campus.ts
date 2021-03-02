@@ -4,9 +4,9 @@ import { Transaction } from 'knex'
 import db from '../..'
 
 export interface CampusFilters {
-  ids?: number[]
-  university_ids?: number[]
-  name?: string[]
+  campus_id?: number | number[]
+  university_id?: number | number[]
+  name?: string | string[]
 }
 
 export interface CampusCtor {

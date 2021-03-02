@@ -13,7 +13,7 @@ type Parameter<T extends (args: any) => any> = T extends (args: infer P) => any 
 type ProfessorCtor = Parameter<typeof Professor.create>
 type StudentCtor = Parameter<typeof Student.create>
 
-type GetRoleReq = Required<Omit<RoleReqCtor, 'data' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'feedback'>
+type GetRoleReq = Required<Omit<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>
 
 export default class ArisRoleReq extends RoleReq {
   private txn?: Transaction
@@ -25,17 +25,18 @@ export default class ArisRoleReq extends RoleReq {
    * @param role Role to be Requested
    * @param role_info Role info if needed
    */
-  static async create(user_id: number, role: 'professor', role_info: Omit<ProfessorCtor, 'user_id'>): Promise<void>
-  static async create(user_id: number, role: 'student', role_info: Omit<StudentCtor, 'user_id'>): Promise<void>
+  static async create(user_id: number, role: 'professor', data: Omit<ProfessorCtor, 'user_id'>, doc_uuid?: string): Promise<void>
+  static async create(user_id: number, role: 'student', data: Omit<StudentCtor, 'user_id'>, doc_uuid?: string): Promise<void>
   static async create<T extends Exclude<RoleTypes, 'professor' | 'student'>>(user_id: number, role: T): Promise<void>
   static async create<T extends RoleTypes>(
     user_id: number,
     role: T,
-    data?: T extends 'professor' ? Omit<ProfessorCtor, 'user_id'> : T extends 'student' ? Omit<StudentCtor, 'user_id'> : never
+    data?: T extends 'professor' ? Omit<ProfessorCtor, 'user_id'> : T extends 'student' ? Omit<StudentCtor, 'user_id'> : never,
+    doc_uuid?: string
   ): Promise<void> {
     const { role_id } = Role.find(role)
 
-    const request = new ArisRoleReq({ user_id, role_id, data })
+    const request = new ArisRoleReq({ user_id, role_id, data, doc_uuid })
     await request._insert()
   }
 
@@ -57,6 +58,7 @@ export default class ArisRoleReq extends RoleReq {
       user_id: this.user_id,
       role_id: this.role_id,
       data: this.data,
+      doc_uuid: this.doc_uuid,
       feedback: this.feedback,
       status: this.status,
       created_at: this.created_at,
@@ -74,8 +76,9 @@ export default class ArisRoleReq extends RoleReq {
   /**
    * Updates the role request info.
    */
-  async update({ data, feedback }: Partial<Pick<RoleReqCtor, 'data' | 'feedback'>>) {
+  async update({ data, doc_uuid, feedback }: Partial<Pick<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>>) {
     if (data) this.data = data
+    if (doc_uuid) this.doc_uuid = doc_uuid
     if (feedback) this.feedback = feedback
 
     await this._update(this.txn)
