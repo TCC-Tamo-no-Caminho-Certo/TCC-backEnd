@@ -36,7 +36,7 @@ Router.post('/email', auth, async (req: Request, res: Response) => {
   }
 })
 
-Router.route('email/:id')
+Router.route('/email/:id')
   .patch(auth, async (req: Request, res: Response) => {
     const { _user_id: user_id, options } = req.body
     const email_id = parseInt(req.params.id)
