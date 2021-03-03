@@ -30,4 +30,19 @@ Router.get('/reset-lucene', auth, async (req: Request, res: Response) => {
   }
 })
 
+Router.get('/search-lucene', auth, async (req: Request, res: Response) => {
+  const { search } = req.query;
+  try {
+    if (search !== null && search !== undefined) {
+      const result = await lucene.search(search.toString(), 50);
+      return res.status(200).send({ success: true, search, result })
+    } else {
+      return res.status(500).send({ success: false, message: 'Search is null!' })
+    }
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Lucene error')
+    return res.status(result.status).send(result.send)
+  }
+})
+
 export default Router
