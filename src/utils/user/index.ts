@@ -28,6 +28,8 @@ export default class ArisUser extends User {
     const user = new ArisUser(user_info)
     await user._insert()
 
+    await lucene.add({ id: user.get("user_id"), name: user.get("full_name") })
+
     return user
   }
 
@@ -73,10 +75,8 @@ export default class ArisUser extends User {
     if (filter.full_name && lucene.enabled) {
       filter.user_id = !filter.user_id ? [] : Array.isArray(filter.user_id) ? filter.user_id : [filter.user_id]
       if (Array.isArray(filter.full_name)) {
-        for (const full_name of filter.full_name) {
-          const data = await lucene.search(full_name, pagination?.per_page || 50)
-          if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
-        }
+        const data = await lucene.searchBatch(filter.full_name, pagination?.per_page || 50)
+        if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
       } else {
         const data = await lucene.search(filter.full_name, pagination?.per_page || 50)
         if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
@@ -101,7 +101,7 @@ export default class ArisUser extends User {
 
     if (name || surname) {
       await lucene.delete(this.user_id)
-      await lucene.add(this.user_id, `${name ? name : this.name} ${surname ? surname : this.surname}`)
+      await lucene.add({ id: this.user_id, name: `${name ? name : this.name} ${surname ? surname : this.surname}` })
     }
 
     await this._update(this.txn)
