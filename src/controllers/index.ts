@@ -42,7 +42,8 @@ export default (app: Application) => {
     .use('/api/university/campus', courseController)
 
   // Development
-  app.use('/api/dev', devController)
+  app
+    .use('/api/dev', devController)
 
   // --------------- //
 
