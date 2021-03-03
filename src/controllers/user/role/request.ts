@@ -42,7 +42,6 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes }, doc_uuid)
     } else throw new ArisError('Bad request', 400)
 
-
     return res.status(200).send({ success: true, message: 'Role request sended!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Role request')

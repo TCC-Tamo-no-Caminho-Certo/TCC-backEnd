@@ -63,7 +63,7 @@ export default class ArisUser extends User {
    */
   static async exist(email_address: string) {
     const [email] = await Email.find({ address: email_address })
-    return email.get('main') ? email.get('user_id') : false
+    return email?.get('main') ? email.get('user_id') : false
   }
 
   /**
@@ -209,17 +209,32 @@ export default class ArisUser extends User {
   // -----TRANSACTION----- //
 
   /**
-   * creates a database transaction.
+   * Creates a database transaction.
    */
   async createTxn() {
     this.txn = await db.transaction()
   }
 
   /**
-   * commits the transaction.
+   * Bind a transaction to this class.
+   */
+  setTxn(txn: Transaction) {
+    this.txn = txn
+  }
+
+  /**
+   * Commits the transaction.
    */
   async commitTxn() {
     if (!this.txn) throw new ArisError('Transaction wasn´t created!', 500)
     await this.txn.commit()
+  }
+
+  /**
+   * Rollback the transaction.
+   */
+  async rollbackTxn() {
+    if (!this.txn) throw new ArisError('Transaction wasn´t created!', 500)
+    await this.txn.rollback()
   }
 }

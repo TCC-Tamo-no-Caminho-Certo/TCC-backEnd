@@ -72,17 +72,32 @@ export default class ArisStudent extends Student {
   // -----TRANSACTION----- //
 
   /**
-   * creates a database transaction.
+   * Creates a database transaction.
    */
   async createTxn() {
     this.txn = await db.transaction()
   }
 
   /**
-   * commits the transaction.
+   * Bind a transaction to this class.
+   */
+  setTxn(txn: Transaction) {
+    this.txn = txn
+  }
+
+  /**
+   * Commits the transaction.
    */
   async commitTxn() {
     if (!this.txn) throw new ArisError('Transaction wasn´t created!', 500)
     await this.txn.commit()
+  }
+
+  /**
+   * Rollback the transaction.
+   */
+  async rollbackTxn() {
+    if (!this.txn) throw new ArisError('Transaction wasn´t created!', 500)
+    await this.txn.rollback()
   }
 }
