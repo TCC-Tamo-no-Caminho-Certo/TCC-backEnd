@@ -1,11 +1,9 @@
 import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
-import lucene from '../../../services/lucene'
 import db from '../..'
 
 export interface UserFilters {
   user_id?: number | number[]
-  full_name?: string | string[]
   phone?: string | string[]
   birthday?: string | string[]
   created_at?: [string, string]
@@ -107,35 +105,10 @@ export default class User {
     const page: number = pagination?.page || 1,
       per_page: number = pagination?.per_page || 50
 
-    if (filter.full_name && lucene.enabled) {
-      filter.user_id = []
-      if (Array.isArray(filter.full_name)) {
-        filter.full_name.map(async fullName => {
-          let data = await lucene.search(fullName, per_page);
-          if (data.ok) {
-            var userIds = filter.user_id as number[]
-            data.results?.forEach(result => {
-              userIds.push(parseInt(result.fields.id))
-            });
-          }
-        })
-      } else {
-        let data = await lucene.search(filter.full_name, per_page);
-        if (data.ok) {
-          filter.user_id = []
-          var userIds = filter.user_id as number[]
-          data.results?.forEach(result => {
-            userIds.push(parseInt(result.fields.id))
-          });
-        }
-      }
-    }
-
     const base_query = db<Required<UserCtor>>('user').where(builder => {
       let key: keyof UserFilters
       for (key in filter) {
         if ((key === 'created_at' || key === 'updated_at') && filter[key]) builder.whereBetween(key, <[string, string]>filter[key])
-        else if (key === 'full_name' && lucene.enabled) { }
         else if (filter[key]) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
       }
     })

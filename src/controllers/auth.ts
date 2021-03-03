@@ -132,7 +132,7 @@ route.get('/confirm/email/:token', async (req: Request, res: Response) => {
   }
 })
 
-route.get('/api/forgot-password/:email', captcha, async (req: Request, res: Response) => {
+route.get('/api/forgot-password/:email', async (req: Request, res: Response) => {
   const { email } = req.params
 
   try {

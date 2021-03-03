@@ -35,9 +35,9 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes })
     } else if (doc) {
       const file = new File(doc)
-      if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
+      if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      const doc_uuid = await file.insert('documents', 'image/png')
+      const doc_uuid = await file.insert('documents', 'application/pdf')
 
       await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes }, doc_uuid)
     } else throw new ArisError('Bad request', 400)
@@ -75,9 +75,9 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester })
     } else if (doc) {
       const file = new File(doc)
-      if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
+      if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      const doc_uuid = await file.insert('documents', 'image/png')
+      const doc_uuid = await file.insert('documents', 'application/pdf')
 
       await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester }, doc_uuid)
     } else throw new ArisError('Bad request', 400)

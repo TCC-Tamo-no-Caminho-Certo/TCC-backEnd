@@ -1,12 +1,12 @@
-import axios from "axios";
+import axios from 'axios'
 
 interface SearchResult {
-  score: number,
-  fields: { id: string, name: string }
+  score: number
+  fields: { id: string; name: string }
 }
 
 interface SearchResponse {
-  ok: boolean,
+  ok: boolean
   results: SearchResult[] | null
 }
 
@@ -20,36 +20,36 @@ class SearchManager {
   }
 
   async search(name: string, quantity: number): Promise<SearchResponse> {
-    let response = await axios.post<SearchResponse>(`${this.baseUrl}/search`, {
+    const response = await axios.post<SearchResponse>(`${this.baseUrl}/search`, {
       field: 'name',
       data: name,
-      quantity,
+      quantity
     })
     return response.data
   }
 
   async add(id: number, name: string) {
-    let response = await axios.post(`${this.baseUrl}/add`, {
+    const response = await axios.post(`${this.baseUrl}/add`, {
       fields: [
         {
           name: 'id',
           data: id.toString(),
           type: 1,
-          store: 0,
+          store: 0
         },
         {
           name: 'name',
           data: name,
           type: 5,
-          store: 0,
-        },
-      ],
+          store: 0
+        }
+      ]
     })
     return response.data.ok === true
   }
 
   async delete(id: number) {
-    let response = await axios.post(`${this.baseUrl}/add`, {
+    const response = await axios.post(`${this.baseUrl}/add`, {
       field: 'id',
       data: id
     })
@@ -57,7 +57,7 @@ class SearchManager {
   }
 
   async deleteAll() {
-    let response = await axios.get(`${this.baseUrl}/delete-all`)
+    const response = await axios.get(`${this.baseUrl}/delete-all`)
     return response.data.ok === true
   }
 }

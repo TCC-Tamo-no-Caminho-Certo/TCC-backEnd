@@ -1,4 +1,5 @@
 import User, { UserCtor, UserFilters } from '../../database/models/user/user'
+import lucene from '../../services/lucene'
 import redis from '../../services/redis'
 import ArisError from '../arisError'
 import Email from './email'
@@ -68,7 +69,20 @@ export default class ArisUser extends User {
   /**
    * Returns an Aris user array.
    */
-  static async find<T extends UserFilters>(filter: T, pagination?: Pagination) {
+  static async find<T extends UserFilters & { full_name?: string | string[] }>(filter: T, pagination?: Pagination) {
+    if (filter.full_name && lucene.enabled) {
+      filter.user_id = !filter.user_id ? [] : Array.isArray(filter.user_id) ? filter.user_id : [filter.user_id]
+      if (Array.isArray(filter.full_name)) {
+        for (const full_name of filter.full_name) {
+          const data = await lucene.search(full_name, pagination?.per_page || 50)
+          if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
+        }
+      } else {
+        const data = await lucene.search(filter.full_name, pagination?.per_page || 50)
+        if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
+      }
+    }
+
     const users = await this._find(filter, pagination)
 
     return <T extends { user_id: number } ? [ArisUser] : ArisUser[]>users.map(user => new ArisUser(user))
@@ -85,6 +99,11 @@ export default class ArisUser extends User {
     if (phone || phone === null) this.phone = phone
     if (avatar_uuid) this.avatar_uuid = avatar_uuid
 
+    if (name || surname) {
+      await lucene.delete(this.user_id)
+      await lucene.add(this.user_id, `${name ? name : this.name} ${surname ? surname : this.surname}`)
+    }
+
     await this._update(this.txn)
   }
 
@@ -92,6 +111,8 @@ export default class ArisUser extends User {
    * Deletes an user and everything associated with it.
    */
   async delete() {
+    await lucene.delete(this.user_id)
+
     await this._delete(this.txn)
   }
 
