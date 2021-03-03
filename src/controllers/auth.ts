@@ -1,11 +1,12 @@
 import ValSchema, { P } from '../utils/validation'
-import { captcha, auth } from '../middlewares'
 import ArisError from '../utils/arisError'
 import Mail from '../services/nodemailer'
 import redis from '../services/redis'
 import { v4 as uuidv4 } from 'uuid'
 import User from '../utils/user'
 import crypto from 'crypto'
+
+import { captcha, auth } from '../middlewares'
 
 import express, { Request, Response } from 'express'
 const route = express.Router()
@@ -41,9 +42,9 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
     }).validate({ email, password, remember })
 
     const user_id = (await User.Email.find({ address: <string>email }))[0].get('user_id')
+    if (!user_id) throw new ArisError('User not found!', 400)
 
     const [user] = await User.find({ user_id })
-    if (!user) throw new ArisError('User not found!', 400)
     await user.verifyPassword(password)
 
     const roles = (await User.Role.find({ user_id })).map(role => role.format())
@@ -59,8 +60,6 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
   const { name, surname, email: address, birthday, phone, password } = req.body
-  const user_info = { name, surname, phone, birthday, password }
-  const email_info = { user_id: 0, address, options: {} }
 
   try {
     new ValSchema({
@@ -70,7 +69,10 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
       phone: P.user.phone,
       birthday: P.user.birthday.required(),
       password: P.user.password.required()
-    }).validate({ ...user_info, ...email_info })
+    }).validate({ name, surname, phone, birthday, password, address })
+
+    const user_info = { name, surname, phone, birthday, password }
+    const email_info = { user_id: 0, address, options: {} }
 
     const has_user = await User.exist(address)
     if (has_user) throw new ArisError('User already exists', 400)
@@ -98,6 +100,7 @@ route.get('/confirm/register/:token', async (req: Request, res: Response) => {
     const { user_info, email_info } = JSON.parse(reply)
 
     const user = await User.create(user_info)
+
     email_info.user_id = user.get('user_id')
     await User.Email.create(email_info)
 
@@ -120,7 +123,7 @@ route.get('/confirm/email/:token', async (req: Request, res: Response) => {
     if (!reply) throw new ArisError('Invalid token!', 400)
 
     const email_info = JSON.parse(reply)
-    
+
     await User.Email.create(email_info)
 
     redis.client.del(`email:${token}`)
