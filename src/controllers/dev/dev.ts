@@ -1,6 +1,7 @@
 import ArisError from '../../utils/arisError'
 import lucene from '../../services/lucene'
 import logger from '../../services/logger'
+import nodemailer from '../../services/nodemailer'
 import User from '../../utils/user'
 
 import { auth } from '../../middlewares'
@@ -38,6 +39,21 @@ Router.get('/search-lucene', auth, async (req: Request, res: Response) => {
       return res.status(200).send({ success: true, search, result })
     } else {
       return res.status(500).send({ success: false, message: 'Search is null!' })
+    }
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Lucene error')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.get('/test-email', auth, async (req: Request, res: Response) => {
+  const { email } = req.query;
+  try {
+    if (email !== null && email !== undefined) {
+      await nodemailer.confirmEmail({ to: email.toString(), token: "NONE" })
+      return res.status(200).send({ success: true})
+    } else {
+      return res.status(500).send({ success: false, message: 'Email is null!' })
     }
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Lucene error')
