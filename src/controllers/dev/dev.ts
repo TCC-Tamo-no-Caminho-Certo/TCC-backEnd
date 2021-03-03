@@ -19,7 +19,7 @@ Router.get('/reset-lucene', auth, async (req: Request, res: Response) => {
     for (const user of users) {
       const user_id = user.get('user_id')
       const name = user.get('full_name')
-      const success = await lucene.add(user_id, name)
+      const success = await lucene.add({ id: user_id, name: name })
       logger.info(`Adding user ${user_id} - ${name}: ${success}`)
     }
 
