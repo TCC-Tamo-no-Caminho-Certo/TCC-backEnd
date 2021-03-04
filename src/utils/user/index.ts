@@ -28,7 +28,7 @@ export default class ArisUser extends User {
     const user = new ArisUser(user_info)
     await user._insert()
 
-    await lucene.add({ id: user.get("user_id"), name: user.get("full_name") })
+    await lucene.add({ id: user.get('user_id'), name: user.get('full_name') })
 
     return user
   }
