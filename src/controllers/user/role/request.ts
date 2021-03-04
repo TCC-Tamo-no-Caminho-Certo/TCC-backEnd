@@ -30,7 +30,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       const regex = new RegExp(university.get('professor_regex'))
       const emails = await User.Email.find({ user_id })
 
-      if (emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
+      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
 
       await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes })
     } else if (doc) {
@@ -40,7 +40,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       const doc_uuid = await file.insert('documents', 'application/pdf')
 
       await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes }, doc_uuid)
-    } else throw new ArisError('Bad request', 400)
+    } else throw new ArisError('None of the flow data was provided (doc | inst_email)', 400)
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })
   } catch (error) {
@@ -69,7 +69,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       const regex = new RegExp(university.get('student_regex'))
       const emails = await User.Email.find({ user_id })
 
-      if (emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
+      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
 
       await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester })
     } else if (doc) {
@@ -79,7 +79,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       const doc_uuid = await file.insert('documents', 'application/pdf')
 
       await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester }, doc_uuid)
-    } else throw new ArisError('Bad request', 400)
+    } else throw new ArisError('None of the flow data was provided (doc or inst_email)', 400)
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })
   } catch (error) {

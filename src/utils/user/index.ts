@@ -74,13 +74,11 @@ export default class ArisUser extends User {
   static async find<T extends UserFilters & { full_name?: string | string[] }>(filter: T, pagination?: Pagination) {
     if (filter.full_name && lucene.enabled) {
       filter.user_id = !filter.user_id ? [] : Array.isArray(filter.user_id) ? filter.user_id : [filter.user_id]
-      if (Array.isArray(filter.full_name)) {
-        const data = await lucene.searchBatch(filter.full_name, pagination?.per_page || 50)
-        if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
-      } else {
-        const data = await lucene.search(filter.full_name, pagination?.per_page || 50)
-        if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
-      }
+
+      const data = Array.isArray(filter.full_name)
+        ? await lucene.searchBatch(filter.full_name, pagination?.per_page || 50)
+        : await lucene.search(filter.full_name, pagination?.per_page || 50)
+      if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
     }
 
     const users = await this._find(filter, pagination)
