@@ -28,7 +28,7 @@ export default class ArisUser extends User {
     const user = new ArisUser(user_info)
     await user._insert()
 
-    await lucene.add({ id: user.get('user_id'), name: user.get('full_name') })
+    if (lucene.enabled) await lucene.add({ id: user.get('user_id'), name: user.get('full_name') })
 
     return user
   }
@@ -97,7 +97,7 @@ export default class ArisUser extends User {
     if (phone || phone === null) this.phone = phone
     if (avatar_uuid) this.avatar_uuid = avatar_uuid
 
-    if (name || surname) {
+    if (lucene.enabled && (name || surname)) {
       await lucene.delete(this.user_id)
       await lucene.add({ id: this.user_id, name: `${name ? name : this.name} ${surname ? surname : this.surname}` })
     }
@@ -109,7 +109,7 @@ export default class ArisUser extends User {
    * Deletes an user and everything associated with it.
    */
   async delete() {
-    await lucene.delete(this.user_id)
+    if (lucene.enabled) await lucene.delete(this.user_id)
 
     await this._delete(this.txn)
   }

@@ -16,6 +16,8 @@ Router.get('/reset-lucene', async (req: Request, res: Response) => {
   try {
     logger.info('Deleting lucene database...')
 
+    if (!lucene.enabled) return res.status(200).send({ success: false, message: 'Lucene not enabled!' })
+
     await lucene.deleteAll()
 
     const users = await User.find({})
@@ -36,6 +38,8 @@ Router.get('/reset-lucene', async (req: Request, res: Response) => {
 Router.get('/search-lucene', async (req: Request, res: Response) => {
   const { search } = req.query
   try {
+    if (!lucene.enabled) return res.status(200).send({ success: false, message: 'Lucene not enabled!' })
+
     if (search !== null && search !== undefined) {
       const result = await lucene.search(search.toString(), 50)
       return res.status(200).send({ success: true, search, result })
