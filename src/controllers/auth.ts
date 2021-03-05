@@ -41,8 +41,10 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
       remember: P.auth.remember.allow(null)
     }).validate({ email, password, remember })
 
-    const user_id = (await User.Email.find({ address: <string>email }))[0].get('user_id')
-    if (!user_id) throw new ArisError('User not found!', 400)
+    const [user_email] = await User.Email.find({ address: <string>email })
+    if (!user_email || !user_email.get('main')) throw new ArisError('User not found!', 400)
+
+    const user_id = user_email.get('user_id')
 
     const [user] = await User.find({ user_id })
     await user.verifyPassword(password)
@@ -72,7 +74,7 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
     }).validate({ name, surname, phone, birthday, password, address })
 
     const user_info = { name, surname, phone, birthday, password }
-    const email_info = { user_id: 0, address, options: {} }
+    const email_info = { user_id: 0, address, main: true, options: {} }
 
     const has_user = await User.exist(address)
     if (has_user) throw new ArisError('User already exists', 400)
