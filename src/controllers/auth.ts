@@ -160,8 +160,9 @@ route.get('/api/forgot-password/:email', async (req: Request, res: Response) => 
   }
 })
 
-route.post('/api/reset-password', captcha, async (req: Request, res: Response) => {
-  const { token, password } = req.body
+route.post('/api/reset-password/:token', captcha, async (req: Request, res: Response) => {
+  const { token } = req.params
+  const { password } = req.body
 
   try {
     new ValSchema(P.auth.token.required()).validate(token)
