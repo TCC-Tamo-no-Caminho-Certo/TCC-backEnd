@@ -15,6 +15,11 @@ type GetRole = Required<User_RoleCtor> & { title: RoleTypes }
 export default class ArisRole extends User_Role {
   private txn?: Transaction
 
+  static async addGuest(user_id: number) {
+    const { role_id } = Role.find('guest')
+    await new ArisRole({ user_id, role_id }).n_insert()
+  }
+
   /**
    * returns a parameter of role.
    * @param key -parameter to be returned.

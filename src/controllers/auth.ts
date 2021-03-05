@@ -100,8 +100,10 @@ route.get('/confirm/register/:token', async (req: Request, res: Response) => {
     const { user_info, email_info } = JSON.parse(reply)
 
     const user = await User.create(user_info)
+    const user_id = user.get('user_id')
+    await User.Role.addGuest(user_id)
 
-    email_info.user_id = user.get('user_id')
+    email_info.user_id = user_id
     await User.Email.create(email_info)
 
     redis.client.del(`register:${token}`)
