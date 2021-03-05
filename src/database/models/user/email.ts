@@ -36,7 +36,7 @@ export default class Email {
     const txn = transaction || db
 
     this.email_id = await txn('email')
-      .insert({ user_id: this.user_id, address: this.address, main: this.main, options: this.options })
+      .insert({ user_id: this.user_id, address: this.address, main: this.main, options: JSON.stringify(this.options) })
       .then(row => row[0])
   }
 

@@ -127,7 +127,7 @@ export default async ({ to, token }: MailConfig) =>
                             <table border="0" cellspacing="0" cellpadding="0">
                               <tr>
                                 <td align="center" style="border-radius: 8px" bgcolor="#FF6D8D">
-                                  <a href="http://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm-register/${token}" target="_blank" style=" font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; display: inline-block; ">Confirmar Conta</a>
+                                  <a href="http://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm/register/${token}" target="_blank" style=" font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; display: inline-block; ">Confirmar Conta</a>
                                 </td>
                               </tr>
                             </table>
@@ -144,7 +144,7 @@ export default async ({ to, token }: MailConfig) =>
                   <tr>
                     <td bgcolor="#ffffff" align="left" style=" padding: 20px 30px 20px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px; ">
                       <p style="margin: 0">
-                        <a href="http://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm-register/${token}" target="_blank" style="color: #ff6d8d">http://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm-register/${token}</a>
+                        <a href="http://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm/register/${token}" target="_blank" style="color: #ff6d8d">http://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm-register/${token}</a>
                       </p>
                     </td>
                   </tr>
