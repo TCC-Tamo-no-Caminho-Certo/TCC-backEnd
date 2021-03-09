@@ -5,6 +5,7 @@ import db from '../..'
 export interface EmailFilters {
   email_id?: number | number[]
   user_id?: number | number[]
+  university_id?: number | number[]
   address?: string | string[]
   main?: boolean
 }
@@ -12,6 +13,7 @@ export interface EmailFilters {
 export interface EmailCtor {
   email_id?: number
   user_id: number
+  university_id?: number
   address: string
   main?: boolean
   options?: { [key: string]: any }
@@ -20,13 +22,15 @@ export interface EmailCtor {
 export default class Email {
   protected email_id: number
   protected user_id: number
+  protected university_id?: number
   protected address: string
   protected main: boolean
   protected options: { [key: string]: any }
 
-  protected constructor({ email_id, user_id, address, main, options }: EmailCtor) {
+  protected constructor({ email_id, user_id, university_id, address, main, options }: EmailCtor) {
     this.email_id = email_id || 0 //Gives a temporary id when creating a new email
     this.user_id = user_id
+    this.university_id = university_id
     this.address = address
     this.main = main || false
     this.options = options || {}
@@ -36,7 +40,13 @@ export default class Email {
     const txn = transaction || db
 
     this.email_id = await txn('email')
-      .insert({ user_id: this.user_id, address: this.address, main: this.main, options: JSON.stringify(this.options) })
+      .insert({
+        user_id: this.user_id,
+        university_id: this.university_id,
+        address: this.address,
+        main: this.main,
+        options: JSON.stringify(this.options)
+      })
       .then(row => row[0])
   }
 

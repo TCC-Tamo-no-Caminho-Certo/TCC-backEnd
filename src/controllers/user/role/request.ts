@@ -24,13 +24,15 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
     }).validate({ inst_email, university_id, campus_id, course_id, full_time, postgraduate, lattes })
 
     if (inst_email) {
+      const emails = await User.Email.find({ user_id })
+      if (!emails.some(email => email.get('university_id') === university_id))
+        throw new ArisError('User doesn`t have an institutional email from this university!', 400)
+
       const [university] = await University.find({ university_id })
       if (!university) throw new ArisError('University not found!', 400)
 
       const regex = new RegExp(university.get('professor_regex'))
-      const emails = await User.Email.find({ user_id })
-
-      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
+      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
 
       await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes })
     } else if (doc) {
@@ -63,13 +65,15 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
     }).validate({ inst_email, university_id, campus_id, course_id, ar, semester })
 
     if (inst_email) {
+      const emails = await User.Email.find({ user_id })
+      if (!emails.some(email => email.get('university_id') === university_id))
+        throw new ArisError('User doesn`t have an institutional email from this university!', 400)
+
       const [university] = await University.find({ university_id })
       if (!university) throw new ArisError('University not found!', 400)
 
       const regex = new RegExp(university.get('student_regex'))
-      const emails = await User.Email.find({ user_id })
-
-      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User don`t have an institutional email!', 400)
+      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
 
       await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester })
     } else if (doc) {

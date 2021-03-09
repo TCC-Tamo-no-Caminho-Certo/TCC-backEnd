@@ -6,9 +6,11 @@ import { Pagination } from '../../types'
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type GetEmail = Required<EmailCtor>
+type GetEmail = Required<Omit<EmailCtor, 'university_id'>> & Pick<EmailCtor, 'university_id'> & { institutional: boolean }
 
 export default class ArisEmail extends Email {
+  private institutional = this.university_id ? true : false
+
   private txn?: Transaction
 
   /**
@@ -36,7 +38,14 @@ export default class ArisEmail extends Email {
    * returns a formatted object of email infos.
    */
   format() {
-    const aux_ob: Omit<GetEmail, 'user_id'> = { email_id: this.email_id, address: this.address, main: this.main, options: this.options }
+    const aux_ob: Omit<GetEmail, 'user_id'> = {
+      email_id: this.email_id,
+      institutional: this.institutional,
+      university_id: this.institutional ? this.university_id : undefined,
+      address: this.address,
+      main: this.main,
+      options: this.options
+    }
     return aux_ob
   }
 

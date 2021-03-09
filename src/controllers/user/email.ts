@@ -4,7 +4,7 @@ import ArisError from '../../utils/arisError'
 import Mail from '../../services/nodemailer'
 import redis from '../../services/redis'
 import User from '../../utils/user'
-import { v4 as uuidv4 } from 'uuid'
+import crypto from 'crypto'
 
 import { auth } from '../../middlewares'
 
@@ -25,8 +25,8 @@ Router.post('/email', auth, async (req: Request, res: Response) => {
       if (!regex.some(reg => reg.test(address))) throw new ArisError('Invalid email format!', 400)
     }
 
-    const token = uuidv4()
-    redis.client.setex(`email:${token}`, 86400, JSON.stringify({ user_id, address, options: {} }))
+    const token = crypto.randomBytes(3).toString('hex')
+    redis.client.setex(`email:${token}`, 86400, JSON.stringify({ user_id, university_id, address, options: {} }))
     await Mail.confirmEmail({ to: address, token })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
