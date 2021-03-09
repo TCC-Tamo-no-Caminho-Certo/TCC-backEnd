@@ -81,7 +81,7 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
 
     const token = uuidv4()
     redis.client.setex(`register:${token}`, 86400, JSON.stringify({ user_info, email_info }))
-    await Mail.confirmEmail({ to: address, token })
+    await Mail.confirmRegister({ to: address, token })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {

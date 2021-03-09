@@ -242,10 +242,7 @@ export default async ({ to, token }: MailConfig) =>
                                   bgcolor="#FF6D8D"
                                 >
                                   <a
-                                    href="http://${config.environment === "development"
-                ? "dev."
-                : null
-              }steamslab.com/reset-password/${token}"
+                                    href="http://${config.environment === "development" ? "dev." : null}steamslab.com/reset-password/${token}"
                                     target="_blank"
                                     style="
                                       font-size: 20px;
