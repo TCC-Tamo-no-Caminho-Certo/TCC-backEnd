@@ -117,7 +117,7 @@ route.get('/confirm/register/:token', async (req: Request, res: Response) => {
   }
 }) // ADD OPTIONS ON EMAIL INFO
 
-route.get('/confirm/email/:token', async (req: Request, res: Response) => {
+route.get('/api/confirm/email/:token', async (req: Request, res: Response) => {
   const { token } = req.params
 
   try {
