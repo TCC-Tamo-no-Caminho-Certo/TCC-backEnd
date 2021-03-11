@@ -12,22 +12,27 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.post('/email', auth, async (req: Request, res: Response) => {
-  const { _user_id: user_id, email: address, university_id } = req.body
+  const { _user_id: user_id, email, university_id } = req.body
 
   try {
-    const [has_email] = await User.Email.find({ address })
+    new ValSchema({
+      email: P.joi.string().email().required(),
+      university_id: P.joi.number().positive().allow(null)
+    }).validate({ email, university_id })
+
+    const [has_email] = await User.Email.find({ address: email })
     if (has_email) throw new ArisError('Email already in use!', 400)
 
     if (university_id) {
       const [university] = await University.find({ university_id })
       const regex = [new RegExp(university.get('professor_regex')), new RegExp(university.get('student_regex'))]
 
-      if (!regex.some(reg => reg.test(address))) throw new ArisError('Invalid email format!', 400)
+      if (!regex.some(reg => reg.test(email))) throw new ArisError('Invalid email format!', 400)
     }
 
     const token = crypto.randomBytes(3).toString('hex')
-    redis.client.setex(`email:${token}`, 86400, JSON.stringify({ user_id, university_id, address, options: {} }))
-    await Mail.confirmEmail({ to: address, token })
+    redis.client.setex(`email:${token}`, 86400, JSON.stringify({ user_id, university_id, address: email, options: {} }))
+    await Mail.confirmEmail({ to: email, token })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
