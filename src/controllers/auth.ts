@@ -1,4 +1,5 @@
 import ValSchema, { P } from '../utils/validation'
+import University from '../utils/university'
 import ArisError from '../utils/arisError'
 import Mail from '../services/nodemailer'
 import redis from '../services/redis'
@@ -61,27 +62,37 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 })
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
-  const { name, surname, email: address, birthday, phone, password } = req.body
+  const { name, surname, birthday, phone, password, email, university_id } = req.body
 
   try {
     new ValSchema({
       name: P.user.name.required(),
       surname: P.user.surname.required(),
-      address: P.user.email.required(),
       phone: P.user.phone,
       birthday: P.user.birthday.required(),
-      password: P.user.password.required()
-    }).validate({ name, surname, phone, birthday, password, address })
+      password: P.user.password.required(),
+      email: P.user.email.required(),
+      university_id: P.joi.number().positive().allow(null)
+    }).validate({ name, surname, phone, birthday, password, email, university_id })
 
     const user_info = { name, surname, phone, birthday, password }
-    const email_info = { user_id: 0, address, main: true, options: {} }
+    let email_info
 
-    const has_user = await User.exist(address)
+    if (university_id) {
+      const [university] = await University.find({ university_id })
+      const regex = [new RegExp(university.get('professor_regex')), new RegExp(university.get('student_regex'))]
+
+      email_info = regex.some(reg => reg.test(email))
+        ? { user_id: 0, university_id, address: email, main: true, options: {} }
+        : { user_id: 0, address: email, main: true, options: {} }
+    }
+
+    const has_user = await User.exist(email)
     if (has_user) throw new ArisError('User already exists', 400)
 
     const token = uuidv4()
     redis.client.setex(`register:${token}`, 86400, JSON.stringify({ user_info, email_info }))
-    await Mail.confirmRegister({ to: address, token })
+    await Mail.confirmRegister({ to: email, token })
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
