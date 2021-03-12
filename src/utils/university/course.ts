@@ -28,7 +28,7 @@ export default class ArisCourse extends Campus_Course {
    * @param key -parameter to be returned.
    */
   get<T extends keyof GetCourse>(key: T): GetCourse[T] {
-    const aux_ob = { campus_id: this.campus_id, course_id: this.course_id, name: this.format() }
+    const aux_ob = { campus_id: this.campus_id, ...this.format() }
     return aux_ob[key]
   }
 
@@ -36,7 +36,10 @@ export default class ArisCourse extends Campus_Course {
    * returns a formatted object of course infos.
    */
   format() {
-    return Course.find(this.course_id).name
+    const aux_ob: Omit<GetCourse, 'campus_id'> = {
+      ...Course.find(this.course_id)
+    }
+    return aux_ob
   }
 
   /**
