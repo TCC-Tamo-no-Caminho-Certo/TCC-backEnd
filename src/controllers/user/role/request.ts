@@ -10,20 +10,19 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.post('/request/professor', auth, permission(['!professor']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, inst_email, doc, university_id, campus_id, course_id, full_time, postgraduate, lattes } = req.body
+  const { _user_id: user_id, doc, university_id, campus_id, course_id, full_time, postgraduate, lattes } = req.body
 
   try {
     new ValSchema({
-      inst_email: P.joi.bool(),
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required(),
       full_time: P.joi.bool().required(),
       postgraduate: P.joi.bool().required(),
       lattes: P.joi.string().allow(null)
-    }).validate({ inst_email, university_id, campus_id, course_id, full_time, postgraduate, lattes })
+    }).validate({ university_id, campus_id, course_id, full_time, postgraduate, lattes })
 
-    if (inst_email) {
+    if (!doc) {
       const emails = await User.Email.find({ user_id })
       if (!emails.some(email => email.get('university_id') === university_id))
         throw new ArisError('User doesn`t have an institutional email from this university!', 400)
@@ -52,19 +51,18 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 })
 
 Router.post('/request/student', auth, permission(['!student']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, inst_email, doc, university_id, campus_id, course_id, ar, semester } = req.body
+  const { _user_id: user_id, doc, university_id, campus_id, course_id, ar, semester } = req.body
 
   try {
     new ValSchema({
-      inst_email: P.joi.bool(),
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required(),
       ar: P.joi.number().required(),
       semester: P.joi.number().min(1).max(10).required()
-    }).validate({ inst_email, university_id, campus_id, course_id, ar, semester })
+    }).validate({ university_id, campus_id, course_id, ar, semester })
 
-    if (inst_email) {
+    if (!doc) {
       const emails = await User.Email.find({ user_id })
       if (!emails.some(email => email.get('university_id') === university_id))
         throw new ArisError('User doesn`t have an institutional email from this university!', 400)
