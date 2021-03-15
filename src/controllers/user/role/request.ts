@@ -86,7 +86,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
     return res.status(200).send({ success: true, message: 'Role request sended!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Role request')
-    return res.status(result.status).send({ ...result.send, log: error })
+    return res.status(result.status).send(result.send)
   }
 })
 
