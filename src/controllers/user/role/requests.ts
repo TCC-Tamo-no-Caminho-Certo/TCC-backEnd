@@ -5,7 +5,7 @@ import User from '../../../utils/user'
 import express, { Request, Response } from 'express'
 const route = express.Router()
 
-route.get('/requests/:page/:per_page', async (req: Request, res: Response) => {
+route.get('/requests', async (req: Request, res: Response) => {
   const { page, per_page, filter } = req.query
 
   try {
