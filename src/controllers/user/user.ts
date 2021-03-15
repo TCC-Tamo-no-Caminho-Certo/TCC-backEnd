@@ -78,7 +78,9 @@ Router.put('/user/avatar', auth, async (req: Request, res: Response) => {
 
     const file = new File(picture)
     if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
-    const avatar_uuid = await file.update('profile', 'image/png', user.get('avatar_uuid'))
+    const current_uuid = user.get('avatar_uuid')
+    const avatar_uuid =
+      current_uuid === 'default' ? await file.insert('profile', 'image/png') : await file.update('profile', 'image/png', current_uuid)
 
     await user.update({ avatar_uuid })
 
