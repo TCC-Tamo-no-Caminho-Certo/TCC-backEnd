@@ -17,70 +17,57 @@ class MinioManager {
     })
     this.publicBuckets.map(bucketName => {
       this.client.bucketExists(bucketName, (err: any, exists: boolean) => {
-        if (err) {
-          Logger.error(err)
-          return
-        } else {
-          if (!exists) {
-            this.client.makeBucket(bucketName, 'local', err => {
-              if (err) {
-                Logger.error(err)
-                return
-              }
-              this.client.setBucketPolicy(
-                bucketName,
-                JSON.stringify({
-                  Version: '2012-10-17',
-                  Statement: [
-                    {
-                      Action: ['s3:GetObject'],
-                      Principal: {
-                        AWS: ['*']
-                      },
-                      Effect: 'Allow',
-                      Resource: [`arn:aws:s3:::${bucketName}/*`],
-                      Sid: ''
-                    }
-                  ]
-                })
-              )
-            })
-          }
-        }
+        if (err) return Logger.error(err)
+
+        if (!exists)
+          this.client.makeBucket(bucketName, 'local', err => {
+            if (err) return Logger.error(err)
+
+            this.client.setBucketPolicy(
+              bucketName,
+              JSON.stringify({
+                Version: '2012-10-17',
+                Statement: [
+                  {
+                    Action: ['s3:GetObject'],
+                    Principal: {
+                      AWS: ['*']
+                    },
+                    Effect: 'Allow',
+                    Resource: [`arn:aws:s3:::${bucketName}/*`],
+                    Sid: ''
+                  }
+                ]
+              })
+            )
+          })
       })
     })
     this.privateBuckets.map(bucketName => {
       this.client.bucketExists(bucketName, (err: any, exists: boolean) => {
-        if (err) {
-          Logger.error(err)
-          return
-        } else {
-          if (!exists) {
-            this.client.makeBucket(bucketName, 'local', err => {
-              if (err) {
-                Logger.error(err)
-                return
-              }
-              this.client.setBucketPolicy(
-                bucketName,
-                JSON.stringify({
-                  Version: '2012-10-17',
-                  Statement: [
-                    {
-                      Action: ['s3:GetObject'],
-                      Principal: {
-                        AWS: ['*']
-                      },
-                      Effect: 'Deny',
-                      Resource: [`arn:aws:s3:::${bucketName}/*`],
-                      Sid: ''
-                    }
-                  ]
-                })
-              )
-            })
-          }
-        }
+        if (err) return Logger.error(err)
+        if (!exists)
+          this.client.makeBucket(bucketName, 'local', err => {
+            if (err) return Logger.error(err)
+
+            this.client.setBucketPolicy(
+              bucketName,
+              JSON.stringify({
+                Version: '2012-10-17',
+                Statement: [
+                  {
+                    Action: ['s3:GetObject'],
+                    Principal: {
+                      AWS: ['*']
+                    },
+                    Effect: 'Deny',
+                    Resource: [`arn:aws:s3:::${bucketName}/*`],
+                    Sid: ''
+                  }
+                ]
+              })
+            )
+          })
       })
     })
     //this.client.putObject
