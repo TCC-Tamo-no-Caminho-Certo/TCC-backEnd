@@ -25,7 +25,7 @@ route.get('/requests', async (req: Request, res: Response) => {
 
     const requests = await User.Role.Request.find(<any>filter, pagination)
     const user_ids = requests.map(request => request.get('user_id'))
-    
+
     const users = await User.find({ user_id: user_ids })
     const roles = await User.Role.find({ user_id: user_ids })
 

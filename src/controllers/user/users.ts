@@ -16,6 +16,7 @@ Router.get('/users', async (req: Request, res: Response) => {
         user_id: P.filter.ids.allow(null),
         phone: P.filter.string.allow(null),
         birthday: P.filter.string.allow(null),
+        full_name: P.filter.string.allow(null),
         created_at: P.filter.date.allow(null),
         updated_at: P.filter.date.allow(null)
       })
