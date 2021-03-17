@@ -18,7 +18,6 @@ class MinioManager {
     this.publicBuckets.map(bucketName => {
       this.client.bucketExists(bucketName, (err: any, exists: boolean) => {
         if (err) return Logger.error(err)
-
         if (!exists)
           this.client.makeBucket(bucketName, 'local', err => {
             if (err) return Logger.error(err)

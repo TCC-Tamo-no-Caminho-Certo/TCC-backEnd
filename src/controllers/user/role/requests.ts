@@ -24,8 +24,23 @@ route.get('/requests', async (req: Request, res: Response) => {
     const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
 
     const requests = await User.Role.Request.find(<any>filter, pagination)
+    const user_ids = requests.map(request => request.get('user_id'))
+    
+    const users = await User.find({ user_id: user_ids })
+    const roles = await User.Role.find({ user_id: user_ids })
 
-    return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
+    const result = requests.map(request => {
+      const request_info: any = request.format()
+      const name = users.find(user => user.get('user_id') === request.get('user_id'))!.get('full_name')
+      const role = roles.find(role => role.get('user_id') === request.get('user_id'))!.get('title')
+
+      request_info.name = name
+      request_info.role = role
+
+      return request_info
+    })
+
+    return res.status(200).send({ success: true, message: 'Fecth complete!', requests: result })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fecth')
     return res.status(result.status).send(result.send)

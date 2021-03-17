@@ -6,14 +6,20 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.get('/users', async (req: Request, res: Response) => {
-  const page = req.query.page
-  const per_page = req.query.per_page
+  const { page, per_page, filter } = req.query
 
   try {
     new ValSchema({
       page: P.joi.number().positive(),
-      per_page: P.joi.number().min(1).max(100)
-    }).validate({ page, per_page })
+      per_page: P.joi.number().min(1).max(100),
+      filter: P.joi.object({
+        user_id: P.filter.ids.allow(null),
+        phone: P.filter.string.allow(null),
+        birthday: P.filter.string.allow(null),
+        created_at: P.filter.date.allow(null),
+        updated_at: P.filter.date.allow(null)
+      })
+    }).validate({ page, per_page, filter })
     const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
 
     const users = await User.find({}, pagination)
