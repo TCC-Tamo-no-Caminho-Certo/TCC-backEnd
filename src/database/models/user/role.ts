@@ -1,5 +1,5 @@
-import { RoleTypes } from '../../../types'
 import ArisError from '../../../utils/arisError'
+import { RoleTypes } from '../../../types'
 import db from '../..'
 
 const roles: Required<RoleCtor>[] = []
@@ -15,24 +15,24 @@ export interface RoleCtor<T extends RoleTypes = RoleTypes> {
 }
 
 export default class Role<T extends RoleTypes = RoleTypes> {
-  role_id: number
-  title: T
+  protected role_id: number
+  protected title: T
 
   /**
    * Creates a role.
    */
-  private constructor({ role_id, title }: RoleCtor<T>) {
+  protected constructor({ role_id, title }: RoleCtor<T>) {
     this.role_id = role_id || 0 //Gives a temporary id when creating a new role
     this.title = title
   }
 
-  static find<T extends RoleTypes | number>(identifier: T) {
+  protected static _find<T extends RoleTypes | number>(identifier: T) {
     const role = roles.find(role => (typeof identifier === 'string' ? role.title === identifier : role.role_id === identifier))
     if (!role) throw new ArisError(`Role provided does't exists!`, 400)
     return <T extends RoleTypes ? Required<RoleCtor<T>> : Required<RoleCtor>>role
   }
 
-  static findAll() {
+  protected static _findAll() {
     return roles
   }
 }

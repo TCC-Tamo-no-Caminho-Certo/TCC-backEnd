@@ -114,7 +114,7 @@ route.get('/confirm/register/:token', async (req: Request, res: Response) => {
 
     const user = await User.create(user_info)
     const user_id = user.get('user_id')
-    await User.Role.addGuest(user_id)
+    await User.Role.add(user_id, 'guest')
 
     email_info.user_id = user_id
     await User.Email.create(email_info)

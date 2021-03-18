@@ -1,17 +1,16 @@
 import RoleReq, { RoleReqCtor, RoleReqFilters } from '../../database/models/user/role_request'
-import Role from '../../database/models/user/role'
 import ArisError from '../arisError'
 import Professor from './professor'
 import Student from './student'
+import RoleMan from './roleMan'
 
 import { Pagination, RoleTypes } from '../../types'
 
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type Parameter<T extends (args: any) => any> = T extends (args: infer P) => any ? P : never
-type ProfessorCtor = Parameter<typeof Professor.create>
-type StudentCtor = Parameter<typeof Student.create>
+type ProfessorCtor = Parameters<typeof Professor.create>[0]
+type StudentCtor = Parameters<typeof Student.create>[0]
 
 type GetRoleReq = Required<Omit<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>
 
@@ -34,7 +33,7 @@ export default class ArisRoleReq extends RoleReq {
     data?: T extends 'professor' ? Omit<ProfessorCtor, 'user_id'> : T extends 'student' ? Omit<StudentCtor, 'user_id'> : never,
     doc_uuid?: string
   ): Promise<void> {
-    const { role_id } = Role.find(role)
+    const role_id = RoleMan.find(role).get('role_id')
 
     const request = new ArisRoleReq({ user_id, role_id, data, doc_uuid })
     await request._insert()
@@ -90,16 +89,16 @@ export default class ArisRoleReq extends RoleReq {
 
   async accept(user_roles: RoleTypes[]) {
     if (user_roles.some(role => role === 'guest')) {
-      await this.n_update(Role.find('guest').role_id, this.txn)
-      user_roles = user_roles.filter(role => (role === 'guest' ? Role.find(this.role_id).title : role))
+      await this.n_update(RoleMan.find('guest').get('role_id'), this.txn)
+      user_roles = user_roles.filter(role => (role === 'guest' ? RoleMan.find(this.role_id).get('title') : role))
     } else {
       await this.n_insert(this.txn)
-      user_roles.push(Role.find(this.role_id).title)
+      user_roles.push(RoleMan.find(this.role_id).get('title'))
     }
 
-    Role.find(this.role_id).title === 'professor'
+    RoleMan.find(this.role_id).get('title') === 'professor'
       ? await Professor.create({ user_id: this.user_id, ...(<any>this.data) })
-      : Role.find(this.role_id).title === 'student'
+      : RoleMan.find(this.role_id).get('title') === 'student'
       ? await Student.create({ user_id: this.user_id, ...(<any>this.data) })
       : undefined
 

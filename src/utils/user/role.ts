@@ -1,9 +1,9 @@
 import User_Role, { User_RoleCtor, User_RoleFilters } from '../../database/models/user/user_role'
-import Professor from '../../database/models/user/professor'
-import Student from '../../database/models/user/student'
-import Role from '../../database/models/user/role'
 import ArisError from '../arisError'
+import Professor from './professor'
+import Student from './student'
 import Request from './roleReq'
+import Manage from './roleMan'
 
 import { Pagination, RoleTypes } from '../../types'
 
@@ -15,8 +15,8 @@ type GetRole = Required<User_RoleCtor> & { title: RoleTypes }
 export default class ArisRole extends User_Role {
   private txn?: Transaction
 
-  static async addGuest(user_id: number) {
-    const { role_id } = Role.find('guest')
+  static async add(user_id: number, role: RoleTypes) {
+    const role_id = Manage.find(role).get('role_id')
     await new ArisRole({ user_id, role_id }).n_insert()
   }
 
@@ -33,7 +33,7 @@ export default class ArisRole extends User_Role {
    * returns a formatted object of role infos.
    */
   format() {
-    return Role.find(this.role_id).title
+    return Manage.find(this.role_id).get('title')
   }
 
   /**
@@ -45,13 +45,15 @@ export default class ArisRole extends User_Role {
     return roles_info.map(role_info => new ArisRole(role_info))
   }
 
-  async delete() {
+  async remove() {
     await this.n_delete(this.txn)
   }
 
   // -----COMPLEMENTARY CLASSES----- //
 
   static Request = Request
+
+  static Manage = Manage
 
   static Professor = Professor
 
