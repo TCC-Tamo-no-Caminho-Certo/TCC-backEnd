@@ -8,6 +8,8 @@ const Router = express.Router()
 Router.get('/users', async (req: Request, res: Response) => {
   const { page, per_page, filter } = req.query
 
+  type Filter = Parameters<typeof User.find>[0]
+
   try {
     new ValSchema({
       page: P.joi.number().positive(),
@@ -23,7 +25,7 @@ Router.get('/users', async (req: Request, res: Response) => {
     }).validate({ page, per_page, filter })
     const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
 
-    const users = await User.find({}, pagination)
+    const users = await User.find(<Filter>filter, pagination)
     const ids = users.map(user => user.get('user_id'))
     const emails = await User.Email.find({ user_id: ids })
     const roles = await User.Role.find({ user_id: ids })

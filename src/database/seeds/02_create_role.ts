@@ -3,7 +3,6 @@ import knex from 'knex'
 const data = [
   { title: 'admin' },
   { title: 'guest' },
-  { title: 'aris' },
   { title: 'student' },
   { title: 'professor' },
   { title: 'moderator' },
