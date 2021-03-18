@@ -14,13 +14,14 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 
   try {
     new ValSchema({
+      doc: P.joi.string().allow(null),
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required(),
       full_time: P.joi.bool().required(),
       postgraduate: P.joi.bool().required(),
       lattes: P.joi.string().allow(null)
-    }).validate({ university_id, campus_id, course_id, full_time, postgraduate, lattes })
+    }).validate({ doc, university_id, campus_id, course_id, full_time, postgraduate, lattes })
 
     if (!doc) {
       const emails = await User.Email.find({ user_id })
@@ -33,7 +34,8 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       const regex = new RegExp(university.get('professor_regex'))
       if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
 
-      await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes })
+      await User.Role.add(user_id, 'professor')
+      await User.Role.Professor.create({ user_id, campus_id, course_id, full_time, postgraduate, lattes })
     } else if (doc) {
       const file = new File(doc)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
@@ -55,12 +57,13 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
 
   try {
     new ValSchema({
+      doc: P.joi.string().allow(null),
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required(),
-      ar: P.joi.number().required(),
+      ar: P.joi.when('doc', { then: P.joi.number().required() }),
       semester: P.joi.number().min(1).max(10).required()
-    }).validate({ university_id, campus_id, course_id, ar, semester })
+    }).validate({ doc, university_id, campus_id, course_id, ar, semester })
 
     if (!doc) {
       const emails = await User.Email.find({ user_id })
@@ -71,9 +74,12 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       if (!university) throw new ArisError('University not found!', 400)
 
       const regex = new RegExp(university.get('student_regex'))
-      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
+      const email = emails.find(email => regex.test(email.get('address')))
+      if (!email) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
+      const ar = parseInt(email.get('address').split('@')[0])
 
-      await User.Role.Request.create(user_id, 'student', { campus_id, course_id, ar, semester })
+      await User.Role.add(user_id, 'student')
+      await User.Role.Student.create({ user_id, campus_id, course_id, ar, semester })
     } else if (doc) {
       const file = new File(doc)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
