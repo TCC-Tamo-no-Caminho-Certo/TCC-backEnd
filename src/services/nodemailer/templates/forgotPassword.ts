@@ -151,8 +151,8 @@ export default async ({ to, token }: MailConfig) =>
                     >
                       <img
                         src="http://dev.steamslab.com/logo.png"
-                        width="66"
-                        height="72"
+                        width="200"
+                        height="112"
                         style="display: block; border: 0px"
                       />
                       <h1

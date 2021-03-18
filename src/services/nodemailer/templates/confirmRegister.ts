@@ -104,7 +104,7 @@ export default async ({ to, token }: MailConfig) =>
                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px">
                   <tr>
                     <td bgcolor="#ffffff" align="center" valign="top" style=" padding: 40px 20px 20px 20px; border-radius: 8px 8px 0px 0px; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 400; letter-spacing: 4px; line-height: 48px; ">
-                      <img src="http://dev.steamslab.com/logo.png" width="66" height="72" style="display: block; border: 0px"/>
+                      <img src="http://dev.steamslab.com/logo.png" width="200" height="112" style="display: block; border: 0px"/>
                       <h1 style=" font-size: 48px; font-weight: 400; margin: 2; color: #50393e; ">Bem Vindo!</h1>
                     </td>
                   </tr>
