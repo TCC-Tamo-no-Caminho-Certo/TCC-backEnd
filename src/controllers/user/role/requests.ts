@@ -55,7 +55,7 @@ route.get('/requests', async (req: Request, res: Response) => {
       return request_info
     })
 
-    return res.status(200).send({ success: true, message: 'Fecth complete!', requests: result })
+    return res.status(200).send({ success: true, message: 'Fecth complete!', requests: result, ids: user_ids })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fecth')
     return res.status(result.status).send(result.send)
