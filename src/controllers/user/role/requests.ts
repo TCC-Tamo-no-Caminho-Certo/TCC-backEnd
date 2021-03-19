@@ -33,7 +33,8 @@ route.get('/requests', async (req: Request, res: Response) => {
       users.push(...(await User.find({ full_name: (<FilterWithName>filter).full_name }, pagination)))
       user_ids.push(...users.map(user => user.get('user_id')))
       if (Array.isArray((<FilterWithName>filter).user_id)) (<number[]>(<FilterWithName>filter).user_id).push(...user_ids)
-      else (<FilterWithName>filter).user_id = [<number>(<FilterWithName>filter).user_id]
+      else if ((<FilterWithName>filter).user_id) (<FilterWithName>filter).user_id = [<number>(<FilterWithName>filter).user_id].push(...user_ids)
+      else (<FilterWithName>filter).user_id = user_ids[0] ? user_ids : undefined
       delete (<FilterWithName>filter).full_name
     }
 
