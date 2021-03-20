@@ -14,9 +14,14 @@ Router.route('/role/:id').delete(auth, async (req: Request, res: Response) => {
   const role_id = parseInt(req.params.id)
 
   try {
-    const [user_role] = await User.Role.find({ user_id, role_id })
-    if (!user_role) throw new ArisError('Role not vinculated with this user!', 400)
-    await user_role.remove()
+    const user_roles = await User.Role.find({ user_id })
+    const remove_role = user_roles.find(role => role.get('role_id') === role_id)
+    const new_role_list = user_roles.filter(role => role.get('role_id') !== role_id)
+
+    if (!remove_role) throw new ArisError('Role not vinculated with this user!', 400)
+    await remove_role.remove()
+
+    await User.updateAccessTokenData(user_id, new_role_list.map(role => role.format()))
 
     return res.status(200).send({ success: true, message: 'Remove role complete!' })
   } catch (error) {
