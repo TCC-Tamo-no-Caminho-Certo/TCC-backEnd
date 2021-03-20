@@ -9,11 +9,15 @@ const Router = express.Router()
 
 Router.route('/role').get()
 
-Router.route('/role/:id').delete(auth, async (req: Request, res: Response) => {
+Router.route('/role/:title').delete(auth, async (req: Request, res: Response) => {
   const { _user_id: user_id } = req.body
-  const role_id = parseInt(req.params.id)
+  const title = req.params.title
 
   try {
+    new ValSchema(P.joi.string().equal('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator').required()).validate(title)
+
+    const role_id = User.Role.Manage.find(<any>title).get('role_id')
+
     const user_roles = await User.Role.find({ user_id })
     const remove_role = user_roles.find(role => role.get('role_id') === role_id)
     const new_role_list = user_roles.filter(role => role.get('role_id') !== role_id)
@@ -21,7 +25,10 @@ Router.route('/role/:id').delete(auth, async (req: Request, res: Response) => {
     if (!remove_role) throw new ArisError('Role not vinculated with this user!', 400)
     await remove_role.remove()
 
-    await User.updateAccessTokenData(user_id, new_role_list.map(role => role.format()))
+    await User.updateAccessTokenData(
+      user_id,
+      new_role_list.map(role => role.format())
+    )
 
     return res.status(200).send({ success: true, message: 'Remove role complete!' })
   } catch (error) {
