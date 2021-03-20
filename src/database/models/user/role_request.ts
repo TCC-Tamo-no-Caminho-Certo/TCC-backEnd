@@ -24,7 +24,7 @@ export interface RoleReqCtor extends User_RoleCtor {
   updated_at?: string
 }
 
-export default class RoleReq extends User_Role {
+export default class Role_Request extends User_Role {
   protected request_id: number
   protected data?: object
   protected doc_uuid?: string
@@ -53,13 +53,15 @@ export default class RoleReq extends User_Role {
   protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn('role_request').insert({
-      user_id: this.user_id,
-      role_id: this.role_id,
-      data: JSON.stringify(this.data),
-      doc_uuid: this.doc_uuid,
-      status: this.status
-    })
+    this.request_id = await txn('role_request')
+      .insert({
+        user_id: this.user_id,
+        role_id: this.role_id,
+        data: JSON.stringify(this.data),
+        doc_uuid: this.doc_uuid,
+        status: this.status
+      })
+      .then(row => row[0])
   }
 
   /**
@@ -110,7 +112,6 @@ export default class RoleReq extends User_Role {
     })
 
     if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
-    base_query.then(row => (row[0] ? row : null))
 
     return await base_query
   }

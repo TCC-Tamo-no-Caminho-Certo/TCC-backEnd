@@ -32,9 +32,11 @@ route.get('/requests', async (req: Request, res: Response) => {
     if ((<FilterWithName>filter)?.full_name) {
       users.push(...(await User.find({ full_name: (<FilterWithName>filter).full_name }, pagination)))
       user_ids.push(...users.map(user => user.get('user_id')))
+
       if (Array.isArray((<FilterWithName>filter).user_id)) (<number[]>(<FilterWithName>filter).user_id).push(...user_ids)
       else if ((<FilterWithName>filter).user_id) (<FilterWithName>filter).user_id = [<number>(<FilterWithName>filter).user_id].push(...user_ids)
       else (<FilterWithName>filter).user_id = user_ids[0] ? user_ids : undefined
+
       delete (<FilterWithName>filter).full_name
     }
 
@@ -42,7 +44,7 @@ route.get('/requests', async (req: Request, res: Response) => {
     const new_user_ids = requests.map(request => request.get('user_id'))
     const roles = requests.map(request => ({ user_id: request.get('user_id'), role_id: request.get('role_id') }))
 
-    users.push(...(await User.find({ user_id: new_user_ids.slice(user_ids.length) })))
+    users.push(...(await User.find({ user_id: new_user_ids.filter(new_user_id => !user_ids.some(user_id => user_id === new_user_id)) })))
 
     const result = requests.map(request => {
       const request_info: any = request.format()
@@ -55,7 +57,7 @@ route.get('/requests', async (req: Request, res: Response) => {
       return request_info
     })
 
-    return res.status(200).send({ success: true, message: 'Fecth complete!', requests: result, ids: user_ids })
+    return res.status(200).send({ success: true, message: 'Fecth complete!', requests: result })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fecth')
     return res.status(result.status).send(result.send)
