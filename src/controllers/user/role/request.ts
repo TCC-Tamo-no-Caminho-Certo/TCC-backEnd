@@ -10,7 +10,7 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.post('/request/professor', auth, permission(['!professor']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, doc, university_id, campus_id, course_id, full_time, postgraduate, lattes } = req.body
+  const { _user_id: user_id, _roles: user_roles, doc, university_id, campus_id, course_id, full_time, postgraduate, lattes } = req.body
 
   try {
     new ValSchema({
@@ -36,6 +36,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 
       await User.Role.add(user_id, 'professor')
       await User.Role.Professor.create({ user_id, campus_id, course_id, full_time, postgraduate, lattes })
+      await User.updateAccessTokenData(user_id, user_roles.push('professor'))
     } else if (doc) {
       const file = new File(doc)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
@@ -53,7 +54,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 })
 
 Router.post('/request/student', auth, permission(['!student']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, doc, university_id, campus_id, course_id, ar, semester } = req.body
+  const { _user_id: user_id, _roles: user_roles, doc, university_id, campus_id, course_id, ar, semester } = req.body
 
   try {
     new ValSchema({
@@ -80,6 +81,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
 
       await User.Role.add(user_id, 'student')
       await User.Role.Student.create({ user_id, campus_id, course_id, ar, semester })
+      await User.updateAccessTokenData(user_id, user_roles.push('student'))
     } else if (doc) {
       const file = new File(doc)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
