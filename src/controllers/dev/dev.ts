@@ -71,8 +71,8 @@ Router.get('/reset-redis', async (req: Request, res: Response) => {
   try {
     logger.info('Deleting redis database...')
 
-    await redis.client.flushallAsync()
-    return res.status(200).send({ success: true })
+    const message = await redis.client.flushallAsync()
+    return res.status(200).send({ success: true, message })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Redis error')
     return res.status(result.status).send(result.send)

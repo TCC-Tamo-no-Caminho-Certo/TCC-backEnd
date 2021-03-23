@@ -97,9 +97,12 @@ export default class ArisUser extends User {
     if (phone || phone === null) this.phone = phone
     if (avatar_uuid) this.avatar_uuid = avatar_uuid
 
-    if (lucene.enabled && (name || surname)) {
-      await lucene.delete(this.user_id)
-      await lucene.add({ id: this.user_id, name: `${name ? name : this.name} ${surname ? surname : this.surname}` })
+    if (name || surname) {
+      this.full_name = `${name} ${surname}`
+      if (lucene.enabled) {
+        await lucene.delete(this.user_id)
+        await lucene.add({ id: this.user_id, name: `${name ? name : this.name} ${surname ? surname : this.surname}` })
+      }
     }
 
     await this._update(this.txn)
