@@ -9,6 +9,7 @@ declare module 'redis' {
     setexAsync(key: string, seconds: number, value: string): Promise<void>
     setAsync(key: string, value: string): Promise<void>
     delAsync(arg1: string | string[]): Promise<number>
+    keysAsync(pattern: string): Promise<string>
     getAsync(key: string): Promise<string>
     ttlAsync(key: string): Promise<number>
     flushallAsync(): Promise<string>
