@@ -1,4 +1,6 @@
+import logger from '../services/logger'
 import { ValidationError } from 'joi'
+import config from '../config'
 
 export default class ArisError extends Error {
   isAris: boolean
@@ -44,6 +46,6 @@ function ArisErrorHandler(error: ArisError, message: string) {
 }
 
 function SystemErrorHandler(error: Error, message: string) {
-  console.log(error)
-  return { status: 500, send: { success: false, message: message + ' failed!' } }
+  logger.error(error)
+  return { status: 500, send: { success: false, message: message + ' failed!', log: config.environment === 'development' ? error : undefined } }
 }
