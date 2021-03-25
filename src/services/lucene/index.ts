@@ -97,7 +97,7 @@ class SearchManager {
   async delete(id: number) {
     const response = await axios.post(`${this.baseUrl}/delete`, {
       field: 'id',
-      data: id
+      data: id.toString()
     })
     return response.data.ok === true
   }
