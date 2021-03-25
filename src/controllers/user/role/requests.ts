@@ -8,8 +8,7 @@ const route = express.Router()
 route.get('/requests', async (req: Request, res: Response) => {
   const { page, per_page, filter } = req.query
 
-  type Filter = Parameters<typeof User.Role.Request.find>[0]
-  type FilterWithName = Filter & { full_name?: string | string[] }
+  type Filter = Parameters<typeof User.Role.Request.find>[0] & { full_name?: string | string[] }
 
   try {
     new ValSchema({
@@ -29,15 +28,15 @@ route.get('/requests', async (req: Request, res: Response) => {
 
     const users: User[] = []
     const user_ids: number[] = []
-    if ((<FilterWithName>filter)?.full_name) {
-      users.push(...(await User.find({ full_name: (<FilterWithName>filter).full_name }, pagination)))
+    if ((<Filter>filter)?.full_name) {
+      users.push(...(await User.find({ full_name: (<Filter>filter).full_name }, pagination)))
       user_ids.push(...users.map(user => user.get('user_id')))
 
-      if (Array.isArray((<FilterWithName>filter).user_id)) (<number[]>(<FilterWithName>filter).user_id).push(...user_ids)
-      else if ((<FilterWithName>filter).user_id) (<FilterWithName>filter).user_id = [<number>(<FilterWithName>filter).user_id].push(...user_ids)
-      else (<FilterWithName>filter).user_id = user_ids[0] ? user_ids : undefined
+      if (Array.isArray((<Filter>filter).user_id)) (<number[]>(<Filter>filter).user_id).push(...user_ids)
+      else if ((<Filter>filter).user_id) (<Filter>filter).user_id = [<number>(<Filter>filter).user_id, ...user_ids]
+      else (<Filter>filter).user_id = user_ids[0] ? user_ids : undefined
 
-      delete (<FilterWithName>filter).full_name
+      delete (<Filter>filter).full_name
     }
 
     const requests = await User.Role.Request.find(<Filter>filter, pagination)
