@@ -20,6 +20,11 @@ export default class ArisRole extends User_Role {
     await new ArisRole({ user_id, role_id }).n_insert()
   }
 
+  static async remove(user_id: number, role: RoleTypes) {
+    const role_id = Manage.find(role).get('role_id')
+    await new ArisRole({ user_id, role_id }).n_delete()
+  }
+
   /**
    * returns a parameter of role.
    * @param key -parameter to be returned.
