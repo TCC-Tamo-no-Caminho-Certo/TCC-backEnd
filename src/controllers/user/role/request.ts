@@ -34,8 +34,16 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       const regex = new RegExp(university.get('professor_regex'))
       if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
 
-      user_roles.push('professor')
-      await User.Role.add(user_id, 'professor')
+      if (user_roles.some((role: string) => role === 'guest')) {
+        const index = user_roles.findIndex((role: string) => role === 'guest')
+        user_roles[index] = 'professor'
+        await User.Role.remove(user_id, 'guest')
+        await User.Role.add(user_id, 'professor')
+      } else {
+        user_roles.push('professor')
+        await User.Role.add(user_id, 'professor')
+      }
+
       await User.Role.Professor.create({ user_id, campus_id, course_id, full_time, postgraduate, lattes })
       await User.updateAccessTokenData(user_id, user_roles)
     } else if (doc) {
@@ -80,8 +88,16 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       if (!email) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
       const ar = parseInt(email.get('address').split('@')[0])
 
-      user_roles.push('student')
-      await User.Role.add(user_id, 'student')
+      if (user_roles.some((role: string) => role === 'guest')) {
+        const index = user_roles.findIndex((role: string) => role === 'guest')
+        user_roles[index] = 'student'
+        await User.Role.remove(user_id, 'guest')
+        await User.Role.add(user_id, 'student')
+      } else {
+        user_roles.push('student')
+        await User.Role.add(user_id, 'student')
+      }
+
       await User.Role.Student.create({ user_id, campus_id, course_id, ar, semester })
       await User.updateAccessTokenData(user_id, user_roles)
     } else if (doc) {
