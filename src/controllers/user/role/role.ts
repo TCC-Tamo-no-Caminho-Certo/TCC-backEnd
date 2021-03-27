@@ -21,6 +21,10 @@ Router.route('/role/:title').delete(auth, async (req: Request, res: Response) =>
     const user_roles = await User.Role.find({ user_id })
     const remove_role = user_roles.find(role => role.get('role_id') === role_id)
     const new_role_list = user_roles.filter(role => role.get('role_id') !== role_id)
+    if (new_role_list.length === 0) {
+      const guest = await User.Role.add(user_id, 'guest')
+      new_role_list.push(guest)
+    }
 
     if (!remove_role) throw new ArisError('Role not vinculated with this user!', 400)
     await remove_role.remove()

@@ -17,7 +17,9 @@ export default class ArisRole extends User_Role {
 
   static async add(user_id: number, role: RoleTypes) {
     const role_id = Manage.find(role).get('role_id')
-    await new ArisRole({ user_id, role_id }).n_insert()
+    const user_role = new ArisRole({ user_id, role_id })
+    await user_role.n_insert()
+    return user_role
   }
 
   static async remove(user_id: number, role: RoleTypes) {
