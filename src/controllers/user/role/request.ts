@@ -177,11 +177,28 @@ Router.delete('/request/:id', auth, permission(['moderator']), async (req: Reque
 
     const [request] = await User.Role.Request.find({ request_id })
     if (!request) throw new ArisError('Request not found!', 400)
+    const doc_uuid = request.get('doc_uuid')
     await request.delete()
+    doc_uuid && await File.delete('documents', doc_uuid)
 
     return res.status(200).send({ success: true, message: 'Delete complete!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Delete')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.get('/request/doc/:uuid', auth, async (req: Request, res: Response) => {
+  const doc_uuid = req.params.uuid
+
+  try {
+    new ValSchema(P.joi.string().required()).validate(doc_uuid)
+
+    const file = await File.get('documents', doc_uuid)
+
+    return res.status(200).send({ success: true, message: 'Fetch complete!', file })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
   }
 })
