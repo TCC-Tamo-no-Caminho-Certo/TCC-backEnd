@@ -1,36 +1,25 @@
 import minio from '../services/minio'
 import { v4 as uuidv4 } from 'uuid'
-import Jimp from 'jimp'
 
 export default class Minio {
-  file: string
-  stringData: string[]
-  buffer?: Buffer
+  readonly file: string
+  private stringData: string[]
+  buffer: Buffer
 
   constructor(file: string) {
     this.file = file
     this.stringData = file.split(',', 2)
+    this.buffer = Buffer.from(this.stringData[1], 'base64')
   }
 
   validateTypes(types: string[]) {
     return types.some(type => this.stringData.length === 2 && this.stringData[0] === type)
   }
 
-  async createImageBuffer(width: number = 512, height: number = 512) {
-    const dataBuffer = Buffer.from(this.stringData[1], 'base64')
-    const image = await Jimp.read(dataBuffer)
-    this.buffer = await image.resize(width, height).getBufferAsync(Jimp.MIME_PNG)
-  }
-
-  async createBuffer() {
-    this.buffer = Buffer.from(this.stringData[1], 'base64')
-  }
-
   async insert(bucket: string, content_type: string) {
     const objectUuid = uuidv4()
 
-    content_type === 'image/png' ? await this.createImageBuffer() : await this.createBuffer()
-    await minio.client.putObject(bucket, objectUuid, this.buffer!, this.buffer!.length, { 'Content-Type': content_type })
+    await minio.client.putObject(bucket, objectUuid, this.buffer, this.buffer.length, { 'Content-Type': content_type })
 
     return objectUuid
   }

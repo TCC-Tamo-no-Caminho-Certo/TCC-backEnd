@@ -1,5 +1,6 @@
 import ValSchema, { P } from '../../utils/validation'
 import ArisError from '../../utils/arisError'
+import Picture from '../../utils/jimp'
 import File from '../../utils/minio'
 import User from '../../utils/user'
 
@@ -78,6 +79,7 @@ Router.put('/user/avatar', auth, async (req: Request, res: Response) => {
 
     const file = new File(picture)
     if (!file.validateTypes(['data:image/png;base64'])) throw new ArisError('Invalid file Type!', 400)
+    file.buffer = await Picture.parseBuffer(file.buffer)
     const current_uuid = user.get('avatar_uuid')
     const avatar_uuid =
       current_uuid === 'default' ? await file.insert('profile', 'image/png') : await file.update('profile', 'image/png', current_uuid)
