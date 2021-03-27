@@ -35,7 +35,7 @@ export default class Minio {
   }
 
   static async get(bucket: string, uuid: string) {
-    const data = await minio.client.getObject(bucket, uuid)
-    return await data.read()
+    const url = await minio.client.presignedUrl('GET', bucket, uuid, 24*60*60)
+    return url
   }
 }

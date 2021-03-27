@@ -194,9 +194,9 @@ Router.get('/request/doc/:uuid', auth, async (req: Request, res: Response) => {
   try {
     new ValSchema(P.joi.string().required()).validate(doc_uuid)
 
-    const file = await File.get('documents', doc_uuid)
+    const url = await File.get('documents', doc_uuid)
 
-    return res.status(200).send({ success: true, message: 'Fetch complete!', file })
+    return res.status(200).send({ success: true, message: 'Fetch complete!', url })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
