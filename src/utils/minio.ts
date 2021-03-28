@@ -36,6 +36,7 @@ export default class Minio {
 
   static async get(bucket: string, uuid: string) {
     const url = await minio.client.presignedUrl('GET', bucket, uuid, 24*60*60)
-    return url
+    const parsed_url = `https://s3.steamslab.com/${bucket}` + url.split(`/${bucket}`)[1]
+    return parsed_url
   }
 }
