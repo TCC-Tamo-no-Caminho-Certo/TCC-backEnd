@@ -25,7 +25,7 @@ Router.post('/email', auth, async (req: Request, res: Response) => {
 
     if (university_id) {
       const [university] = await University.find({ university_id })
-      const regex = [new RegExp(university.get('professor_regex')), new RegExp(university.get('student_regex'))]
+      const regex = [new RegExp(university.get('regex').email.professor), new RegExp(university.get('regex').email.student)]
 
       if (!regex.some(reg => reg.test(email))) throw new ArisError('Invalid email format!', 400)
     }

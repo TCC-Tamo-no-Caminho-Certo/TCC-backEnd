@@ -40,8 +40,6 @@ export default class Campus_Course {
   protected static async n_find(filter: Campus_CourseFilters, pagination?: Pagination) {
     const page: number = pagination?.page || 1,
       per_page: number = pagination?.per_page || 50
-    if (page <= 0) throw new ArisError('Invalid page value', 400)
-    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
     const base_query = db<Required<Campus_CourseCtor>>('campus_course').where(builder => {
       let key: keyof Campus_CourseFilters

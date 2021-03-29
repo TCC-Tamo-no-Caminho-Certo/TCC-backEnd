@@ -3,6 +3,17 @@ import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
 
+interface Regex {
+  email: {
+    professor: string
+    student: string
+  }
+  register: {
+    professor: string
+    student: string
+  }
+}
+
 export interface UniversityFilters {
   university_id?: number | number[]
   name?: string | string[]
@@ -11,28 +22,25 @@ export interface UniversityFilters {
 export interface UniversityCtor {
   university_id?: number
   name: string
-  professor_regex: string
-  student_regex: string
+  regex: Regex
 }
 
 export default class University {
   protected university_id: number
   protected name: string
-  protected professor_regex: string
-  protected student_regex: string
+  protected regex: Regex
 
-  protected constructor({ university_id, name, professor_regex, student_regex }: UniversityCtor) {
+  protected constructor({ university_id, name, regex }: UniversityCtor) {
     this.university_id = university_id || 0 //Gives a temporary id when creating a new university
     this.name = name
-    this.professor_regex = professor_regex
-    this.student_regex = student_regex
+    this.regex = regex
   }
 
   protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
 
     this.university_id = await txn<Required<UniversityCtor>>('university')
-      .insert({ name: this.name, professor_regex: this.professor_regex, student_regex: this.student_regex })
+      .insert({ name: this.name, regex: this.regex })
       .then(row => row[0])
   }
 
@@ -42,7 +50,7 @@ export default class University {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const university_up = { name: this.name, professor_regex: this.professor_regex, student_regex: this.student_regex }
+    const university_up = { name: this.name, regex: this.regex }
 
     await txn<Required<UniversityCtor>>('university').update(university_up).where({ university_id: this.university_id })
   }
@@ -54,10 +62,8 @@ export default class University {
   }
 
   protected static async _find(filter: UniversityFilters, pagination?: Pagination) {
-    let page: number = pagination?.page || 1,
+    const page: number = pagination?.page || 1,
       per_page: number = pagination?.per_page || 50
-    if (page <= 0) throw new ArisError('Invalid page value', 400)
-    if (per_page > 100) throw new ArisError('Maximum limt per page exceeded!', 400)
 
     const base_query = db<Required<UniversityCtor>>('university').where(builder => {
       let key: keyof UniversityFilters

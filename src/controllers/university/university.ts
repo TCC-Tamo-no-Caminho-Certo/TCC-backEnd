@@ -8,16 +8,26 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.post('/university', auth, permission(['admin']), async (req: Request, res: Response) => {
-  const { name, professor_regex, student_regex } = req.body
+  const { name, regex } = req.body
 
   try {
     new ValSchema({
       name: P.joi.string().required(),
-      professor_regex: P.joi.string().required(),
-      student_regex: P.joi.string().required()
-    }).validate({ name, professor_regex, student_regex })
+      regex: P.joi
+        .object({
+          email: P.joi.object({
+            professor: P.joi.string().required(),
+            student: P.joi.string().required()
+          }),
+          register: P.joi.object({
+            professor: P.joi.string().required(),
+            student: P.joi.string().required()
+          })
+        })
+        .required()
+    }).validate({ name, regex })
 
-    await University.create({ name, professor_regex, student_regex })
+    await University.create({ name, regex })
 
     return res.status(200).send({ success: true, message: 'University created!' })
   } catch (error) {
@@ -28,20 +38,28 @@ Router.post('/university', auth, permission(['admin']), async (req: Request, res
 
 Router.route('/university/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const { name, professor_regex, student_regex } = req.body
+    const { name, regex } = req.body
     const university_id = parseInt(req.params.id)
 
     try {
       new ValSchema({
         university_id: P.joi.number().positive().required(),
         name: P.joi.string(),
-        professor_regex: P.joi.string(),
-        student_regex: P.joi.string()
-      }).validate({ university_id, name, professor_regex, student_regex })
+        regex: P.joi.object({
+          email: P.joi.object({
+            professor: P.joi.string().required(),
+            student: P.joi.string().required()
+          }),
+          register: P.joi.object({
+            professor: P.joi.string().required(),
+            student: P.joi.string().required()
+          })
+        })
+      }).validate({ university_id, name, regex })
 
       const [university] = await University.find({ university_id })
       if (!university) throw new ArisError('University not found!', 400)
-      await university.update({ name, professor_regex, student_regex })
+      await university.update({ name, regex })
 
       return res.status(200).send({ success: true, message: 'University updated!' })
     } catch (error) {

@@ -80,7 +80,7 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
 
     if (university_id) {
       const [university] = await University.find({ university_id })
-      const regex = [new RegExp(university.get('professor_regex')), new RegExp(university.get('student_regex'))]
+      const regex = [new RegExp(university.get('regex').email.professor), new RegExp(university.get('regex').email.student)]
 
       email_info = regex.some(reg => reg.test(email))
         ? { user_id: 0, university_id, address: email, main: true, options: {} }
