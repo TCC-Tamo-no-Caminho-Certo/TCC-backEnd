@@ -4,36 +4,28 @@ import db from '../..'
 
 export interface StudentFilters {
   user_id?: number | number[]
-  course_id?: number | number[]
-  campus_id?: number | number[]
-  ar?: number | number[]
-  semester?: number | number[]
+  linkedin?: string | string[]
+  lattes?: string | string[]
 }
 
 export interface StudentCtor {
   user_id: number
-  course_id: number
-  campus_id: number
-  ar: number
-  semester: number
+  linkedin?: string
+  lattes?: string
 }
 
 export default class Student {
   protected user_id: number
-  protected course_id: number
-  protected campus_id: number
-  protected ar: number
-  protected semester: number
+  linkedin?: string
+  lattes?: string
 
   /**
    * Creates an student.
    */
-  protected constructor({ user_id, course_id, campus_id, ar, semester }: StudentCtor) {
+  protected constructor({ user_id, linkedin, lattes }: StudentCtor) {
     this.user_id = user_id
-    this.course_id = course_id
-    this.campus_id = campus_id
-    this.ar = ar
-    this.semester = semester
+    this.linkedin = linkedin
+    this.lattes = lattes
   }
 
   /**
@@ -44,10 +36,8 @@ export default class Student {
 
     await txn<Required<StudentCtor>>('student').insert({
       user_id: this.user_id,
-      course_id: this.course_id,
-      campus_id: this.campus_id,
-      ar: this.ar,
-      semester: this.semester
+      linkedin: this.linkedin,
+      lattes: this.lattes
     })
   }
 
@@ -57,7 +47,7 @@ export default class Student {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const student_up = { user_id: this.user_id, ar: this.ar, semester: this.semester }
+    const student_up = { linkedin: this.linkedin, lattes: this.lattes }
 
     await txn<Required<StudentCtor>>('student').update(student_up).where({ user_id: this.user_id })
   }
@@ -85,7 +75,6 @@ export default class Student {
     })
 
     if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
-    base_query.then(row => (row[0] ? row : null))
 
     return await base_query
   }

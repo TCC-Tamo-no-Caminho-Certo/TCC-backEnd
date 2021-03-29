@@ -16,8 +16,8 @@ export interface RoleReqFilters {
 
 export interface RoleReqCtor extends User_RoleCtor {
   request_id?: number
-  data?: object
-  doc_uuid?: string
+  data?: { [key: string]: any }
+  voucher_uuid?: string
   feedback?: string
   status?: StatusTypes
   created_at?: string
@@ -26,8 +26,8 @@ export interface RoleReqCtor extends User_RoleCtor {
 
 export default class Role_Request extends User_Role {
   protected request_id: number
-  protected data?: object
-  protected doc_uuid?: string
+  protected data?: { [key: string]: any }
+  protected voucher_uuid?: string
   protected feedback?: string
   protected status: StatusTypes
   protected created_at: string
@@ -36,11 +36,11 @@ export default class Role_Request extends User_Role {
   /**
    * Creates a role request.
    */
-  protected constructor({ request_id, user_id, role_id, data, doc_uuid, feedback, status, created_at, updated_at }: RoleReqCtor) {
+  protected constructor({ request_id, user_id, role_id, data, voucher_uuid, feedback, status, created_at, updated_at }: RoleReqCtor) {
     super({ user_id, role_id })
     this.request_id = request_id || 0 //Gives a temporary id when creating a new request
     this.data = data
-    this.doc_uuid = doc_uuid
+    this.voucher_uuid = voucher_uuid
     this.feedback = feedback
     this.status = status || 'awaiting'
     this.created_at = created_at || ''
@@ -58,7 +58,7 @@ export default class Role_Request extends User_Role {
         user_id: this.user_id,
         role_id: this.role_id,
         data: JSON.stringify(this.data),
-        doc_uuid: this.doc_uuid,
+        voucher_uuid: this.voucher_uuid,
         status: this.status
       })
       .then(row => row[0])
@@ -70,7 +70,7 @@ export default class Role_Request extends User_Role {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const request_up = { doc_uuid: this.doc_uuid, data: JSON.stringify(this.data), feedback: this.feedback, status: this.status }
+    const request_up = { voucher_uuid: this.voucher_uuid, data: JSON.stringify(this.data), feedback: this.feedback, status: this.status }
 
     await txn('role_request').update(request_up).where({ request_id: this.request_id })
     this.updated_at = new Date().toUTCString()

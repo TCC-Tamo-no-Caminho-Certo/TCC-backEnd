@@ -4,40 +4,36 @@ import db from '../..'
 
 export interface ProfessorFilters {
   user_id?: number | number[]
-  course_id?: number | number[]
-  campus_id?: number | number[]
-  full_time?: boolean
   postgraduate?: boolean
+  linkedin?: string | string[]
   lattes?: string | string[]
+  orcid?: string | string[]
 }
 
 export interface ProfessorCtor {
   user_id: number
-  course_id: number
-  campus_id: number
-  full_time: boolean
   postgraduate: boolean
+  linkedin?: string
   lattes?: string
+  orcid?: string
 }
 
 export default class Professor {
   protected user_id: number
-  protected course_id: number
-  protected campus_id: number
-  protected full_time: boolean
   protected postgraduate: boolean
+  protected linkedin?: string
   protected lattes?: string
+  protected orcid?: string
 
   /**
    * Creates an professor.
    */
-  protected constructor({ user_id, course_id, campus_id, full_time, postgraduate, lattes }: ProfessorCtor) {
+  protected constructor({ user_id, postgraduate, linkedin, lattes, orcid }: ProfessorCtor) {
     this.user_id = user_id
-    this.course_id = course_id
-    this.campus_id = campus_id
-    this.full_time = full_time
     this.postgraduate = postgraduate
+    this.linkedin = linkedin
     this.lattes = lattes
+    this.orcid = orcid
   }
 
   /**
@@ -48,11 +44,10 @@ export default class Professor {
 
     await txn<Required<ProfessorCtor>>('professor').insert({
       user_id: this.user_id,
-      course_id: this.course_id,
-      campus_id: this.campus_id,
-      full_time: this.full_time,
       postgraduate: this.postgraduate,
-      lattes: this.lattes
+      linkedin: this.linkedin,
+      lattes: this.lattes,
+      orcid: this.orcid
     })
   }
 
@@ -62,7 +57,7 @@ export default class Professor {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const professor_up = { full_time: this.full_time, postgraduate: this.postgraduate, lattes: this.lattes }
+    const professor_up = { postgraduate: this.postgraduate, linkedin: this.linkedin, lattes: this.lattes, orcid: this.orcid }
 
     await txn<Required<ProfessorCtor>>('professor').update(professor_up).where({ user_id: this.user_id })
   }
@@ -90,7 +85,6 @@ export default class Professor {
     })
 
     if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
-    base_query.then(row => (row[0] ? row : null))
 
     return await base_query
   }

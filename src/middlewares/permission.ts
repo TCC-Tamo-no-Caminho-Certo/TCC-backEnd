@@ -18,6 +18,6 @@ export default (roles: (RoleTypes | NRoleTypes)[]) => {
       return allowed * acc
     }, 1)
 
-    return allow ? next() : res.status(403).send({ success: false, message: `User not allowed to access this route!`, roles })
+    return allow ? next() : res.status(403).send({ success: false, message: `User not allowed to access this route!`, route_roles: roles })
   }
 }

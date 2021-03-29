@@ -32,9 +32,13 @@ Router.route('/role/:title').delete(auth, async (req: Request, res: Response) =>
     if (remove_role.get('title') === 'student') {
       const [student] = await User.Role.Student.find({ user_id })
       await student.delete()
+      const vinculated_courses = await User.Role.Student.Course.find({ user_id })
+      for (const course of vinculated_courses) await course.remove()
     } else if (remove_role.get('title') === 'professor') {
       const [professor] = await User.Role.Professor.find({ user_id })
       await professor.delete()
+      const vinculated_courses = await User.Role.Professor.Course.find({ user_id })
+      for (const course of vinculated_courses) await course.remove()
     }
 
     await User.updateAccessTokenData(

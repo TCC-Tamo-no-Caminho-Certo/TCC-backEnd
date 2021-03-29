@@ -10,9 +10,13 @@ import { Transaction } from 'knex'
 import db from '../../database'
 
 type ProfessorCtor = Parameters<typeof Professor.create>[0]
+type Professor_CouseCtor = Parameters<typeof Professor.Course.add>[0]
+type ProfessorData = ProfessorCtor & Professor_CouseCtor
 type StudentCtor = Parameters<typeof Student.create>[0]
+type Student_CourseCtor = Parameters<typeof Student.Course.add>[0]
+type StudentData = StudentCtor & Student_CourseCtor
 
-type GetRoleReq = Required<Omit<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>
+type GetRoleReq = Required<Omit<RoleReqCtor, 'data' | 'voucher_uuid' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'voucher_uuid' | 'feedback'>
 
 export default class ArisRoleReq extends RoleReq {
   private txn?: Transaction
@@ -24,18 +28,18 @@ export default class ArisRoleReq extends RoleReq {
    * @param role Role to be Requested
    * @param role_info Role info if needed
    */
-  static async create(user_id: number, role: 'professor', data: Omit<ProfessorCtor, 'user_id'>, doc_uuid?: string): Promise<void>
-  static async create(user_id: number, role: 'student', data: Omit<StudentCtor, 'user_id'>, doc_uuid?: string): Promise<void>
+  static async create(user_id: number, role: 'professor', data: Omit<ProfessorData, 'user_id'>, voucher_uuid?: string): Promise<void>
+  static async create(user_id: number, role: 'student', data: Omit<StudentData, 'user_id'>, voucher_uuid?: string): Promise<void>
   static async create<T extends Exclude<RoleTypes, 'professor' | 'student'>>(user_id: number, role: T): Promise<void>
   static async create<T extends RoleTypes>(
     user_id: number,
     role: T,
     data?: T extends 'professor' ? Omit<ProfessorCtor, 'user_id'> : T extends 'student' ? Omit<StudentCtor, 'user_id'> : never,
-    doc_uuid?: string
+    voucher_uuid?: string
   ): Promise<void> {
     const role_id = RoleMan.find(role).get('role_id')
 
-    const request = new ArisRoleReq({ user_id, role_id, data, doc_uuid })
+    const request = new ArisRoleReq({ user_id, role_id, data, voucher_uuid })
     await request._insert()
   }
 
@@ -57,7 +61,7 @@ export default class ArisRoleReq extends RoleReq {
       user_id: this.user_id,
       role_id: this.role_id,
       data: this.data,
-      doc_uuid: this.doc_uuid,
+      voucher_uuid: this.voucher_uuid,
       feedback: this.feedback,
       status: this.status,
       created_at: this.created_at,
@@ -75,9 +79,9 @@ export default class ArisRoleReq extends RoleReq {
   /**
    * Updates the role request info.
    */
-  async update({ data, doc_uuid, feedback }: Partial<Pick<RoleReqCtor, 'data' | 'doc_uuid' | 'feedback'>>) {
+  async update({ data, voucher_uuid, feedback }: Partial<Pick<RoleReqCtor, 'data' | 'voucher_uuid' | 'feedback'>>) {
     if (data) this.data = data
-    if (doc_uuid) this.doc_uuid = doc_uuid
+    if (voucher_uuid) this.voucher_uuid = voucher_uuid
     if (feedback) this.feedback = feedback
 
     await this._update(this.txn)
@@ -96,11 +100,33 @@ export default class ArisRoleReq extends RoleReq {
       user_roles.push(RoleMan.find(this.role_id).get('title'))
     }
 
-    RoleMan.find(this.role_id).get('title') === 'professor'
-      ? await Professor.create({ user_id: this.user_id, ...(<any>this.data) })
-      : RoleMan.find(this.role_id).get('title') === 'student'
-      ? await Student.create({ user_id: this.user_id, ...(<any>this.data) })
-      : undefined
+    if (RoleMan.find(this.role_id).get('title') === 'professor') {
+      if (!this.data) throw new ArisError('Couldn´t find professor role request data', 500)
+      await Professor.create({
+        user_id: this.user_id,
+        postgraduate: this.data.postgraduate,
+        linkedin: this.data.linkedin,
+        lattes: this.data.lattes,
+        orcid: this.data.orcid
+      })
+      await Professor.Course.add({
+        user_id: this.user_id,
+        campus_id: this.data.campus_id,
+        course_id: this.data.course_id,
+        full_time: this.data.full_time
+      })
+    }
+    if (RoleMan.find(this.role_id).get('title') === 'student') {
+      if (!this.data) throw new ArisError('Couldn´t find student role request data', 500)
+      await Student.create({ user_id: this.user_id, linkedin: this.data.linkedin, lattes: this.data.lattes })
+      await Student.Course.add({
+        user_id: this.user_id,
+        campus_id: this.data.campus_id,
+        course_id: this.data.course_id,
+        register: this.data.register,
+        semester: this.data.semester
+      })
+    }
 
     this.status = 'accepted'
     await this._update(this.txn)

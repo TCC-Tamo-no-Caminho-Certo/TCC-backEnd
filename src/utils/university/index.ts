@@ -38,8 +38,7 @@ export default class ArisUniversity extends University {
     const aux_ob: GetUniversity = {
       university_id: this.university_id,
       name: this.name,
-      professor_regex: this.professor_regex,
-      student_regex: this.student_regex
+      regex: this.regex
     }
     return aux_ob
   }
@@ -56,10 +55,9 @@ export default class ArisUniversity extends University {
   /**
    * Updates the university`s information.
    */
-  async update({ name, professor_regex, student_regex }: Partial<Omit<UniversityCtor, 'university_id'>>) {
+  async update({ name, regex }: Partial<Omit<UniversityCtor, 'university_id'>>) {
     if (name) this.name = name
-    if (professor_regex) this.professor_regex = professor_regex
-    if (student_regex) this.student_regex = student_regex
+    if (regex) this.regex = regex
 
     await this._update(this.txn)
   }

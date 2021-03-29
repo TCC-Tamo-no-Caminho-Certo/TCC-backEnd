@@ -1,4 +1,5 @@
 import Student, { StudentCtor, StudentFilters } from '../../database/models/user/student'
+import Course from './studentCourse'
 import ArisError from '../arisError'
 
 import { Pagination } from '../../types'
@@ -6,7 +7,7 @@ import { Pagination } from '../../types'
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type GetStudent = Required<StudentCtor>
+type GetStudent = Required<Omit<StudentCtor, 'linkedin' | 'lattes'>> & Pick<StudentCtor, 'linkedin' | 'lattes'>
 
 export default class ArisStudent extends Student {
   private txn?: Transaction
@@ -35,10 +36,8 @@ export default class ArisStudent extends Student {
    */
   format() {
     const aux_ob: Omit<GetStudent, 'user_id'> = {
-      campus_id: this.campus_id,
-      course_id: this.course_id,
-      ar: this.ar,
-      semester: this.semester
+      linkedin: this.linkedin,
+      lattes: this.lattes
     }
     return aux_ob
   }
@@ -49,15 +48,15 @@ export default class ArisStudent extends Student {
   static async find<T extends StudentFilters>(filter: T, pagination?: Pagination) {
     const students_info = await this._find(filter, pagination)
 
-    return <T extends { user_id: number } | { ar: number } ? [ArisStudent] : ArisStudent[]>students_info.map(student => new ArisStudent(student))
+    return <T extends { user_id: number } ? [ArisStudent] : ArisStudent[]>students_info.map(student => new ArisStudent(student))
   }
 
   /**
    * Updates the student`s info.
    */
-  async update({ ar, semester }: Partial<Omit<StudentCtor, 'user_id'>>) {
-    if (ar) this.ar = ar
-    if (semester) this.semester = semester
+  async update({ linkedin, lattes }: Partial<Omit<StudentCtor, 'user_id'>>) {
+    if (linkedin) this.linkedin = linkedin
+    if (lattes) this.lattes = lattes
 
     await this._update(this.txn)
   }
@@ -68,6 +67,10 @@ export default class ArisStudent extends Student {
   async delete() {
     await this._delete(this.txn)
   }
+
+  // -----COMPLEMENTARY CLASSES----- //
+
+  static Course = Course
 
   // -----TRANSACTION----- //
 
