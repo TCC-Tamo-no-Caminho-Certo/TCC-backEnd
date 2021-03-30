@@ -14,6 +14,8 @@ import emailController from './user/email'
 import usersController from './user/users'
 import userController from './user/user'
 
+import infoController from './info/info'
+
 import devController from './dev/dev'
 
 import authController from './auth'
@@ -40,6 +42,10 @@ export default (app: Application) => {
     .use('/api', universityController)
     .use('/api/university', campusController)
     .use('/api/university/campus', courseController)
+
+  // Info
+  app
+    .use('/api/info', infoController)
 
   // Development
   app
