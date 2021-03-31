@@ -75,15 +75,19 @@ export default class ArisUser extends User {
     Logger.info('filter: ' + JSON.stringify(filter))
     Logger.info('lucene.enable: ' + lucene.enabled)
     if (lucene.enabled && filter.full_name) {
-Logger.info('prev filter.user_id: ' + filter.user_id)
-filter.user_id = !filter.user_id ? [] : Array.isArray(filter.user_id) ? filter.user_id : [filter.user_id]
-Logger.info('new filter.user_id: ' + filter.user_id)
+      Logger.info('prev filter.user_id: ' + filter.user_id)
+      filter.user_id = !filter.user_id ? [] : Array.isArray(filter.user_id) ? filter.user_id : [filter.user_id]
+      Logger.info('new filter.user_id: ' + filter.user_id)
       const data = Array.isArray(filter.full_name)
         ? await lucene.searchBatch(filter.full_name, pagination?.per_page || 50)
         : await lucene.search(filter.full_name, pagination?.per_page || 50)
-      if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
-Logger.info('data: ' + data)
-
+      if (data.ok)
+        data.results?.forEach(result => {
+          (<number[]>filter.user_id).push(parseInt(result.fields.id))
+          Logger.info('result: ' + JSON.stringify(result))
+        })
+      Logger.info('data: ' + JSON.stringify(data))
+      Logger.info('new new filter.user_id: ' + filter.user_id)
     }
 
     const users = await this._find(filter, pagination)
