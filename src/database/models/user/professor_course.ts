@@ -46,6 +46,7 @@ export default class Professor_course {
       user_id: this.user_id,
       course_id: this.course_id,
       campus_id: this.campus_id,
+      register: this.register,
       full_time: this.full_time
     })
   }
