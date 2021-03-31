@@ -17,8 +17,6 @@ export default class ArisEmail extends Email {
    * Creates an new user.
    */
   static async create(email_info: Omit<EmailCtor, 'email_id'>) {
-    if (await this._exist(email_info.address)) throw new ArisError('Email already registered!', 400)
-
     const email = new ArisEmail(email_info)
     await email._insert()
 

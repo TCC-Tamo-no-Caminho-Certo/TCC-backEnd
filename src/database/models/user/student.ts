@@ -16,8 +16,8 @@ export interface StudentCtor {
 
 export default class Student {
   protected user_id: number
-  linkedin?: string
-  lattes?: string
+  protected linkedin?: string
+  protected lattes?: string
 
   /**
    * Creates an student.
