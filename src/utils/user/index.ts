@@ -72,8 +72,8 @@ export default class ArisUser extends User {
    * Returns an Aris user array.
    */
   static async find<T extends UserFilters & { full_name?: string | string[] }>(filter: T, pagination?: Pagination) {
+    Logger.debug('filter.full_name: ' + filter.full_name)
     if (lucene.enabled && filter.full_name) {
-Logger.debug('filter.full_name: ' + filter.full_name)
 Logger.debug('prev filter.user_id: ' + filter.user_id)
 filter.user_id = !filter.user_id ? [] : Array.isArray(filter.user_id) ? filter.user_id : [filter.user_id]
 Logger.debug('new filter.user_id: ' + filter.user_id)
