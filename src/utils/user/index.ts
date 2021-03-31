@@ -72,7 +72,7 @@ export default class ArisUser extends User {
    * Returns an Aris user array.
    */
   static async find<T extends UserFilters & { full_name?: string | string[] }>(filter: T, pagination?: Pagination) {
-    Logger.info('filter: ' + filter)
+    Logger.info('filter: ' + JSON.stringify(filter))
     Logger.info('lucene.enable: ' + lucene.enabled)
     if (lucene.enabled && filter.full_name) {
 Logger.info('prev filter.user_id: ' + filter.user_id)
