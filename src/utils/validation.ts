@@ -61,10 +61,10 @@ export default class ValSchema<T extends SchemaType> {
     },
 
     filter: {
-      string: joi.array().items(joi.string()),
-      number: joi.array().items(joi.number()),
-      ids: joi.array().items(joi.number().integer().greater(0)),
-      names: joi.array().items(joi.string().regex(/^([a-zà-ú]\s?)+$/i)),
+      string: joi.alternatives(joi.array().items(joi.string()), joi.string()),
+      number: joi.alternatives(joi.array().items(joi.number()), joi.number()),
+      ids: joi.alternatives(joi.array().items(joi.number().integer().greater(0)), joi.number().integer().greater(0)),
+      names: joi.alternatives(joi.array().items(joi.string().regex(/^([a-zà-ú]\s?)+$/i)), joi.string().regex(/^([a-zà-ú]\s?)+$/i)),
       date: joi
         .array()
         .items(joi.string().regex(/^2[01]\d{2}-[01]\d-[0123]\d$/))
