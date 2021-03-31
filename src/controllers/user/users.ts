@@ -26,7 +26,7 @@ Router.get('/users', async (req: Request, res: Response) => {
     const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
 
     const users = await User.find(<Filter>filter, pagination)
-    if (!users) return res.status(200).send({ success: true, message: 'Get users complete!', users: 'No user found!' })
+    if (!users[0]) return res.status(200).send({ success: true, message: 'Get users complete!', users: 'No user found!' })
     const ids = users.map(user => user.get('user_id'))
     const emails = await User.Email.find({ user_id: ids })
     const roles = await User.Role.find({ user_id: ids })
