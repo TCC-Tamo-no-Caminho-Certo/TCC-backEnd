@@ -76,15 +76,13 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
     }).validate({ name, surname, phone, birthday, password, email, university_id })
 
     const user_info = { name, surname, phone, birthday, password }
-    let email_info
+    const email_info = { user_id: 0, address: email, university_id: undefined, main: true, options: {} }
 
     if (university_id) {
       const [university] = await University.find({ university_id })
       const regex = [new RegExp(university.get('regex').email.professor), new RegExp(university.get('regex').email.student)]
 
-      email_info = regex.some(reg => reg.test(email))
-        ? { user_id: 0, university_id, address: email, main: true, options: {} }
-        : { user_id: 0, address: email, main: true, options: {} }
+      email_info.university_id = regex.some(reg => reg.test(email)) ? university_id : undefined
     }
 
     const has_user = await User.exist(email)
