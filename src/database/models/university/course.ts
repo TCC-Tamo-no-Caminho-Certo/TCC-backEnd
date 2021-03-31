@@ -15,24 +15,24 @@ export interface CourseCtor {
 }
 
 export default class Course {
-  course_id: number
-  name: CourseTypes
+  protected course_id: number
+  protected name: CourseTypes
 
   /**
    * Creates a course.
    */
-  private constructor({ course_id, name }: CourseCtor) {
+  protected constructor({ course_id, name }: CourseCtor) {
     this.course_id = course_id || 0 //Gives a temporary id when creating a new course
     this.name = name
   }
 
-  static find(identifier: CourseTypes | number) {
+  protected static _find(identifier: CourseTypes | number) {
     const course = courses.find(course => (typeof identifier === 'string' ? course.name === identifier : course.course_id === identifier))
     if (!course) throw new ArisError(`Course provided does't exists!`, 400)
     return course
   }
 
-  static findAll() {
+  protected static _findAll() {
     return courses
   }
 }

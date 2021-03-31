@@ -1,6 +1,7 @@
 import Campus_Course, { Campus_CourseCtor, Campus_CourseFilters } from '../../database/models/university/campus_course'
 import Course from '../../database/models/university/course'
 import ArisError from '../arisError'
+import Manage from './courseMan'
 
 import { Pagination, CourseTypes } from '../../types'
 
@@ -16,7 +17,7 @@ export default class ArisCourse extends Campus_Course {
    * Adds an new course to a campus.
    */
   static async add(course: CourseTypes, campus_id: number) {
-    const course_id = Course.find(course).course_id
+    const course_id = Manage.find(course).get('course_id')
     const camp_course = new ArisCourse({ campus_id, course_id })
     await camp_course.n_insert()
 
@@ -37,7 +38,7 @@ export default class ArisCourse extends Campus_Course {
    */
   format() {
     const aux_ob: Omit<GetCourse, 'campus_id'> = {
-      ...Course.find(this.course_id)
+      ...Manage.find(this.course_id).format()
     }
     return aux_ob
   }
@@ -54,6 +55,10 @@ export default class ArisCourse extends Campus_Course {
   async delete() {
     await this.n_delete(this.txn)
   }
+
+  // -----COMPLEMENTARY CLASSES----- //
+
+  static Manage = Manage
 
   // -----TRANSACTION----- //
 
