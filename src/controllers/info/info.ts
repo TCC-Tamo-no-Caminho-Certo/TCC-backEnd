@@ -18,6 +18,17 @@ Router.get('/role', auth, async (req: Request, res: Response) => {
   }
 })
 
+Router.get('/course', auth, async (req: Request, res: Response) => {
+  try {
+    const courses = University.Campus.Course.Manage.findAll().map(role => role.format())
+
+    return res.status(200).send({ success: true, message: 'Fetch courses complete!', courses })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Fetch courses')
+    return res.status(result.status).send(result.send)
+  }
+})
+
 Router.get('/university', auth, async (req: Request, res: Response) => {
   try {
     const universities = (await University.find({})).map(university => university.format())
