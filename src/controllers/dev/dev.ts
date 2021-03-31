@@ -89,10 +89,21 @@ Router.get('/redis/keys', async (req: Request, res: Response) => {
   }
 })
 
-Router.get('/redis/get/:key', async (req: Request, res: Response) => {
+Router.get('/redis/:key', async (req: Request, res: Response) => {
   const { key } = req.params
   try {
     const result = await redis.client.getAsync(key)
+    return res.status(200).send({ success: true, result })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Redis error')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.delete('/redis/:key', async (req: Request, res: Response) => {
+  const { key } = req.params
+  try {
+    const result = await redis.client.delAsync(key)
     return res.status(200).send({ success: true, result })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Redis error')
