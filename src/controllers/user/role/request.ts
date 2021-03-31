@@ -17,6 +17,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
     university_id,
     campus_id,
     course_id,
+    register,
     full_time,
     postgraduate,
     linkedin,
@@ -30,12 +31,13 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required(),
+      register: P.joi.when('doc', { then: P.joi.number().required() }),
       full_time: P.joi.bool().required(),
       postgraduate: P.joi.bool().required(),
       linkedin: P.joi.string().allow(null),
       lattes: P.joi.string().allow(null),
       orcid: P.joi.string().allow(null)
-    }).validate({ voucher, university_id, campus_id, course_id, full_time, postgraduate, linkedin, lattes, orcid })
+    }).validate({ voucher, university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid })
 
     if (!voucher) {
       const emails = await User.Email.find({ user_id })
@@ -59,7 +61,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       }
 
       await User.Role.Professor.create({ user_id, postgraduate, linkedin, lattes, orcid })
-      await User.Role.Professor.Course.add({ user_id, campus_id, course_id, full_time })
+      await User.Role.Professor.Course.add({ user_id, campus_id, course_id, register, full_time })
       await User.updateAccessTokenData(user_id, user_roles)
     } else if (voucher) {
       const file = new File(voucher)
@@ -67,7 +69,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 
       const voucher_uuid = await file.insert('documents', 'application/pdf')
 
-      await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, full_time, postgraduate, lattes }, voucher_uuid)
+      await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, register, full_time, postgraduate, lattes }, voucher_uuid)
     } else throw new ArisError('None of the flow data was provided (voucher | inst_email)', 400)
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })

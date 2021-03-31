@@ -6,6 +6,7 @@ export interface Professor_CourseFilters {
   user_id?: number | number[]
   course_id?: number | number[]
   campus_id?: number | number[]
+  register?: number | number[]
   full_time?: boolean
 }
 
@@ -13,6 +14,7 @@ export interface Professor_CourseCtor {
   user_id: number
   course_id: number
   campus_id: number
+  register: number
   full_time: boolean
 }
 
@@ -20,15 +22,17 @@ export default class Professor_course {
   protected user_id: number
   protected course_id: number
   protected campus_id: number
+  protected register: number
   protected full_time: boolean
 
   /**
    * Creates an professor.
    */
-  protected constructor({ user_id, course_id, campus_id, full_time }: Professor_CourseCtor) {
+  protected constructor({ user_id, course_id, campus_id, register, full_time }: Professor_CourseCtor) {
     this.user_id = user_id
     this.course_id = course_id
     this.campus_id = campus_id
+    this.register = register
     this.full_time = full_time
   }
 
@@ -52,7 +56,7 @@ export default class Professor_course {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const professor_up = { full_time: this.full_time }
+    const professor_up = { register: this.register, full_time: this.full_time }
 
     await txn<Required<Professor_CourseCtor>>('professor_course').update(professor_up).where({ user_id: this.user_id })
   }
