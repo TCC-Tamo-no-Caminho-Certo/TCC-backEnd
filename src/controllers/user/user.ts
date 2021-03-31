@@ -15,9 +15,9 @@ Router.route('/user')
 
     try {
       const user = (await User.find({ user_id }))[0].format()
-      const role = (await User.Role.find({ user_id })).map(role => role.format())
-      const email = (await User.Email.find({ user_id })).map(email => email.format())
-      const response = { ...user, role, email }
+      const roles = (await User.Role.find({ user_id })).map(role => role.format())
+      const emails = (await User.Email.find({ user_id })).map(email => email.format())
+      const response = { ...user, roles, emails }
 
       return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
     } catch (error) {
