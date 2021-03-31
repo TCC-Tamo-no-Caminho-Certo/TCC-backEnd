@@ -49,18 +49,13 @@ Router.get('/users', async (req: Request, res: Response) => {
 })
 
 Router.get('/users/:user_id', async (req: Request, res: Response) => {
-  const page = req.query.page
-  const per_page = req.query.per_page
-  const { user_id } = req.body
+  const user_id = parseInt(req.params.user_id)
 
   try {
-    new ValSchema({
-      page: P.joi.number().positive(),
-      per_page: P.joi.number().min(1).max(100)
-    }).validate({ page, per_page })
-    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+    new ValSchema(P.joi.number().positive()).validate(user_id)
 
-    const [user] = await User.find({ user_id }, pagination)
+    const [user] = await User.find({ user_id })
+    if (!user) return res.status(200).send({ success: true, message: 'Get users complete!', users: 'No user found!' })
     const emails = await User.Email.find({ user_id })
     const roles = await User.Role.find({ user_id })
 
