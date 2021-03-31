@@ -34,6 +34,7 @@ export default class ArisProfessorCourse extends Professor_Course {
     const aux_ob: Omit<GetProfessorCourse, 'user_id'> = {
       campus_id: this.campus_id,
       course_id: this.course_id,
+      register: this.register,
       full_time: this.full_time
     }
     return aux_ob

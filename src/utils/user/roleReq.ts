@@ -113,6 +113,7 @@ export default class ArisRoleReq extends RoleReq {
         user_id: this.user_id,
         campus_id: this.data.campus_id,
         course_id: this.data.course_id,
+        register: this.data.register,
         full_time: this.data.full_time
       })
     }
