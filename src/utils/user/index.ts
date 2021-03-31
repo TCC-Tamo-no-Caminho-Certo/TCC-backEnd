@@ -88,6 +88,7 @@ export default class ArisUser extends User {
         })
       Logger.info('data: ' + JSON.stringify(data))
       Logger.info('new new filter.user_id: ' + filter.user_id)
+      delete filter.full_name
     }
 
     const users = await this._find(filter, pagination)
