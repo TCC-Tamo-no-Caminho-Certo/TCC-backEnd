@@ -1,4 +1,5 @@
 import User_Role, { User_RoleCtor, User_RoleFilters } from '../../database/models/user/user_role'
+import Moderator from './moderatorUniversity'
 import ArisError from '../arisError'
 import Professor from './professor'
 import Student from './student'
@@ -62,6 +63,8 @@ export default class ArisRole extends User_Role {
 
   static Manage = Manage
 
+  static Moderator = Moderator
+  
   static Professor = Professor
 
   static Student = Student

@@ -31,7 +31,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required(),
-      register: P.joi.when('doc', { then: P.joi.number().required() }),
+      register: P.joi.when('voucher', { then: P.joi.number().required() }),
       full_time: P.joi.bool().required(),
       postgraduate: P.joi.bool().required(),
       linkedin: P.joi.string().allow(null),
@@ -61,7 +61,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       }
 
       await User.Role.Professor.create({ user_id, postgraduate, linkedin, lattes, orcid })
-      await User.Role.Professor.Course.add({ user_id, campus_id, course_id, register, full_time })
+      await User.Role.Professor.Course.add({ user_id, university_id, campus_id, course_id, register, full_time })
       await User.updateAccessTokenData(user_id, user_roles)
     } else if (voucher) {
       const file = new File(voucher)
@@ -69,7 +69,12 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 
       const voucher_uuid = await file.insert('documents', 'application/pdf')
 
-      await User.Role.Request.create(user_id, 'professor', { campus_id, course_id, register, full_time, postgraduate, lattes }, voucher_uuid)
+      await User.Role.Request.create(
+        user_id,
+        'professor',
+        { campus_id, university_id, course_id, register, full_time, postgraduate, lattes },
+        voucher_uuid
+      )
     } else throw new ArisError('None of the flow data was provided (voucher | inst_email)', 400)
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })
@@ -88,7 +93,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required(),
-      register: P.joi.when('doc', { then: P.joi.number().required() }),
+      register: P.joi.when('voucher', { then: P.joi.number().required() }),
       semester: P.joi.number().min(1).max(10).required(),
       linkedin: P.joi.string().allow(null),
       lattes: P.joi.string().allow(null)
@@ -118,7 +123,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       }
 
       await User.Role.Student.create({ user_id, linkedin, lattes })
-      await User.Role.Student.Course.add({ user_id, campus_id, course_id, register, semester })
+      await User.Role.Student.Course.add({ user_id, university_id, campus_id, course_id, register, semester })
       await User.updateAccessTokenData(user_id, user_roles)
     } else if (voucher) {
       const file = new File(voucher)
@@ -126,7 +131,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
 
       const voucher_uuid = await file.insert('documents', 'application/pdf')
 
-      await User.Role.Request.create(user_id, 'student', { campus_id, course_id, register, semester, linkedin, lattes }, voucher_uuid)
+      await User.Role.Request.create(user_id, 'student', { campus_id, university_id, course_id, register, semester, linkedin, lattes }, voucher_uuid)
     } else throw new ArisError('None of the flow data was provided (voucher or inst_email)', 400)
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })
@@ -137,10 +142,23 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
 })
 
 Router.post('/request/moderator', auth, permission(['professor']), async (req: Request, res: Response) => {
-  const { _user_id: user_id } = req.body
+  const { _user_id: user_id, _roles: user_roles, university_id, pretext } = req.body
 
   try {
-    await User.Role.Request.create(user_id, 'moderator')
+    new ValSchema(P.joi.number().positive().required()).validate(university_id)
+
+    const [professor_course] = await User.Role.Professor.Course.find({ user_id, university_id })
+
+    if (professor_course.get('full_time')) {
+      user_roles.push('moderator')
+      await User.Role.add(user_id, 'moderator')
+
+      await User.Role.Moderator.add({ user_id, university_id })
+      await User.updateAccessTokenData(user_id, user_roles)
+    } else {
+      if (!pretext) throw new ArisError('Professor that isn´t full time needs to provide a pretext!', 403)
+      await User.Role.Request.create(user_id, 'moderator', { university_id, pretext })
+    }
 
     return res.status(200).send({ success: true, message: 'Role request sended!' })
   } catch (error) {
@@ -149,7 +167,7 @@ Router.post('/request/moderator', auth, permission(['professor']), async (req: R
   }
 })
 
-Router.patch('/request/accept/:id', auth, permission(['moderator']), async (req: Request, res: Response) => {
+Router.patch('/request/accept/:id', auth, permission(['moderator', 'admin']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
@@ -170,7 +188,7 @@ Router.patch('/request/accept/:id', auth, permission(['moderator']), async (req:
   }
 })
 
-Router.patch('/request/reject/:id', auth, permission(['moderator']), async (req: Request, res: Response) => {
+Router.patch('/request/reject/:id', auth, permission(['moderator', 'admin']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
   const { feedback } = req.body
 
@@ -189,7 +207,7 @@ Router.patch('/request/reject/:id', auth, permission(['moderator']), async (req:
   }
 })
 
-Router.delete('/request/:id', auth, permission(['moderator']), async (req: Request, res: Response) => {
+Router.delete('/request/:id', auth, permission(['moderator', 'admin']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
