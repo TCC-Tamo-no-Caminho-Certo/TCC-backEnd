@@ -15,8 +15,8 @@ export default (roles: (RoleTypes | NRoleTypes)[]) => {
         : req.body._roles.some((user_role: string) => user_role === r[0])
       const allowed = flag ? !has_role : has_role
 
-      return flag ? allowed * acc : allowed + acc
-    }, 0)
+      return allowed ? acc : 0
+    }, 1)
     
     return allow ? next() : res.status(403).send({ success: false, message: `User not allowed to access this route!`, route_roles: roles })
   }
