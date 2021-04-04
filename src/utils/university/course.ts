@@ -1,5 +1,4 @@
 import Campus_Course, { Campus_CourseCtor, Campus_CourseFilters } from '../../database/models/university/campus_course'
-import Course from '../../database/models/university/course'
 import ArisError from '../arisError'
 import Manage from './courseMan'
 
@@ -16,9 +15,9 @@ export default class ArisCourse extends Campus_Course {
   /**
    * Adds an new course to a campus.
    */
-  static async add(course: CourseTypes, campus_id: number) {
+  static async add(university_id: number, campus_id: number, course: CourseTypes) {
     const course_id = Manage.find(course).get('course_id')
-    const camp_course = new ArisCourse({ campus_id, course_id })
+    const camp_course = new ArisCourse({ university_id, campus_id, course_id })
     await camp_course.n_insert()
 
     return course
@@ -29,7 +28,7 @@ export default class ArisCourse extends Campus_Course {
    * @param key -parameter to be returned.
    */
   get<T extends keyof GetCourse>(key: T): GetCourse[T] {
-    const aux_ob = { campus_id: this.campus_id, ...this.format() }
+    const aux_ob = { university_id: this.university_id, campus_id: this.campus_id, ...this.format() }
     return aux_ob[key]
   }
 
@@ -37,7 +36,7 @@ export default class ArisCourse extends Campus_Course {
    * returns a formatted object of course infos.
    */
   format() {
-    const aux_ob: Omit<GetCourse, 'campus_id'> = {
+    const aux_ob: Omit<GetCourse, 'university_id' | 'campus_id'> = {
       ...Manage.find(this.course_id).format()
     }
     return aux_ob

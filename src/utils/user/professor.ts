@@ -1,5 +1,5 @@
 import Professor, { ProfessorCtor, ProfessorFilters } from '../../database/models/user/professor'
-import Course from './professorCourse'
+import Course from './professorUniversity'
 import ArisError from '../arisError'
 
 import { Pagination } from '../../types'

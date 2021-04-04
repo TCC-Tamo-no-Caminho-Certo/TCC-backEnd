@@ -1,4 +1,4 @@
-import Student_Course, { Student_CourseCtor, Student_CourseFilters } from '../../database/models/user/student_course'
+import Student_University, { Student_UniversityCtor, Student_UniversityFilters } from '../../database/models/user/student_university'
 import ArisError from '../arisError'
 
 import { Pagination } from '../../types'
@@ -6,13 +6,13 @@ import { Pagination } from '../../types'
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type GetStudentCourse = Required<Student_CourseCtor>
+type GetStudentCourse = Required<Student_UniversityCtor>
 
-export default class ArisStudentCourse extends Student_Course {
+export default class ArisStudentUniversity extends Student_University {
   private txn?: Transaction
 
-  static async add(student_course_info: Student_CourseCtor) {
-    const student_course = new ArisStudentCourse(student_course_info)
+  static async add(student_course_info: Student_UniversityCtor) {
+    const student_course = new ArisStudentUniversity(student_course_info)
     await student_course._insert()
 
     return student_course
@@ -32,6 +32,7 @@ export default class ArisStudentCourse extends Student_Course {
    */
   format() {
     const aux_ob: Omit<GetStudentCourse, 'user_id'> = {
+      university_id: this.university_id,
       campus_id: this.campus_id,
       course_id: this.course_id,
       register: this.register,
@@ -43,10 +44,10 @@ export default class ArisStudentCourse extends Student_Course {
   /**
    * Returns an Aris role.
    */
-  static async find(filter: Student_CourseFilters, pagination?: Pagination) {
-    const roles_info = await this._find(filter, pagination)
+  static async find(filter: Student_UniversityFilters, pagination?: Pagination) {
+    const students_info = await this._find(filter, pagination)
 
-    return roles_info.map(role_info => new ArisStudentCourse(role_info))
+    return students_info.map(student_info => new ArisStudentUniversity(student_info))
   }
 
   async remove() {

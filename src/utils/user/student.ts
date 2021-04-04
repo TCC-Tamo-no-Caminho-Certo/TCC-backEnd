@@ -1,5 +1,5 @@
 import Student, { StudentCtor, StudentFilters } from '../../database/models/user/student'
-import Course from './studentCourse'
+import Course from './studentUniversity'
 import ArisError from '../arisError'
 
 import { Pagination } from '../../types'

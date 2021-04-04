@@ -40,8 +40,11 @@ Router.route('/:id/course')
         campus_id: P.joi.number().positive().required(),
         name: P.joi.string().required()
       }).validate({ name, campus_id })
+      
+      const [campus] = await University.Campus.find({ campus_id })
+      if (!campus) throw new ArisError('Campus not found!', 403)
 
-      await University.Campus.Course.add(name, campus_id)
+      await University.Campus.Course.add(campus.get('university_id'), campus_id, name)
 
       return res.status(200).send({ success: true, message: 'Course added!' })
     } catch (error) {

@@ -1,4 +1,4 @@
-import Professor_Course, { Professor_CourseCtor, Professor_CourseFilters } from '../../database/models/user/professor_course'
+import Professor_University, { Professor_UniversityCtor, Professor_UniversityFilters } from '../../database/models/user/professor_university'
 import ArisError from '../arisError'
 
 import { Pagination } from '../../types'
@@ -6,13 +6,13 @@ import { Pagination } from '../../types'
 import { Transaction } from 'knex'
 import db from '../../database'
 
-type GetProfessorCourse = Required<Professor_CourseCtor>
+type GetProfessorCourse = Required<Professor_UniversityCtor>
 
-export default class ArisProfessorCourse extends Professor_Course {
+export default class ArisProfessorUniversity extends Professor_University {
   private txn?: Transaction
 
-  static async add(professor_course_info: Professor_CourseCtor) {
-    const professor_course = new ArisProfessorCourse(professor_course_info)
+  static async add(professor_course_info: Professor_UniversityCtor) {
+    const professor_course = new ArisProfessorUniversity(professor_course_info)
     await professor_course._insert()
 
     return professor_course
@@ -32,6 +32,7 @@ export default class ArisProfessorCourse extends Professor_Course {
    */
   format() {
     const aux_ob: Omit<GetProfessorCourse, 'user_id'> = {
+      university_id: this.university_id,
       campus_id: this.campus_id,
       course_id: this.course_id,
       register: this.register,
@@ -43,10 +44,12 @@ export default class ArisProfessorCourse extends Professor_Course {
   /**
    * Returns an Aris role.
    */
-  static async find(filter: Professor_CourseFilters, pagination?: Pagination) {
-    const roles_info = await this._find(filter, pagination)
+  static async find<T extends Professor_UniversityFilters>(filter: T, pagination?: Pagination) {
+    const professors_info = await this._find(filter, pagination)
 
-    return roles_info.map(role_info => new ArisProfessorCourse(role_info))
+    return <T extends { user_id: number; university_id: number } ? [ArisProfessorUniversity] : ArisProfessorUniversity[]>(
+      professors_info.map(professor_info => new ArisProfessorUniversity(professor_info))
+    )
   }
 
   async remove() {

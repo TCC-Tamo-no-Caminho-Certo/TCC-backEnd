@@ -4,23 +4,27 @@ import { Transaction } from 'knex'
 import db from '../..'
 
 export interface Campus_CourseFilters {
+  university_id?: number | number[]
   campus_id?: number | number[]
   course_id?: number | number[]
 }
 
 export interface Campus_CourseCtor {
+  university_id: number
   campus_id: number
   course_id: number
 }
 
 export default class Campus_Course {
+  protected university_id: number
   protected campus_id: number
   protected course_id: number
 
   /**
    * Creates a campus course.
    */
-  protected constructor({ campus_id, course_id }: Campus_CourseCtor) {
+  protected constructor({ university_id, campus_id, course_id }: Campus_CourseCtor) {
+    this.university_id = university_id
     this.campus_id = campus_id
     this.course_id = course_id
   }
@@ -28,7 +32,7 @@ export default class Campus_Course {
   protected async n_insert(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn<Required<Campus_CourseCtor>>('campus_course').insert({ campus_id: this.campus_id, course_id: this.course_id })
+    await txn<Required<Campus_CourseCtor>>('campus_course').insert({ university_id: this.university_id,campus_id: this.campus_id, course_id: this.course_id })
   }
 
   protected async n_delete(transaction?: Transaction) {

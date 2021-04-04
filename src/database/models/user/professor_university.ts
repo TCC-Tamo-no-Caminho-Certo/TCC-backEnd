@@ -2,36 +2,40 @@ import { Pagination } from '../../../types'
 import { Transaction } from 'knex'
 import db from '../..'
 
-export interface Professor_CourseFilters {
+export interface Professor_UniversityFilters {
   user_id?: number | number[]
   course_id?: number | number[]
   campus_id?: number | number[]
+  university_id?: number | number[]
   register?: number | number[]
   full_time?: boolean
 }
 
-export interface Professor_CourseCtor {
+export interface Professor_UniversityCtor {
   user_id: number
   course_id: number
   campus_id: number
+  university_id: number
   register: number
   full_time: boolean
 }
 
-export default class Professor_course {
+export default class Professor_University {
   protected user_id: number
   protected course_id: number
   protected campus_id: number
+  protected university_id: number
   protected register: number
   protected full_time: boolean
 
   /**
    * Creates an professor.
    */
-  protected constructor({ user_id, course_id, campus_id, register, full_time }: Professor_CourseCtor) {
+  protected constructor({ user_id, course_id, campus_id, university_id, register, full_time }: Professor_UniversityCtor) {
     this.user_id = user_id
     this.course_id = course_id
     this.campus_id = campus_id
+    this.university_id = university_id
     this.register = register
     this.full_time = full_time
   }
@@ -42,10 +46,11 @@ export default class Professor_course {
   protected async _insert(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn<Required<Professor_CourseCtor>>('professor_course').insert({
+    await txn<Required<Professor_UniversityCtor>>('professor_university').insert({
       user_id: this.user_id,
       course_id: this.course_id,
       campus_id: this.campus_id,
+      university_id: this.university_id,
       register: this.register,
       full_time: this.full_time
     })
@@ -59,7 +64,9 @@ export default class Professor_course {
 
     const professor_up = { register: this.register, full_time: this.full_time }
 
-    await txn<Required<Professor_CourseCtor>>('professor_course').update(professor_up).where({ user_id: this.user_id })
+    await txn<Required<Professor_UniversityCtor>>('professor_university')
+      .update(professor_up)
+      .where({ user_id: this.user_id, university_id: this.university_id, campus_id: this.campus_id, course_id: this.course_id })
   }
 
   /**
@@ -68,18 +75,20 @@ export default class Professor_course {
   protected async _delete(transaction?: Transaction) {
     const txn = transaction || db
 
-    await txn<Required<Professor_CourseCtor>>('professor_course').del().where({ user_id: this.user_id })
+    await txn<Required<Professor_UniversityCtor>>('professor_university')
+      .del()
+      .where({ user_id: this.user_id, university_id: this.university_id, campus_id: this.campus_id, course_id: this.course_id })
   }
 
   /**
    * returns an professor if it`s registered in the database.
    */
-  protected static async _find(filter: Professor_CourseFilters, pagination?: Pagination) {
+  protected static async _find(filter: Professor_UniversityFilters, pagination?: Pagination) {
     const page: number = pagination?.page || 1,
       per_page: number = pagination?.per_page || 50
 
-    const base_query = db<Required<Professor_CourseCtor>>('professor_course').where(builder => {
-      let key: keyof Professor_CourseFilters
+    const base_query = db<Required<Professor_UniversityCtor>>('professor_university').where(builder => {
+      let key: keyof Professor_UniversityFilters
       for (key in filter)
         if (filter[key]) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
     })
