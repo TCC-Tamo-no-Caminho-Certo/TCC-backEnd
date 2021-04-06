@@ -17,7 +17,27 @@ Router.route('/user')
       const user = (await User.find({ user_id }))[0].format()
       const roles = (await User.Role.find({ user_id })).map(role => role.format())
       const emails = (await User.Email.find({ user_id })).map(email => email.format())
-      const response = { ...user, roles, emails }
+
+      let moderator: any
+      let professor: any
+      let student: any
+      for (const role of roles) {
+        if (role === 'professor') {
+          professor = (await User.Role.Professor.find({ user_id }))[0].format()
+          const universities = (await User.Role.Professor.Course.find({ user_id })).map(university => university.format())
+
+          professor.universities = universities
+        } else if (role === 'student') {
+          student = (await User.Role.Student.find({ user_id }))[0].format()
+          const universities = (await User.Role.Student.Course.find({ user_id })).map(university => university.format())
+
+          student.universities = universities
+        } else if (role === 'moderator') {
+          moderator = (await User.Role.Moderator.find({ user_id })).map(university => university.format())
+        }
+      }
+
+      const response = { ...user, roles, emails, moderator, professor, student }
 
       return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
     } catch (error) {
