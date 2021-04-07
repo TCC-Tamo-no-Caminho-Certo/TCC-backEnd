@@ -75,9 +75,12 @@ export default class ArisUser extends User {
     if (lucene.enabled && filter.full_name) {
       filter.user_id = !filter.user_id ? [] : Array.isArray(filter.user_id) ? filter.user_id : [filter.user_id]
 
+      var from = ((pagination?.page || 1) - 1) * (pagination?.per_page || 50)
+      var to = (pagination?.page || 1) * (pagination?.per_page || 50)
+
       const data = Array.isArray(filter.full_name)
-        ? await lucene.searchBatch(filter.full_name, pagination?.per_page || 50)
-        : await lucene.search(filter.full_name, pagination?.per_page || 50)
+        ? await lucene.searchBatch(filter.full_name, from, to)
+        : await lucene.search(filter.full_name, from, to)
       if (data.ok) data.results?.forEach(result => (<number[]>filter.user_id).push(parseInt(result.fields.id)))
       delete filter.full_name
     }

@@ -12,7 +12,7 @@ const Router = express.Router()
 
 Router.use(auth, permission(['admin']))
 
-Router.get('/reset-lucene', async (req: Request, res: Response) => {
+Router.get('/lucene-reset', async (req: Request, res: Response) => {
   try {
     logger.info('Deleting lucene database...')
 
@@ -35,13 +35,37 @@ Router.get('/reset-lucene', async (req: Request, res: Response) => {
   }
 })
 
-Router.get('/search-lucene', async (req: Request, res: Response) => {
-  const { search } = req.query
+Router.get('/lucene-create-database', async (req: Request, res: Response) => {
+  try {
+    if (!lucene.enabled) return res.status(200).send({ success: false, message: 'Lucene not enabled!' })
+
+    const result = await lucene.createDatabase()
+    return res.status(200).send({ success: true, result })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Lucene error')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.get('/lucene-get-databases', async (req: Request, res: Response) => {
+  try {
+    if (!lucene.enabled) return res.status(200).send({ success: false, message: 'Lucene not enabled!' })
+
+    const result = await lucene.getDatabases()
+    return res.status(200).send({ success: true, result })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Lucene error')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.get('/lucene-search', async (req: Request, res: Response) => {
+  const { search, from, to } = req.query
   try {
     if (!lucene.enabled) return res.status(200).send({ success: false, message: 'Lucene not enabled!' })
 
     if (search) {
-      const result = await lucene.search(search.toString(), 50)
+      const result = await lucene.search(search.toString(), parseInt(<string> from), parseInt(<string> to))
       return res.status(200).send({ success: true, search, result })
     } else {
       return res.status(500).send({ success: false, message: 'Search is null!' })
