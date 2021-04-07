@@ -69,20 +69,22 @@ class SearchManager {
   async add(document: SearchDocument) {
     const response = await axios.post(`${this.baseUrl}/document`, {
       database: this.database,
-      fields: [
-        {
-          name: 'id',
-          data: document.id.toString(),
-          type: 1,
-          store: 0
-        },
-        {
-          name: 'name',
-          data: document.name,
-          type: 5,
-          store: 1
-        }
-      ]
+      document: {
+        fields: [
+          {
+            name: 'id',
+            data: document.id.toString(),
+            type: 1,
+            store: 0
+          },
+          {
+            name: 'name',
+            data: document.name,
+            type: 5,
+            store: 1
+          }
+        ]
+      }
     })
     return response.data.ok === true
   }
