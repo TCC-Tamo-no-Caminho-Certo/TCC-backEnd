@@ -9,6 +9,59 @@ import { auth, permission } from '../../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
+Router.post('/request/moderator', auth, permission(['professor', '!moderator']), async (req: Request, res: Response) => {
+  const { _user_id: user_id, _roles: user_roles, university_id, pretext } = req.body
+
+  try {
+    new ValSchema({ university_id: P.joi.number().positive().required(), pretext: P.joi.string().allow(null) }).validate({ university_id, pretext })
+
+    const requests = await User.Role.Request.find({ user_id, role_id: User.Role.Manage.find('moderator').get('role_id') })
+    if (requests.some(request => request.get('data')!.university_id === university_id)) throw new ArisError('Request already made!', 403)
+
+    const [professor_course] = await User.Role.Professor.Course.find({ user_id, university_id })
+
+    if (professor_course.get('full_time')) {
+      user_roles.push('moderator')
+      await User.Role.add(user_id, 'moderator')
+
+      await User.Role.Moderator.add({ user_id, university_id })
+      await User.updateAccessTokenData(user_id, user_roles)
+    } else {
+      if (!pretext) throw new ArisError('Professor that isn´t full time needs to provide a pretext!', 403)
+      await User.Role.Request.create(user_id, 'moderator', { university_id, pretext })
+    }
+
+    return res.status(200).send({ success: true, message: 'Role request sended!' })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Role request')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.patch('/request/moderator/:id', auth, async (req: Request, res: Response) => {
+  const { _user_id: user_id, pretext } = req.body
+  const request_id = parseInt(req.params.id)
+
+  try {
+    new ValSchema({
+      request_id: P.joi.number().positive().required(),
+      pretext: P.joi.string().allow(null)
+    }).validate({ request_id, pretext })
+
+    const [request] = await User.Role.Request.find({ request_id, user_id })
+    if (!request) throw new ArisError('Request not found!', 400)
+
+    const data = { ...request.get('data'), pretext }
+
+    await request.update({ data, status: 'awaiting' })
+
+    return res.status(200).send({ success: true, message: 'Update complete!' })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Update')
+    return res.status(result.status).send(result.send)
+  }
+})
+
 Router.post('/request/professor', auth, permission(['!professor']), async (req: Request, res: Response) => {
   const {
     _user_id: user_id,
@@ -38,6 +91,9 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       lattes: P.joi.string().allow(null),
       orcid: P.joi.string().allow(null)
     }).validate({ voucher, university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid })
+
+    const requests = await User.Role.Request.find({ user_id, role_id: User.Role.Manage.find('professor').get('role_id') })
+    if (requests.some(request => request.get('data')!.university_id === university_id)) throw new ArisError('Request already made!', 403)
 
     if (!voucher) {
       const emails = await User.Email.find({ user_id })
@@ -84,6 +140,47 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
   }
 })
 
+Router.patch('/request/professor/:id', auth, async (req: Request, res: Response) => {
+  const { _user_id: user_id, voucher, university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid } = req.body
+  const request_id = parseInt(req.params.id)
+
+  try {
+    new ValSchema({
+      request_id: P.joi.number().positive().required(),
+      voucher: P.joi.string().allow(null),
+      university_id: P.joi.number().positive(),
+      campus_id: P.joi.number().positive(),
+      course_id: P.joi.number().positive(),
+      register: P.joi.when('voucher', { then: P.joi.number().required() }),
+      full_time: P.joi.bool(),
+      postgraduate: P.joi.bool(),
+      linkedin: P.joi.string().allow(null),
+      lattes: P.joi.string().allow(null),
+      orcid: P.joi.string().allow(null)
+    }).validate({ request_id, voucher, university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid })
+
+    const [request] = await User.Role.Request.find({ request_id, user_id })
+    if (!request) throw new ArisError('Request not found!', 400)
+
+    const data = { ...request.get('data'), university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid }
+
+    let voucher_uuid = request.get('voucher_uuid')
+    if (voucher) {
+      const file = new File(voucher)
+      if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
+
+      voucher_uuid = await file.insert('documents', 'application/pdf')
+    }
+
+    await request.update({ data, voucher_uuid, status: 'awaiting' })
+
+    return res.status(200).send({ success: true, message: 'Update complete!' })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Update')
+    return res.status(result.status).send(result.send)
+  }
+})
+
 Router.post('/request/student', auth, permission(['!student']), async (req: Request, res: Response) => {
   const { _user_id: user_id, _roles: user_roles, voucher, university_id, campus_id, course_id, register, semester, linkedin, lattes } = req.body
 
@@ -98,6 +195,9 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       linkedin: P.joi.string().allow(null),
       lattes: P.joi.string().allow(null)
     }).validate({ voucher, university_id, campus_id, course_id, register, semester, linkedin, lattes })
+
+    const requests = await User.Role.Request.find({ user_id, role_id: User.Role.Manage.find('student').get('role_id') })
+    if (requests.some(request => request.get('data')!.university_id === university_id)) throw new ArisError('Request already made!', 403)
 
     if (!voucher) {
       const emails = await User.Email.find({ user_id })
@@ -141,28 +241,41 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
   }
 })
 
-Router.post('/request/moderator', auth, permission(['professor']), async (req: Request, res: Response) => {
-  const { _user_id: user_id, _roles: user_roles, university_id, pretext } = req.body
+Router.patch('/request/student/:id', auth, async (req: Request, res: Response) => {
+  const { _user_id: user_id, voucher, university_id, campus_id, course_id, register, semester, linkedin, lattes } = req.body
+  const request_id = parseInt(req.params.id)
 
   try {
-    new ValSchema(P.joi.number().positive().required()).validate(university_id)
+    new ValSchema({
+      request_id: P.joi.number().positive().required(),
+      voucher: P.joi.string().allow(null),
+      university_id: P.joi.number().positive(),
+      campus_id: P.joi.number().positive(),
+      course_id: P.joi.number().positive(),
+      register: P.joi.when('voucher', { then: P.joi.number().required() }),
+      semester: P.joi.number().min(1).max(10),
+      linkedin: P.joi.string().allow(null),
+      lattes: P.joi.string().allow(null)
+    }).validate({ request_id, voucher, university_id, campus_id, course_id, register, semester, linkedin, lattes })
 
-    const [professor_course] = await User.Role.Professor.Course.find({ user_id, university_id })
+    const [request] = await User.Role.Request.find({ request_id, user_id })
+    if (!request) throw new ArisError('Request not found!', 400)
 
-    if (professor_course.get('full_time')) {
-      user_roles.push('moderator')
-      await User.Role.add(user_id, 'moderator')
+    const data = { ...request.get('data'), university_id, campus_id, course_id, register, semester, linkedin, lattes }
 
-      await User.Role.Moderator.add({ user_id, university_id })
-      await User.updateAccessTokenData(user_id, user_roles)
-    } else {
-      if (!pretext) throw new ArisError('Professor that isn´t full time needs to provide a pretext!', 403)
-      await User.Role.Request.create(user_id, 'moderator', { university_id, pretext })
+    let voucher_uuid = request.get('voucher_uuid')
+    if (voucher) {
+      const file = new File(voucher)
+      if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
+
+      voucher_uuid = await file.insert('documents', 'application/pdf')
     }
 
-    return res.status(200).send({ success: true, message: 'Role request sended!' })
+    await request.update({ data, voucher_uuid })
+
+    return res.status(200).send({ success: true, message: 'Update complete!' })
   } catch (error) {
-    const result = ArisError.errorHandler(error, 'Role request')
+    const result = ArisError.errorHandler(error, 'Update')
     return res.status(result.status).send(result.send)
   }
 })

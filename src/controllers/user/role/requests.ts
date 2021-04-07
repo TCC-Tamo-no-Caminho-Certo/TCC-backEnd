@@ -48,7 +48,9 @@ route.get('/requests', async (req: Request, res: Response) => {
     const result = requests.map(request => {
       const request_info: any = request.format()
       const name = users.find(user => user.get('user_id') === request.get('user_id'))!.get('full_name')
-      const role = User.Role.Manage.find(roles.find(role => role.user_id === request.get('user_id'))!.role_id).get('title')
+      const role = User.Role.Manage.find(
+        roles.find(role => role.user_id === request.get('user_id') && role.role_id === request.get('role_id'))!.role_id
+      ).get('title')
 
       request_info.name = name
       request_info.role = role

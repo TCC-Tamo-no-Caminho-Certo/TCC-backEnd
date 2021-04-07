@@ -88,10 +88,11 @@ export default class ArisRoleReq extends RoleReq {
   /**
    * Updates the role request info.
    */
-  async update({ data, voucher_uuid, feedback }: Partial<Pick<RoleReqCtor, 'data' | 'voucher_uuid' | 'feedback'>>) {
+  async update({ data, voucher_uuid, feedback, status }: Partial<Pick<RoleReqCtor, 'data' | 'voucher_uuid' | 'status' | 'feedback'>>) {
     if (data) this.data = data
     if (voucher_uuid) this.voucher_uuid = voucher_uuid
     if (feedback) this.feedback = feedback
+    if (status) this.status = status
 
     await this._update(this.txn)
   }
