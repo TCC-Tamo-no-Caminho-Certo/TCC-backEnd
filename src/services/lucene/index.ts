@@ -26,6 +26,18 @@ class SearchManager {
     this.baseUrl = baseUrl + '/v2'
   }
 
+  async getDatabases() {
+    const response = await axios.get(`${this.baseUrl}/databases`)
+    return response.data
+  }
+
+  async createDatabase() {
+    const response = await axios.post(`${this.baseUrl}/database`, {
+      name: this.database
+    })
+    return response.data.ok === true
+  }
+
   async search(name: string, from: number, to: number): Promise<SearchResponse> {
     const response = await axios.post<SearchResponse>(`${this.baseUrl}/search`, {
       field: 'name',
