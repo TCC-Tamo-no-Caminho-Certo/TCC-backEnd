@@ -102,15 +102,17 @@ export default class ArisRoleReq extends RoleReq {
   }
 
   async accept(user_roles: RoleTypes[]) {
+    const role_title = RoleMan.find(this.role_id).get('title')
+
     if (user_roles.some(role => role === 'guest')) {
       await this.n_update(RoleMan.find('guest').get('role_id'), this.txn)
-      user_roles = user_roles.filter(role => (role === 'guest' ? RoleMan.find(this.role_id).get('title') : role))
-    } else {
+      user_roles = user_roles.map(role => (role === 'guest' ? role_title : role))
+    } else if (!user_roles.some((role: string) => role === role_title)) {
       await this.n_insert(this.txn)
-      user_roles.push(RoleMan.find(this.role_id).get('title'))
+      user_roles.push(role_title)
     }
 
-    switch (RoleMan.find(this.role_id).get('title')) {
+    switch (role_title) {
       case 'professor':
         if (!this.data) throw new ArisError('Couldn´t find professor role request data', 500)
         await Professor.create({

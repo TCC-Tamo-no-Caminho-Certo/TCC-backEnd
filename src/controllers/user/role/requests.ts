@@ -2,10 +2,13 @@ import ValSchema, { P } from '../../../utils/validation'
 import ArisError from '../../../utils/arisError'
 import User from '../../../utils/user'
 
+import { auth, permission } from '../../../middlewares'
+
 import express, { Request, Response } from 'express'
 const route = express.Router()
 
-route.get('/requests', async (req: Request, res: Response) => {
+route.get('/requests', auth, permission(['moderator']), async (req: Request, res: Response) => {
+  const { _user_id: user_id } = req.body
   const { page, per_page, filter } = req.query
 
   type Filter = Parameters<typeof User.Role.Request.find>[0] & { full_name?: string | string[] }
@@ -26,6 +29,8 @@ route.get('/requests', async (req: Request, res: Response) => {
     }).validate({ page, per_page, filter })
     const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
 
+    const universities_ids = (await User.Role.Moderator.find({ user_id })).map(vinc => vinc.get('university_id'))
+
     const users: User[] = []
     const user_ids: number[] = []
     if ((<Filter>filter)?.full_name) {
@@ -39,21 +44,16 @@ route.get('/requests', async (req: Request, res: Response) => {
       delete (<Filter>filter).full_name
     }
 
-    const requests = await User.Role.Request.find(<Filter>filter, pagination)
+    const requests = await User.Role.Request.find({ ...(<Filter>filter), data: { university_id: universities_ids } }, pagination)
     const new_user_ids = requests.map(request => request.get('user_id'))
-    const roles = requests.map(request => ({ user_id: request.get('user_id'), role_id: request.get('role_id') }))
 
     users.push(...(await User.find({ user_id: new_user_ids.filter(new_user_id => !user_ids.some(user_id => user_id === new_user_id)) })))
 
     const result = requests.map(request => {
       const request_info: any = request.format()
       const name = users.find(user => user.get('user_id') === request.get('user_id'))!.get('full_name')
-      const role = User.Role.Manage.find(
-        roles.find(role => role.user_id === request.get('user_id') && role.role_id === request.get('role_id'))!.role_id
-      ).get('title')
 
       request_info.name = name
-      request_info.role = role
 
       return request_info
     })
