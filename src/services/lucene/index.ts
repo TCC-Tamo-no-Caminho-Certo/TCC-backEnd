@@ -17,23 +17,27 @@ interface SearchDocument {
 
 class SearchManager {
   public baseUrl: string = ''
+  public database: string = ''
   public enabled: boolean = false
 
-  initialize(baseUrl: string) {
+  initialize(baseUrl: string, database: string) {
     this.enabled = true
-    this.baseUrl = baseUrl
+    this.database = database
+    this.baseUrl = baseUrl + '/v2'
   }
 
-  async search(name: string, quantity: number): Promise<SearchResponse> {
+  async search(name: string, from: number, to: number): Promise<SearchResponse> {
     const response = await axios.post<SearchResponse>(`${this.baseUrl}/search`, {
       field: 'name',
       data: name,
-      quantity
+      database: this.database,
+      from,
+      to
     })
     return response.data
   }
 
-  async searchBatch(names: string[], quantity: number): Promise<SearchResponse> {
+  async searchBatch(names: string[], from: number, to: number): Promise<SearchResponse> {
     let data: { searchs: any[] } = {
       searchs: []
     }
@@ -41,7 +45,9 @@ class SearchManager {
       data.searchs.push({
         field: 'name',
         data: name,
-        quantity
+        database: this.database,
+        from,
+        to
       })
     })
     const response = await axios.post<SearchResponse>(`${this.baseUrl}/search-batch`, data)
@@ -49,7 +55,8 @@ class SearchManager {
   }
 
   async add(document: SearchDocument) {
-    const response = await axios.post(`${this.baseUrl}/add`, {
+    const response = await axios.post(`${this.baseUrl}/document`, {
+      database: this.database,
       fields: [
         {
           name: 'id',
@@ -61,7 +68,7 @@ class SearchManager {
           name: 'name',
           data: document.name,
           type: 5,
-          store: 0
+          store: 1
         }
       ]
     })
@@ -74,6 +81,7 @@ class SearchManager {
     }
     documents.forEach(document => {
       data.documents.push({
+        database: this.database,
         fields: [
           {
             name: 'id',
@@ -85,25 +93,32 @@ class SearchManager {
             name: 'name',
             data: document.name,
             type: 5,
-            store: 0
+            store: 1
           }
         ]
       })
     })
-    const response = await axios.post(`${this.baseUrl}/add-batch`, data)
+    const response = await axios.post(`${this.baseUrl}/documents`, data)
     return response.data.ok === true
   }
 
   async delete(id: number) {
-    const response = await axios.post(`${this.baseUrl}/delete`, {
-      field: 'id',
-      data: id.toString()
+    const response = await axios.delete(`${this.baseUrl}/document`, {
+      data: {
+        database: this.database,
+        field: 'id',
+        data: id.toString()
+      }
     })
     return response.data.ok === true
   }
 
   async deleteAll() {
-    const response = await axios.get(`${this.baseUrl}/delete-all`)
+    const response = await axios.delete(`${this.baseUrl}/documents`, {
+      data: {
+        database: this.database
+      }
+    })
     return response.data.ok === true
   }
 }
