@@ -20,7 +20,7 @@ if (config.logging.use) {
 }
 
 if (config.search.use) {
-  lucene.initialize(config.search.baseUrl, "rolereq")
+  lucene.initialize(config.search.baseUrl, 'rolereq')
   logger.info(`Using search at ${config.search.baseUrl}`)
 }
 

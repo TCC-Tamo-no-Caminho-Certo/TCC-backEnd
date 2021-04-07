@@ -65,7 +65,7 @@ Router.get('/lucene-search', async (req: Request, res: Response) => {
     if (!lucene.enabled) return res.status(200).send({ success: false, message: 'Lucene not enabled!' })
 
     if (search) {
-      const result = await lucene.search(search.toString(), parseInt(<string> from), parseInt(<string> to))
+      const result = await lucene.search(search.toString(), parseInt(<string>from), parseInt(<string>to))
       return res.status(200).send({ success: true, search, result })
     } else {
       return res.status(500).send({ success: false, message: 'Search is null!' })

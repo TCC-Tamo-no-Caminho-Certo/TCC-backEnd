@@ -29,16 +29,26 @@ Router.route('/role/:title').delete(auth, async (req: Request, res: Response) =>
     if (!remove_role) throw new ArisError('Role not vinculated with this user!', 400)
     await remove_role.remove()
 
-    if (remove_role.get('title') === 'student') {
-      const [student] = await User.Role.Student.find({ user_id })
-      await student.delete()
-      const vinculated_courses = await User.Role.Student.Course.find({ user_id })
-      for (const course of vinculated_courses) await course.remove()
-    } else if (remove_role.get('title') === 'professor') {
-      const [professor] = await User.Role.Professor.find({ user_id })
-      await professor.delete()
-      const vinculated_courses = await User.Role.Professor.Course.find({ user_id })
-      for (const course of vinculated_courses) await course.remove()
+    switch (remove_role.get('title')) {
+      case 'student': {
+        const [student] = await User.Role.Student.find({ user_id })
+        await student.delete()
+        const vinculated_courses = await User.Role.Student.Course.find({ user_id })
+        for (const course of vinculated_courses) await course.remove()
+        break
+      }
+      case 'professor': {
+        const [professor] = await User.Role.Professor.find({ user_id })
+        await professor.delete()
+        const vinculated_courses = await User.Role.Professor.Course.find({ user_id })
+        for (const course of vinculated_courses) await course.remove()
+        break
+      }
+      case 'moderator': {
+        const [moderator] = await User.Role.Moderator.find({ user_id })
+        await moderator.remove()
+        break
+      }
     }
 
     await User.updateAccessTokenData(
