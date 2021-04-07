@@ -21,11 +21,13 @@ Router.post('/request/moderator', auth, permission(['professor', '!moderator']),
     const [professor_course] = await User.Role.Professor.Course.find({ user_id, university_id })
 
     if (professor_course.get('full_time')) {
-      user_roles.push('moderator')
-      await User.Role.add(user_id, 'moderator')
-
       await User.Role.Moderator.add({ user_id, university_id })
-      await User.updateAccessTokenData(user_id, user_roles)
+
+      if (!user_roles.some((role: string) => role === 'moderator')) {
+        user_roles.push('moderator')
+        await User.Role.add(user_id, 'moderator')
+        await User.updateAccessTokenData(user_id, user_roles)
+      }
     } else {
       if (!pretext) throw new ArisError('Professor that isn´t full time needs to provide a pretext!', 403)
       await User.Role.Request.create(user_id, 'moderator', { university_id, pretext })
@@ -106,19 +108,20 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       const regex = new RegExp(university.get('regex').email.professor)
       if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
 
+      await User.Role.Professor.create({ user_id, postgraduate, linkedin, lattes, orcid })
+      await User.Role.Professor.Course.add({ user_id, university_id, campus_id, course_id, register, full_time })
+
       if (user_roles.some((role: string) => role === 'guest')) {
         const index = user_roles.findIndex((role: string) => role === 'guest')
         user_roles[index] = 'professor'
         await User.Role.remove(user_id, 'guest')
         await User.Role.add(user_id, 'professor')
-      } else {
+        await User.updateAccessTokenData(user_id, user_roles)
+      } else if (!user_roles.some((role: string) => role === 'professor')) {
         user_roles.push('professor')
         await User.Role.add(user_id, 'professor')
+        await User.updateAccessTokenData(user_id, user_roles)
       }
-
-      await User.Role.Professor.create({ user_id, postgraduate, linkedin, lattes, orcid })
-      await User.Role.Professor.Course.add({ user_id, university_id, campus_id, course_id, register, full_time })
-      await User.updateAccessTokenData(user_id, user_roles)
     } else if (voucher) {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
@@ -212,19 +215,20 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       if (!email) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
       const register = parseInt(email.get('address').split('@')[0])
 
+      await User.Role.Student.create({ user_id, linkedin, lattes })
+      await User.Role.Student.Course.add({ user_id, university_id, campus_id, course_id, register, semester })
+
       if (user_roles.some((role: string) => role === 'guest')) {
         const index = user_roles.findIndex((role: string) => role === 'guest')
         user_roles[index] = 'student'
         await User.Role.remove(user_id, 'guest')
         await User.Role.add(user_id, 'student')
-      } else {
+        await User.updateAccessTokenData(user_id, user_roles)
+      } else if (!user_roles.some((role: string) => role === 'student')) {
         user_roles.push('student')
         await User.Role.add(user_id, 'student')
+        await User.updateAccessTokenData(user_id, user_roles)
       }
-
-      await User.Role.Student.create({ user_id, linkedin, lattes })
-      await User.Role.Student.Course.add({ user_id, university_id, campus_id, course_id, register, semester })
-      await User.updateAccessTokenData(user_id, user_roles)
     } else if (voucher) {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
