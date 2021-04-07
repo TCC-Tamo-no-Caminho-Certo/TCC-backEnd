@@ -7,7 +7,7 @@ import { auth, permission } from '../../../middlewares'
 import express, { Request, Response } from 'express'
 const route = express.Router()
 
-route.get('/requests', auth, permission(['moderator']), async (req: Request, res: Response) => {
+route.get('/requests', auth, async (req: Request, res: Response) => {
   const { _user_id: user_id } = req.body
   const { page, per_page, filter } = req.query
 
