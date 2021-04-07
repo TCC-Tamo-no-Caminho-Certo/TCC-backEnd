@@ -6,7 +6,7 @@ interface SearchResult {
 }
 
 interface SearchResponse {
-  ok: boolean
+  success: boolean
   results: SearchResult[] | null
 }
 
