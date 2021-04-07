@@ -35,7 +35,7 @@ class SearchManager {
     const response = await axios.post(`${this.baseUrl}/database`, {
       name: this.database
     })
-    return response.data.ok === true
+    return response.data.success === true
   }
 
   async search(name: string, from: number, to: number): Promise<SearchResponse> {
@@ -86,7 +86,7 @@ class SearchManager {
         ]
       }
     })
-    return response.data.ok === true
+    return response.data.success === true
   }
 
   async addBatch(documents: SearchDocument[]) {
@@ -113,7 +113,7 @@ class SearchManager {
       })
     })
     const response = await axios.post(`${this.baseUrl}/documents`, data)
-    return response.data.ok === true
+    return response.data.success === true
   }
 
   async delete(id: number) {
@@ -124,7 +124,7 @@ class SearchManager {
         data: id.toString()
       }
     })
-    return response.data.ok === true
+    return response.data.success === true
   }
 
   async deleteAll() {
@@ -133,7 +133,7 @@ class SearchManager {
         database: this.database
       }
     })
-    return response.data.ok === true
+    return response.data.success === true
   }
 }
 
