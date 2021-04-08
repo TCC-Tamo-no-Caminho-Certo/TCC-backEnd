@@ -1,13 +1,12 @@
 import transport from "../transport";
 import ArisError from "../../../utils/arisError";
-import config from "../../../config";
 
 interface MailConfig {
   to: string
-  token: string
+  message: string
 }
 
-export default async ({ to, token }: MailConfig) =>
+export default async ({ to, message }: MailConfig) =>
   transport.sendMail(
     {
       from: "<steamslab.brasil@gmail.com>",
@@ -220,7 +219,7 @@ export default async ({ to, token }: MailConfig) =>
                                       color: #666666;
                                     "
                                   >
-                                  ${token}
+                                  ${message}
                                   </h1>
                                 </td>
                               </tr>
@@ -246,21 +245,6 @@ export default async ({ to, token }: MailConfig) =>
                                   style="border-radius: 8px"
                                   bgcolor="#FF6D8D"
                                 >
-                                  <a
-                                    href="http://${config.environment === "development" ? "dev." : null}steamslab.com/reset-password/${token}"
-                                    target="_blank"
-                                    style="
-                                      font-size: 20px;
-                                      font-family: Helvetica, Arial, sans-serif;
-                                      color: #ffffff;
-                                      text-decoration: none;
-                                      color: #ffffff;
-                                      text-decoration: none;
-                                      padding: 15px 25px;
-                                      display: inline-block;
-                                    "
-                                    >Alterar Senha</a
-                                  >
                                 </td>
                               </tr>
                             </table>

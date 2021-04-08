@@ -1,6 +1,7 @@
 import ValSchema, { P } from '../../../utils/validation'
 import University from '../../../utils/university'
 import ArisError from '../../../utils/arisError'
+import Mail from '../../../services/nodemailer'
 import File from '../../../utils/minio'
 import User from '../../../utils/user'
 
@@ -303,7 +304,7 @@ Router.patch('/request/accept/:id', auth, permission(['moderator', 'admin']), as
   try {
     new ValSchema(P.joi.number().positive().required()).validate(request_id)
 
-    const [request] = await User.Role.Request.find({ request_id })
+    const [request] = await User.Role.Request.find({ request_id, status: ['awaiting', 'rejected'] })
     if (!request) throw new ArisError('Request not found!', 400)
 
     const roles = (await User.Role.find({ user_id: request.get('user_id') })).map(role => role.get('title'))
@@ -325,10 +326,13 @@ Router.patch('/request/reject/:id', auth, permission(['moderator', 'admin']), as
   try {
     new ValSchema(P.joi.number().positive().required()).validate(request_id)
 
-    const [request] = await User.Role.Request.find({ request_id })
+    const [request] = await User.Role.Request.find({ request_id, status: 'awaiting' })
     if (!request) throw new ArisError('Request not found!', 400)
 
+    const [email] = await User.Email.find({ user_id: request.get('user_id'), main: true })
+
     await request.reject(feedback)
+    await Mail.roleReqReject({ to: email.get('address'), message: feedback })
 
     return res.status(200).send({ success: true, message: 'Reject complete!' })
   } catch (error) {
