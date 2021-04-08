@@ -105,7 +105,7 @@ export default class ArisRoleReq extends RoleReq {
     const role_title = RoleMan.find(this.role_id).get('title')
 
     if (user_roles.some(role => role === 'guest')) {
-      await this.n_update(RoleMan.find('guest').get('role_id'), this.txn)
+      await this.n_update(this.role_id, this.txn)
       user_roles = user_roles.map(role => (role === 'guest' ? role_title : role))
     } else if (!user_roles.some((role: string) => role === role_title)) {
       await this.n_insert(this.txn)
