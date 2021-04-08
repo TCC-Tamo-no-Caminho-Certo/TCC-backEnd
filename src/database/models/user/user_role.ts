@@ -58,4 +58,12 @@ export default class User_Role {
 
     return await base_query
   }
+
+  protected static async n_update(user_id: number, old_role_id:number, new_role_id: number, transaction?: Transaction) {
+    const txn = transaction || db
+
+    const user_role_up = { role_id: new_role_id }
+
+    await txn<Required<User_RoleCtor>>('user_role').update(user_role_up).where({ user_id, role_id: old_role_id })
+  }
 }
