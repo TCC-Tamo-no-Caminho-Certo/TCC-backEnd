@@ -9,6 +9,19 @@ import { auth, permission } from '../../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
+Router.get('/request', auth, async (req: Request, res: Response) => {
+  const { _user_id: user_id } = req.body
+
+  try {
+    const requests = await User.Role.Request.find({ user_id })
+
+    return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Fecth')
+    return res.status(result.status).send(result.send)
+  }
+})
+
 Router.post('/request/moderator', auth, permission(['professor', '!moderator']), async (req: Request, res: Response) => {
   const { _user_id: user_id, _roles: user_roles, university_id, pretext } = req.body
 

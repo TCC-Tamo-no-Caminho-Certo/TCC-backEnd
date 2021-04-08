@@ -5,9 +5,9 @@ import User from '../../../utils/user'
 import { auth, permission } from '../../../middlewares'
 
 import express, { Request, Response } from 'express'
-const route = express.Router()
+const Router = express.Router()
 
-route.get('/requests', auth, async (req: Request, res: Response) => {
+Router.get('/requests', auth, permission(['moderator']), async (req: Request, res: Response) => {
   const { _user_id: user_id } = req.body
   const { page, per_page, filter } = req.query
 
@@ -65,4 +65,4 @@ route.get('/requests', auth, async (req: Request, res: Response) => {
   }
 })
 
-export default route
+export default Router
