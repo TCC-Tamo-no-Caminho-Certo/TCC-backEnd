@@ -64,7 +64,9 @@ Router.patch('/request/moderator/:id', auth, async (req: Request, res: Response)
       pretext: P.joi.string().allow(null)
     }).validate({ request_id, pretext })
 
-    const [request] = await User.Role.Request.find({ request_id, user_id })
+    const role_id = User.Role.Manage.find('moderator').get('role_id')
+
+    const [request] = await User.Role.Request.find({ request_id, user_id, role_id })
     if (!request) throw new ArisError('Request not found!', 400)
 
     const data = { ...request.get('data'), pretext }
@@ -176,7 +178,9 @@ Router.patch('/request/professor/:id', auth, async (req: Request, res: Response)
       orcid: P.joi.string().allow(null)
     }).validate({ request_id, voucher, university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid })
 
-    const [request] = await User.Role.Request.find({ request_id, user_id })
+    const role_id = User.Role.Manage.find('professor').get('role_id')
+
+    const [request] = await User.Role.Request.find({ request_id, user_id, role_id })
     if (!request) throw new ArisError('Request not found!', 400)
 
     const data = { ...request.get('data'), university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid }
@@ -276,7 +280,9 @@ Router.patch('/request/student/:id', auth, async (req: Request, res: Response) =
       lattes: P.joi.string().allow(null)
     }).validate({ request_id, voucher, university_id, campus_id, course_id, register, semester, linkedin, lattes })
 
-    const [request] = await User.Role.Request.find({ request_id, user_id })
+    const role_id = User.Role.Manage.find('student').get('role_id')
+
+    const [request] = await User.Role.Request.find({ request_id, user_id, role_id })
     if (!request) throw new ArisError('Request not found!', 400)
 
     const data = { ...request.get('data'), university_id, campus_id, course_id, register, semester, linkedin, lattes }
