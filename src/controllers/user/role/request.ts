@@ -145,7 +145,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       await User.Role.Request.create(
         user_id,
         'professor',
-        { campus_id, university_id, course_id, register, full_time, postgraduate, lattes },
+        { campus_id, university_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid },
         voucher_uuid
       )
     } else throw new ArisError('None of the flow data was provided (voucher | inst_email)', 400)
