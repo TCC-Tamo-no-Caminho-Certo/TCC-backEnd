@@ -27,7 +27,7 @@ Router.post('/request/moderator', auth, permission(['professor', '!moderator']),
   const { _user_id: user_id, _roles: user_roles, university_id, pretext } = req.body
 
   try {
-    new ValSchema({ university_id: P.joi.number().positive().required(), pretext: P.joi.string().allow(null) }).validate({ university_id, pretext })
+    new ValSchema({ university_id: P.joi.number().positive().required(), pretext: P.joi.string().empty().allow(null) }).validate({ university_id, pretext })
 
     const requests = await User.Role.Request.find({ user_id, role_id: User.Role.Manage.find('moderator').get('role_id') })
     if (requests.some(request => request.get('data')!.university_id === university_id)) throw new ArisError('Request already made!', 403)
