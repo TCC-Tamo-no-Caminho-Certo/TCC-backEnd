@@ -295,7 +295,7 @@ Router.patch('/request/student/:id', auth, async (req: Request, res: Response) =
       voucher_uuid = await file.insert('documents', 'application/pdf')
     }
 
-    await request.update({ data, voucher_uuid })
+    await request.update({ data, voucher_uuid, status: 'awaiting' })
 
     return res.status(200).send({ success: true, message: 'Update complete!' })
   } catch (error) {
