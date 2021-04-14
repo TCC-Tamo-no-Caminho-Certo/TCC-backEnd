@@ -107,21 +107,23 @@ export default class Role_Request extends User_Role {
     const base_query = db<Required<RoleReqCtor>>('role_request').where(builder => {
       let key: keyof RoleReqFilters
       for (key in filter) {
-        if ((key === 'created_at' || key === 'updated_at') && filter[key]) builder.whereBetween(key, <[string, string]>filter[key])
-        if (key === 'data' && filter[key])
-          for (const data_key in filter[key])
-            builder.whereRaw(
-              `data->'$.${data_key}' ${
-                Array.isArray(filter[key]![data_key])
-                  ? `in (${
-                      typeof filter[key]![data_key][0] === 'string'
-                        ? filter[key]![data_key].map((value: string) => `'${value}'`)
-                        : filter[key]![data_key]
-                    })`
-                  : `= ${typeof filter[key]![data_key] === 'string' ? `'${filter[key]![data_key]}'` : filter[key]![data_key]}`
-              } `
-            )
-        else if (filter[key]) Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
+        if (filter[key]) {
+          if (key === 'created_at' || key === 'updated_at') builder.whereBetween(key, <[string, string]>filter[key])
+          else if (key === 'data')
+            for (const data_key in filter[key])
+              builder.whereRaw(
+                `data->'$.${data_key}' ${
+                  Array.isArray(filter[key]![data_key])
+                    ? `in (${
+                        typeof filter[key]![data_key][0] === 'string'
+                          ? filter[key]![data_key].map((value: string) => `'${value}'`)
+                          : filter[key]![data_key]
+                      })`
+                    : `= ${typeof filter[key]![data_key] === 'string' ? `'${filter[key]![data_key]}'` : filter[key]![data_key]}`
+                } `
+              )
+          else Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
+        }
       }
     })
 
