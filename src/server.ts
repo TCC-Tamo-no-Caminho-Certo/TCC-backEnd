@@ -37,7 +37,7 @@ if (config.minio.use) {
 const app = express()
 
 app.use(cors())
-app.use(express.json({ limit: '5mb' }))
+app.use(express.json({ limit: '10mb' }))
 if (config.environment === 'production') app.use(compression())
 app.use('/', express.static(path.resolve(config.server.root.replace('%CurrentDirectory%', __dirname))))
 
