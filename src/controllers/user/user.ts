@@ -33,6 +33,7 @@ Router.route('/user')
 
           student.universities = universities
         } else if (role === 'moderator') {
+          moderator = {}
           moderator.universities = (await User.Role.Moderator.find({ user_id })).map(university => university.format())
         }
       }
