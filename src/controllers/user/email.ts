@@ -43,13 +43,15 @@ Router.post('/email', auth, async (req: Request, res: Response) => {
 
 Router.route('/email/:id')
   .patch(auth, async (req: Request, res: Response) => {
-    const { _user_id: user_id, options } = req.body
+    const { _user_id: user_id, university_id, options } = req.body
     const email_id = parseInt(req.params.id)
 
     try {
+      new ValSchema(P.joi.number().positive().allow(null)).validate(university_id)
+
       const [email] = await User.Email.find({ user_id, email_id })
       if (!email) throw new ArisError('Emails not vinculated with this user!', 400)
-      await email.update({ options })
+      await email.update({ university_id, options })
 
       return res.status(200).send({ success: true, message: 'Get user info complete!' })
     } catch (error) {
