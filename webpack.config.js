@@ -13,11 +13,15 @@ module.exports = {
     ],
   },
   externals: [nodeExternals()],
+  devtool: "source-map",
   resolve: {
     extensions: [".ts", ".js"],
   },
   output: {
+    devtoolLineToLine: true,
     filename: "bundle.js",
+    sourceMapFilename: "bundle.js.map",
+    pathinfo: true,
     path: path.resolve(__dirname, "build"),
   },
 };

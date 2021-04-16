@@ -17,7 +17,7 @@ function runScript()
         if runStat("rm", "-rfv /home/rgd/deploy/dev/backend/") then return end
         if runStat("cp", "-rv ./build/ /home/rgd/deploy/dev/backend/") then return end
         if runStat("ln", "-s " .. repoDirectory .. "/node_modules /home/rgd/deploy/dev/backend/node_modules") then return end
-        run("pm2", "start ./bundle.js --name backend-dev -- --config-/home/rgd/deploy/dev/.config/server.json", "/home/rgd/deploy/dev/backend")
+        run("pm2", "start ./bundle.js --source-map-support --name backend-dev -- --config-/home/rgd/deploy/dev/.config/server.json", "/home/rgd/deploy/dev/backend")
     elseif repoBranch == "master" then
         if runStat("npm", "--no-color install") then return end
         if runStat("rm", "-rfv ./build/") then return end
