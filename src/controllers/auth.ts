@@ -62,7 +62,7 @@ route.post('/api/login', captcha, async (req: Request, res: Response) => {
 })
 
 route.post('/api/register', captcha, async (req: Request, res: Response) => {
-  const { name, surname, birthday, phone, password, email, university_id } = req.body
+  const { name, surname, birthday, phone, password, email } = req.body
 
   try {
     new ValSchema({
@@ -71,19 +71,18 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
       phone: P.user.phone,
       birthday: P.user.birthday.required(),
       password: P.user.password.required(),
-      email: P.user.email.required(),
-      university_id: P.joi.number().positive().allow(null)
-    }).validate({ name, surname, phone, birthday, password, email, university_id })
+      email: P.user.email.required()
+    }).validate({ name, surname, phone, birthday, password, email })
 
     const user_info = { name, surname, phone, birthday, password }
     const email_info = { user_id: 0, address: email, university_id: undefined, main: true, options: {} }
 
-    if (university_id) {
-      const [university] = await University.find({ university_id })
-      const regex = [new RegExp(university.get('regex').email.professor), new RegExp(university.get('regex').email.student)]
+    // if (university_id) {
+    //   const [university] = await University.find({ university_id })
+    //   const regex = [new RegExp(university.get('regex').email.professor), new RegExp(university.get('regex').email.student)]
 
-      email_info.university_id = regex.some(reg => reg.test(email)) ? university_id : undefined
-    }
+    //   email_info.university_id = regex.some(reg => reg.test(email)) ? university_id : undefined
+    // }
 
     const has_user = await User.exist(email)
     if (has_user) throw new ArisError('User already exists', 400)
