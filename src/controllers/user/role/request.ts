@@ -27,7 +27,10 @@ Router.post('/request/moderator', auth, permission(['professor', '!moderator']),
   const { _user_id: user_id, _roles: user_roles, university_id, pretext } = req.body
 
   try {
-    new ValSchema({ university_id: P.joi.number().positive().required(), pretext: P.joi.string().allow(null, '') }).validate({ university_id, pretext })
+    new ValSchema({ university_id: P.joi.number().positive().required(), pretext: P.joi.string().allow(null, '') }).validate({
+      university_id,
+      pretext
+    })
 
     const requests = await User.Role.Request.find({ user_id, role_id: User.Role.Manage.find('moderator').get('role_id') })
     if (requests.some(request => request.get('data')!.university_id === university_id)) throw new ArisError('Request already made!', 403)
@@ -115,14 +118,18 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
 
     if (!voucher) {
       const emails = await User.Email.find({ user_id })
-      if (!emails.some(email => email.get('university_id') === university_id))
-        throw new ArisError('User doesn`t have an institutional email from this university!', 400)
 
       const [university] = await University.find({ university_id })
       if (!university) throw new ArisError('University not found!', 400)
 
       const regex = new RegExp(university.get('regex').email.professor)
-      if (!emails.some(email => regex.test(email.get('address')))) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
+      let has_inst_email = false
+      for (const email of emails) {
+        const test = regex.test(email.get('address'))
+        if (test && !email.get('institutional')) await email.update({ university_id })
+        has_inst_email ||= test
+      }
+      if (!has_inst_email) throw new ArisError('User doesn`t have an institutional email for this role or from this university!', 400)
 
       await User.Role.Professor.create({ user_id, postgraduate, linkedin, lattes, orcid })
       await User.Role.Professor.Course.add({ user_id, university_id, campus_id, course_id, register, full_time })
@@ -222,16 +229,23 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
 
     if (!voucher) {
       const emails = await User.Email.find({ user_id })
-      if (!emails.some(email => email.get('university_id') === university_id))
-        throw new ArisError('User doesn`t have an institutional email from this university!', 400)
 
       const [university] = await University.find({ university_id })
       if (!university) throw new ArisError('University not found!', 400)
 
       const regex = new RegExp(university.get('regex').email.student)
-      const email = emails.find(email => regex.test(email.get('address')))
-      if (!email) throw new ArisError('User doesn`t have an institutional email for this role!', 400)
-      const register = parseInt(email.get('address').split('@')[0])
+      let has_inst_email = false
+      let register
+      for (const email of emails) {
+        const test = regex.test(email.get('address'))
+        if (test) {
+          if (!email.get('institutional')) await email.update({ university_id })
+          register = parseInt(email.get('address').split('@')[0])
+        }
+        has_inst_email ||= test
+      }
+      if (!register) throw new ArisError('Couldn´t get register number', 500)
+      if (!has_inst_email) throw new ArisError('User doesn`t have an institutional email for this role or from this university!', 400)
 
       await User.Role.Student.create({ user_id, linkedin, lattes })
       await User.Role.Student.Course.add({ user_id, university_id, campus_id, course_id, register, semester })
