@@ -59,9 +59,10 @@ export default class ArisEmail extends Email {
   /**
    * Updates the email`s info.
    */
-  async update({ address, main, options }: Partial<Omit<EmailCtor, 'email_id' | 'user_id'>>) {
+  async update({ address, main, university_id, options }: Partial<Omit<EmailCtor, 'email_id' | 'user_id'>>) {
     if (address) this.address = address
     if (main) this.main = main
+    if (university_id) this.university_id = university_id
     if (options) this.options = options
 
     await this._update(this.txn)

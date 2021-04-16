@@ -53,7 +53,7 @@ export default class Email {
   protected async _update(transaction?: Transaction) {
     const txn = transaction || db
 
-    const email_up = { address: this.address, main: this.main, options: this.options }
+    const email_up = { address: this.address, main: this.main, university_id: this.university_id, options: this.options }
 
     await txn('email').update(email_up).where({ email_id: this.email_id })
   }
