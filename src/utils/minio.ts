@@ -3,29 +3,33 @@ import { v4 as uuidv4 } from 'uuid'
 
 export default class Minio {
   readonly file: string
-  private stringData: string[]
+  private data: string
+  private type: string
   buffer: Buffer
 
   constructor(file: string) {
+    const info = file.split(',', 2)
+
     this.file = file
-    this.stringData = file.split(',', 2)
-    this.buffer = Buffer.from(this.stringData[1], 'base64')
+    this.type = info[0]
+    this.data = info[1]
+    this.buffer = Buffer.from(this.data, 'base64')
   }
 
   validateTypes(types: string[]) {
-    return types.some(type => this.stringData.length === 2 && this.stringData[0] === type)
+    return types.some(type => this.data && this.type === type)
   }
 
-  async insert(bucket: string, content_type: string) {
+  async insert(bucket: string) {
     const objectUuid = uuidv4()
 
-    await minio.client.putObject(bucket, objectUuid, this.buffer, this.buffer.length, { 'Content-Type': content_type })
+    await minio.client.putObject(bucket, objectUuid, this.buffer, this.buffer.length, { 'Content-Type': this.type })
 
     return objectUuid
   }
 
-  async update(bucket: string, content_type: string, oldUuid: string) {
-    const objectUuid = await this.insert(bucket, content_type)
+  async update(bucket: string, oldUuid: string) {
+    const objectUuid = await this.insert(bucket)
     await Minio.delete(bucket, oldUuid)
     return objectUuid
   }

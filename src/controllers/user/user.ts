@@ -99,11 +99,11 @@ Router.put('/user/avatar', auth, async (req: Request, res: Response) => {
     const [user] = await User.find({ user_id: _user_id })
 
     const file = new File(picture)
-    if (!file.validateTypes(['data:image/png;base64', 'data:image/jpg;base64'])) throw new ArisError('Invalid file Type!', 400)
+    if (!file.validateTypes(['data:image/png;base64', 'data:image/jpeg;base64'])) throw new ArisError('Invalid file Type!', 400)
     file.buffer = await Picture.parseBuffer(file.buffer)
     const current_uuid = user.get('avatar_uuid')
     const avatar_uuid =
-      current_uuid === 'default' ? await file.insert('profile', 'image/png') : await file.update('profile', 'image/png', current_uuid)
+      current_uuid === 'default' ? await file.insert('profile') : await file.update('profile', current_uuid)
 
     await user.update({ avatar_uuid })
 

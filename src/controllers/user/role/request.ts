@@ -149,7 +149,7 @@ Router.post('/request/professor', auth, permission(['!professor']), async (req: 
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      const voucher_uuid = await file.insert('documents', 'application/pdf')
+      const voucher_uuid = await file.insert('documents')
 
       await User.Role.Request.create(
         user_id,
@@ -193,11 +193,11 @@ Router.patch('/request/professor/:id', auth, async (req: Request, res: Response)
     const data = { ...request.get('data'), university_id, campus_id, course_id, register, full_time, postgraduate, linkedin, lattes, orcid }
 
     let voucher_uuid = request.get('voucher_uuid')
-    if (voucher) {
+    if (voucher && voucher_uuid) {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      voucher_uuid = await file.insert('documents', 'application/pdf')
+      voucher_uuid = await file.update('documents', voucher_uuid)
     }
 
     await request.update({ data, voucher_uuid, status: 'awaiting' })
@@ -265,7 +265,7 @@ Router.post('/request/student', auth, permission(['!student']), async (req: Requ
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      const voucher_uuid = await file.insert('documents', 'application/pdf')
+      const voucher_uuid = await file.insert('documents')
 
       await User.Role.Request.create(user_id, 'student', { campus_id, university_id, course_id, register, semester, linkedin, lattes }, voucher_uuid)
     } else throw new ArisError('None of the flow data was provided (voucher or inst_email)', 400)
@@ -302,11 +302,11 @@ Router.patch('/request/student/:id', auth, async (req: Request, res: Response) =
     const data = { ...request.get('data'), university_id, campus_id, course_id, register, semester, linkedin, lattes }
 
     let voucher_uuid = request.get('voucher_uuid')
-    if (voucher) {
+    if (voucher && voucher_uuid) {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      voucher_uuid = await file.insert('documents', 'application/pdf')
+      voucher_uuid = await file.update('documents', voucher_uuid)
     }
 
     await request.update({ data, voucher_uuid, status: 'awaiting' })
