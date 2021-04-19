@@ -50,7 +50,7 @@ export default class Moderator_University {
   }
 
   /**
-   * Delets this Moderator in the database.
+   * Deletes this Moderator in the database.
    */
   protected async _delete(transaction?: Transaction) {
     const txn = transaction || db
