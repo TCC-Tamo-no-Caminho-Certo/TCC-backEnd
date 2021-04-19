@@ -318,7 +318,7 @@ Router.patch('/request/student/:id', auth, async (req: Request, res: Response) =
   }
 })
 
-Router.patch('/request/accept/:id', auth, permission(['moderator', 'admin']), async (req: Request, res: Response) => {
+Router.patch('/request/accept/:id', auth, permission(['moderator'], ['admin']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
@@ -339,7 +339,7 @@ Router.patch('/request/accept/:id', auth, permission(['moderator', 'admin']), as
   }
 })
 
-Router.patch('/request/reject/:id', auth, permission(['moderator', 'admin']), async (req: Request, res: Response) => {
+Router.patch('/request/reject/:id', auth, permission(['moderator'], ['admin']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
   const { feedback } = req.body
 
@@ -361,7 +361,7 @@ Router.patch('/request/reject/:id', auth, permission(['moderator', 'admin']), as
   }
 })
 
-Router.delete('/request/:id', auth, permission(['moderator', 'admin']), async (req: Request, res: Response) => {
+Router.delete('/request/:id', auth, permission(['moderator'], ['admin']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
