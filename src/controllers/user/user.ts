@@ -107,7 +107,7 @@ Router.put('/user/avatar', auth, async (req: Request, res: Response) => {
 
     await user.update({ avatar_uuid })
 
-    return res.status(200).send({ success: true, message: 'Avatar uploaded!' })
+    return res.status(200).send({ success: true, message: 'Avatar uploaded!', avatar_uuid })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Upload avatar')
     return res.status(result.status).send(result.send)
