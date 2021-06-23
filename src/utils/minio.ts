@@ -13,7 +13,7 @@ export default class Minio {
 
     this.file = file
     this.header = info[0]
-    this.type = this.header.substring(0, 5).split(';', 2)[0]
+    this.type = this.header.slice(5).split(';', 2)[0]
     this.data = info[1]
     this.buffer = Buffer.from(this.data, 'base64')
   }
