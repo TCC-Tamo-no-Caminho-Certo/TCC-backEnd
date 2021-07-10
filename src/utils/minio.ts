@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 export default class Minio {
   readonly file: string
   private data: string
+  private header: string
   private type: string
   buffer: Buffer
 
@@ -11,13 +12,14 @@ export default class Minio {
     const info = file.split(',', 2)
 
     this.file = file
-    this.type = info[0]
+    this.header = info[0]
+    this.type = this.header.slice(5).split(';', 2)[0]
     this.data = info[1]
     this.buffer = Buffer.from(this.data, 'base64')
   }
 
   validateTypes(types: string[]) {
-    return types.some(type => this.data && this.type === type)
+    return types.some(type => this.data && this.header === type)
   }
 
   async insert(bucket: string) {
