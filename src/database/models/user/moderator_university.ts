@@ -1,5 +1,6 @@
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Foreign, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface Moderator_UniversityFilters {
@@ -12,7 +13,7 @@ export interface Moderator_UniversityCtor {
   university_id: number
 }
 
-export default class Moderator_University {
+export default class Moderator_University1 {
   protected user_id: number
   protected university_id: number
 
@@ -27,7 +28,7 @@ export default class Moderator_University {
   /**
    * Inserts this Moderator in the database, if doesn't already registered.
    */
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<Moderator_UniversityCtor>>('moderator_university').insert({
@@ -39,7 +40,7 @@ export default class Moderator_University {
   /**
    * Updates this Moderator in the database.
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const moderator_up = {}
@@ -52,7 +53,7 @@ export default class Moderator_University {
   /**
    * Deletes this Moderator in the database.
    */
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<Moderator_UniversityCtor>>('moderator_university').del().where({ user_id: this.user_id, university_id: this.university_id })
@@ -76,3 +77,16 @@ export default class Moderator_University {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Moderator {
+  user_id: Foreign
+  university_id: Foreign
+}
+
+const Moderator_UniversityModel = new Model<Moderator, never>('moderator', { foreign: ['user_id', 'university_id'] })
+
+type IModerator_UniversityModel = IModel<Moderator, never>
+
+export { Moderator_UniversityModel, IModerator_UniversityModel }

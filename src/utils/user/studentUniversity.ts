@@ -1,15 +1,15 @@
 import Student_University, { Student_UniversityCtor, Student_UniversityFilters } from '../../database/models/user/student_university'
 import ArisError from '../arisError'
 
-import { Pagination } from '../../types'
+import { Pagination } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetStudentCourse = Required<Student_UniversityCtor>
 
 export default class ArisStudentUniversity extends Student_University {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   static async add(student_course_info: Student_UniversityCtor) {
     const student_course = new ArisStudentUniversity(student_course_info)
@@ -66,7 +66,7 @@ export default class ArisStudentUniversity extends Student_University {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

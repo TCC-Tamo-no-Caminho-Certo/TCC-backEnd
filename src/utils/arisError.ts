@@ -1,3 +1,4 @@
+import { Model } from '../database/models'
 import logger from '../services/logger'
 import { ValidationError } from 'joi'
 import config from '../config'
@@ -26,6 +27,7 @@ export default class ArisError extends Error {
    */
   static errorHandler(error: ValidationError | ArisError | Error, message: string) {
     const info = JoiErrorHandler(<ValidationError>error, message) || ArisErrorHandler(<ArisError>error, message) || SystemErrorHandler(error, message)
+    Model.has_trx && Model.rollbackTrx()
     return info
   }
 }

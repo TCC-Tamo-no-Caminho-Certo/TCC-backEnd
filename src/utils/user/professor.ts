@@ -2,15 +2,15 @@ import Professor, { ProfessorCtor, ProfessorFilters } from '../../database/model
 import Course from './professorUniversity'
 import ArisError from '../arisError'
 
-import { Pagination } from '../../types'
+import { Pagination } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetProfessor = Required<Omit<ProfessorCtor, 'linkedin' | 'lattes' | 'orcid'>> & Pick<ProfessorCtor, 'linkedin' | 'lattes' | 'orcid'>
 
 export default class ArisProfessor extends Professor {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * Creates an new professor.
@@ -90,7 +90,7 @@ export default class ArisProfessor extends Professor {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

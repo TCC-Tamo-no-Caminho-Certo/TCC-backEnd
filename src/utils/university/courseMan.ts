@@ -1,15 +1,15 @@
 import Course, { CourseCtor } from '../../database/models/university/course'
 import ArisError from '../arisError'
 
-import { CourseTypes } from '../../types'
+import { CourseTypes } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetRole = Required<CourseCtor>
 
 export default class ArisCourseManagement extends Course {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * returns a parameter of role.
@@ -58,7 +58,7 @@ export default class ArisCourseManagement extends Course {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

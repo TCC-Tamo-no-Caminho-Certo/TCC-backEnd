@@ -5,9 +5,9 @@ import Professor from './professor'
 import Student from './student'
 import RoleMan from './roleMan'
 
-import { Pagination, RoleTypes } from '../../types'
+import { Pagination, RoleTypes } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type ProfessorCtor = Parameters<typeof Professor.create>[0]
@@ -21,7 +21,7 @@ type ModeratorData = Parameters<typeof Moderator.add>[0] & { pretext?: string }
 type GetRoleReq = Required<Omit<RoleReqCtor, 'data' | 'voucher_uuid' | 'feedback'>> & Pick<RoleReqCtor, 'data' | 'voucher_uuid' | 'feedback'>
 
 export default class ArisRoleReq extends RoleReq {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * Creates an new role request.
@@ -177,7 +177,7 @@ export default class ArisRoleReq extends RoleReq {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

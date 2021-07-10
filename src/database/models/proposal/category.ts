@@ -1,5 +1,5 @@
 import ArisError from '../../../utils/arisError'
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface UpdateCategoryObj {
@@ -79,7 +79,7 @@ export default class Category {
   }
 
   static get = {
-    async ids(categories: string[], transaction?: Transaction) {
+    async ids(categories: string[], transaction?: Knex.Transaction) {
       const trx = transaction || db
       const ids = await trx('category')
         .select('category_id')

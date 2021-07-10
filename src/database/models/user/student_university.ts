@@ -1,5 +1,6 @@
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Foreign, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface Student_UniversityFilters {
@@ -20,7 +21,7 @@ export interface Student_UniversityCtor {
   semester: number
 }
 
-export default class Student_University {
+export default class Student_University1 {
   protected user_id: number
   protected course_id: number
   protected campus_id: number
@@ -43,7 +44,7 @@ export default class Student_University {
   /**
    * Inserts this student in the database, if doesn't already registered.
    */
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<Student_UniversityCtor>>('student_university').insert({
@@ -59,7 +60,7 @@ export default class Student_University {
   /**
    * Updates this student in the database.
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const student_up = { register: this.register, semester: this.semester }
@@ -72,7 +73,7 @@ export default class Student_University {
   /**
    * Delets this student in the database.
    */
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<Student_UniversityCtor>>('student_university')
@@ -98,3 +99,24 @@ export default class Student_University {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Student_University {
+  user_id: Foreign
+  course_id: Foreign
+  campus_id: Foreign
+  university_id: Foreign
+  register: number
+  semester: number
+}
+
+type Student_UniversityUp = Partial<Omit<Student_University, 'user_id' | 'university_id'>>
+
+const Student_UniversityModel = new Model<Student_University, Student_UniversityUp>('student_university', {
+  foreign: ['user_id', 'university_id', 'campus_id', 'course_id']
+})
+
+type IStudent_UniversityModel = IModel<Student_University, Student_UniversityUp>
+
+export { Student_UniversityModel, IStudent_UniversityModel }

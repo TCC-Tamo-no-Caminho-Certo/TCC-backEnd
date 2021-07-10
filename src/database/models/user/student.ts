@@ -1,5 +1,6 @@
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Foreign, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface StudentFilters {
@@ -14,7 +15,7 @@ export interface StudentCtor {
   lattes?: string
 }
 
-export default class Student {
+export default class Student1 {
   protected user_id: number
   protected linkedin?: string
   protected lattes?: string
@@ -31,7 +32,7 @@ export default class Student {
   /**
    * Inserts this student in the database, if doesn't already registered.
    */
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<StudentCtor>>('student').insert({
@@ -44,7 +45,7 @@ export default class Student {
   /**
    * Updates this student in the database.
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const student_up = { linkedin: this.linkedin, lattes: this.lattes }
@@ -55,7 +56,7 @@ export default class Student {
   /**
    * Delets this student in the database.
    */
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<StudentCtor>>('student').del().where({ user_id: this.user_id })
@@ -79,3 +80,17 @@ export default class Student {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Student {
+  user_id: Foreign
+  linkedin: string | null
+  lattes: string | null
+}
+
+const StudentModel = new Model<Student>('student', { foreign: ['user_id'] })
+
+type IStudentModel = IModel<Student>
+
+export { StudentModel, IStudentModel }

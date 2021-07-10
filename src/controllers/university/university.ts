@@ -1,40 +1,48 @@
-import ValSchema, { P } from '../../utils/validation'
-import University from '../../utils/university'
 import ArisError from '../../utils/arisError'
+import UniversityService from '../../services/university'
 
 import { auth, permission } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.post('/university', auth, permission(['admin']), async (req: Request, res: Response) => {
-  const { name, regex } = req.body
-
+Router.get('/universities', auth, async (req: Request, res: Response) => {
   try {
-    new ValSchema({
-      name: P.joi.string().required(),
-      regex: P.joi
-        .object({
-          email: P.joi.object({
-            professor: P.joi.string().required(),
-            student: P.joi.string().required()
-          }),
-          register: P.joi.object({
-            professor: P.joi.string().required(),
-            student: P.joi.string().required()
-          })
-        })
-        .required()
-    }).validate({ name, regex })
+    const universities = await UniversityService.find()
 
-    await University.create({ name, regex })
-
-    return res.status(200).send({ success: true, message: 'University created!' })
+    return res.status(200).send({ success: true, message: 'Get universities complete!', universities })
   } catch (error) {
-    const result = ArisError.errorHandler(error, 'Create university')
+    const result = ArisError.errorHandler(error, 'Get Universities')
     return res.status(result.status).send(result.send)
   }
 })
+
+Router.route('/university')
+  .get(auth, async (req: Request, res: Response) => { // Implement
+    const { filter } = req.query
+
+    try {
+      const universities = await UniversityService.find()
+
+      return res.status(200).send({ success: true, message: 'Get university complete!', universities })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Get University')
+      return res.status(result.status).send(result.send)
+    }
+  })
+
+  .post(auth, permission(['admin']), async (req: Request, res: Response) => {
+    const { name, regex } = req.body
+
+    try {
+      await UniversityService.register({ name, regex })
+
+      return res.status(200).send({ success: true, message: 'University created!' })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Create university')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
 Router.route('/university/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
@@ -42,24 +50,7 @@ Router.route('/university/:id')
     const university_id = parseInt(req.params.id)
 
     try {
-      new ValSchema({
-        university_id: P.joi.number().positive().required(),
-        name: P.joi.string(),
-        regex: P.joi.object({
-          email: P.joi.object({
-            professor: P.joi.string().required(),
-            student: P.joi.string().required()
-          }),
-          register: P.joi.object({
-            professor: P.joi.string().required(),
-            student: P.joi.string().required()
-          })
-        })
-      }).validate({ university_id, name, regex })
-
-      const [university] = await University.find({ university_id })
-      if (!university) throw new ArisError('University not found!', 400)
-      await university.update({ name, regex })
+      await UniversityService.update({ university_id }, { name, regex })
 
       return res.status(200).send({ success: true, message: 'University updated!' })
     } catch (error) {
@@ -72,11 +63,7 @@ Router.route('/university/:id')
     const university_id = parseInt(req.params.id)
 
     try {
-      new ValSchema(P.joi.number().positive().required()).validate(university_id)
-
-      const [university] = await University.find({ university_id })
-      if (!university) throw new ArisError('University not found!', 400)
-      await university.delete()
+      await UniversityService.delete({ university_id })
 
       return res.status(200).send({ success: true, message: 'University deleted!' })
     } catch (error) {
@@ -84,26 +71,5 @@ Router.route('/university/:id')
       return res.status(result.status).send(result.send)
     }
   })
-
-Router.get('/universities', auth, async (req: Request, res: Response) => {
-  const page = req.query.page
-  const per_page = req.query.per_page
-
-  try {
-    new ValSchema({
-      page: P.joi.number().positive(),
-      per_page: P.joi.number().min(1).max(100)
-    }).validate({ page, per_page })
-    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-
-    const universities = await University.find({}, pagination)
-    const result = universities.map(university => university.format())
-
-    return res.status(200).send({ success: true, message: 'Get universities complete!', universities: result })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Get Universities')
-    return res.status(result.status).send(result.send)
-  }
-})
 
 export default Router

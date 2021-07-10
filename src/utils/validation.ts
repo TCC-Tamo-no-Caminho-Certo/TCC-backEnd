@@ -12,7 +12,9 @@ export default class ValSchema<T extends SchemaType> {
   }
 
   validate<T extends ValSchema<this['schema']>['schema'] = this['schema']>(data: SchemaData<T>) {
-    const validation = (this.schema.type ? (this.schema as AnySchema) : joi.object(this.schema as object)).validate(data, { abortEarly: false })
+    const schema = this.schema.type ? (this.schema as AnySchema) : joi.object(this.schema as object)
+
+    const validation = schema.validate(data, { abortEarly: false })
 
     if (validation.error) throw validation.error
   }

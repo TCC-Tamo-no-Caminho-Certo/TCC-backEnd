@@ -1,15 +1,15 @@
 import Role, { RoleCtor } from '../../database/models/user/role'
 import ArisError from '../arisError'
 
-import { RoleTypes } from '../../types'
+import { RoleTypes } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetRole = Required<RoleCtor>
 
 export default class ArisRoleManagement extends Role {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * returns a parameter of role.
@@ -58,7 +58,7 @@ export default class ArisRoleManagement extends Role {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

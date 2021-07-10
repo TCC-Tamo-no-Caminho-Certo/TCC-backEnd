@@ -1,4 +1,4 @@
-import knex from 'knex'
+import { Knex } from 'knex'
 
 const data = [
   { title: 'admin' },
@@ -10,7 +10,7 @@ const data = [
 ]
 const insert: any[] = []
 
-export async function seed(knex: knex) {
+export async function seed(knex: Knex) {
   for (const key in data) {
     const has_data = await knex('role')
       .where(data[key])

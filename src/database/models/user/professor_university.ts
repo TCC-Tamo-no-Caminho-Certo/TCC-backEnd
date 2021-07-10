@@ -1,5 +1,6 @@
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Foreign, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface Professor_UniversityFilters {
@@ -20,7 +21,7 @@ export interface Professor_UniversityCtor {
   full_time: boolean
 }
 
-export default class Professor_University {
+export default class Professor_University1 {
   protected user_id: number
   protected course_id: number
   protected campus_id: number
@@ -43,7 +44,7 @@ export default class Professor_University {
   /**
    * Inserts this professor in the database, if doesn't already registered.
    */
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<Professor_UniversityCtor>>('professor_university').insert({
@@ -59,7 +60,7 @@ export default class Professor_University {
   /**
    * Updates this professor in the database.
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const professor_up = { register: this.register, full_time: this.full_time }
@@ -72,7 +73,7 @@ export default class Professor_University {
   /**
    * Delets this professor in the database.
    */
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<Professor_UniversityCtor>>('professor_university')
@@ -98,3 +99,24 @@ export default class Professor_University {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Professor_University {
+  user_id: Foreign
+  course_id: Foreign
+  campus_id: Foreign
+  university_id: Foreign
+  register: number
+  full_time: boolean
+}
+
+type Professor_UniversityUp = Partial<Omit<Professor_University, 'user_id' | 'university_id'>>
+
+const Professor_UniversityModel = new Model<Professor_University, Professor_UniversityUp>('professor_university', {
+  foreign: ['user_id', 'university_id', 'campus_id', 'course_id']
+})
+
+type IProfessor_UniversityModel = IModel<Professor_University, Professor_UniversityUp>
+
+export { Professor_UniversityModel, IProfessor_UniversityModel }

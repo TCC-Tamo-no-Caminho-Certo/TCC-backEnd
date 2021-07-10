@@ -6,15 +6,15 @@ import Student from './student'
 import Request from './roleReq'
 import Manage from './roleMan'
 
-import { Pagination, RoleTypes } from '../../types'
+import { Pagination, RoleTypes } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetRole = Required<User_RoleCtor> & { title: RoleTypes }
 
 export default class ArisRole extends User_Role {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   static async add(user_id: number, role: RoleTypes) {
     const role_id = Manage.find(role).get('role_id')
@@ -81,7 +81,7 @@ export default class ArisRole extends User_Role {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

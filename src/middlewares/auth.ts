@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { RoleTypes } from '../@types/types'
 import redis from '../services/redis'
 
 export default async (req: Request, res: Response, next: NextFunction) => {
@@ -15,10 +16,10 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   if (!user_id) return res.status(403).send({ success: false, message: 'Invalid token!' })
   const reply = await redis.client.getAsync(`auth:data:${user_id}`)
   if (!reply) return res.status(500).send({ success: false, message: `Couldn't find user data in redis!` })
-  
-  const data = JSON.parse(reply)
-  req.body._user_id = data.id
-  req.body._roles = data.roles
+
+  const data: { user_id: number; roles: RoleTypes[] } = JSON.parse(reply)
+
+  req.body = { auth: data, data: req.body }
 
   next()
 }

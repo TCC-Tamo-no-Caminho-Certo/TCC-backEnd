@@ -2,15 +2,15 @@ import Student, { StudentCtor, StudentFilters } from '../../database/models/user
 import Course from './studentUniversity'
 import ArisError from '../arisError'
 
-import { Pagination } from '../../types'
+import { Pagination } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetStudent = Required<Omit<StudentCtor, 'linkedin' | 'lattes'>> & Pick<StudentCtor, 'linkedin' | 'lattes'>
 
 export default class ArisStudent extends Student {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * Creates an new student.
@@ -84,7 +84,7 @@ export default class ArisStudent extends Student {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

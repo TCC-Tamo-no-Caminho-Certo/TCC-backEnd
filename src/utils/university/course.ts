@@ -2,15 +2,15 @@ import Campus_Course, { Campus_CourseCtor, Campus_CourseFilters } from '../../da
 import ArisError from '../arisError'
 import Manage from './courseMan'
 
-import { Pagination, CourseTypes } from '../../types'
+import { Pagination, CourseTypes } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetCourse = Required<Campus_CourseCtor> & { name: CourseTypes }
 
 export default class ArisCourse extends Campus_Course {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * Adds an new course to a campus.
@@ -71,7 +71,7 @@ export default class ArisCourse extends Campus_Course {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

@@ -1,6 +1,6 @@
-import ArisError from '../../../utils/arisError'
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Increment, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 interface Regex {
@@ -25,7 +25,7 @@ export interface UniversityCtor {
   regex: Regex
 }
 
-export default class University {
+export default class University1 {
   protected university_id: number
   protected name: string
   protected regex: Regex
@@ -36,7 +36,7 @@ export default class University {
     this.regex = regex
   }
 
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     this.university_id = await txn<Required<UniversityCtor>>('university')
@@ -44,10 +44,7 @@ export default class University {
       .then(row => row[0])
   }
 
-  /**
-   * Updates this university in the database.
-   */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const university_up = { name: this.name, regex: this.regex }
@@ -55,7 +52,7 @@ export default class University {
     await txn<Required<UniversityCtor>>('university').update(university_up).where({ university_id: this.university_id })
   }
 
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<UniversityCtor>>('university').del().where({ university_id: this.university_id })
@@ -76,3 +73,28 @@ export default class University {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface University_Regex {
+  email: {
+    student: string
+    professor: string
+  }
+  register: {
+    student: string
+    professor: string
+  }
+}
+
+interface University {
+  id: Increment
+  name: string
+  regex: University_Regex
+}
+
+const UniversityModel = new Model<University>('university', { increment: 'id' }, true)
+
+type IUniversityModel = IModel<University>
+
+export { UniversityModel, IUniversityModel }

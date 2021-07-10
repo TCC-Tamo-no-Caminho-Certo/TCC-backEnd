@@ -1,5 +1,6 @@
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Model, Increment, Foreign, IModel } from '..'
+import { Pagination } from '../../../@types/types'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface EmailFilters {
@@ -19,7 +20,7 @@ export interface EmailCtor {
   options?: { [key: string]: any }
 }
 
-export default class Email {
+export default class Email1 {
   protected email_id: number
   protected user_id: number
   protected university_id?: number
@@ -36,7 +37,7 @@ export default class Email {
     this.options = options || {}
   }
 
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     this.email_id = await txn<Required<Omit<EmailCtor, 'options'>> & { options: string }>('email')
@@ -50,7 +51,7 @@ export default class Email {
       .then(row => row[0])
   }
 
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const email_up = { address: this.address, main: this.main, university_id: this.university_id, options: JSON.stringify(this.options) }
@@ -58,7 +59,7 @@ export default class Email {
     await txn<Required<Omit<EmailCtor, 'options'>> & { options: string }>('email').update(email_up).where({ email_id: this.email_id })
   }
 
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<EmailCtor>>('email').del().where({ email_id: this.email_id })
@@ -86,3 +87,20 @@ export default class Email {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Email {
+  id: Increment
+  user_id: Foreign
+  university_id: Foreign | null
+  address: string
+  main: boolean
+  options: string
+}
+
+const EmailModel = new Model<Email>('email', { increment: 'id', foreign: ['user_id'] })
+
+type IEmailModel = IModel<Email>
+
+export { EmailModel, IEmailModel }

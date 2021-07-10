@@ -1,4 +1,5 @@
 import ValSchema, { P } from '../../utils/validation'
+import UniversityService from '../../services/university'
 import University from '../../utils/university'
 import ArisError from '../../utils/arisError'
 
@@ -8,7 +9,7 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.route('/:id/campus')
-  .get(auth, async (req: Request, res: Response) => {
+  .get(auth, async (req: Request, res: Response) => { // Implement
     const page = req.query.page
     const per_page = req.query.per_page
     const university_id = parseInt(req.params.id)
@@ -36,12 +37,7 @@ Router.route('/:id/campus')
     const university_id = parseInt(req.params.id)
 
     try {
-      new ValSchema({
-        university_id: P.joi.number().positive().required(),
-        name: P.joi.string().required()
-      }).validate({ name, university_id })
-
-      await University.Campus.create({ university_id, name })
+      await UniversityService.addCampus({ university_id, name })
 
       return res.status(200).send({ success: true, message: 'Campus created!' })
     } catch (error) {
@@ -50,20 +46,14 @@ Router.route('/:id/campus')
     }
   })
 
-Router.route('/campus/:id')
+Router.route('/:university_id/campus/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const { name } = req.body
+    const university_id = parseInt(req.params.university_id)
     const campus_id = parseInt(req.params.id)
+    const { name } = req.body
 
     try {
-      new ValSchema({
-        campus_id: P.joi.number().positive().required(),
-        name: P.joi.string().required()
-      }).validate({ name, campus_id })
-
-      const [campus] = await University.Campus.find({ campus_id })
-      if (!campus) throw new ArisError('Campus not found!', 400)
-      await campus.update({ name })
+      await UniversityService.updateCampus({ university_id, campus_id }, { name })
 
       return res.status(200).send({ success: true, message: 'Campus updated!' })
     } catch (error) {
@@ -73,14 +63,11 @@ Router.route('/campus/:id')
   })
 
   .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
+    const university_id = parseInt(req.params.university_id)
     const campus_id = parseInt(req.params.id)
 
     try {
-      new ValSchema(P.joi.number().positive().required()).validate(campus_id)
-
-      const [campus] = await University.Campus.find({ campus_id })
-      if (!campus) throw new ArisError('Campus not found!', 400)
-      await campus.delete()
+      await UniversityService.removeCampus({ university_id, campus_id })
 
       return res.status(200).send({ success: true, message: 'Campus deleted!' })
     } catch (error) {

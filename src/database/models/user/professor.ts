@@ -1,5 +1,6 @@
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Foreign, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface ProfessorFilters {
@@ -18,7 +19,7 @@ export interface ProfessorCtor {
   orcid?: string
 }
 
-export default class Professor {
+export default class Professor1 {
   protected user_id: number
   protected postgraduate: boolean
   protected linkedin?: string
@@ -39,7 +40,7 @@ export default class Professor {
   /**
    * Inserts this professor in the database, if doesn't already registered.
    */
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<ProfessorCtor>>('professor').insert({
@@ -54,7 +55,7 @@ export default class Professor {
   /**
    * Updates this professor in the database.
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const professor_up = { postgraduate: this.postgraduate, linkedin: this.linkedin, lattes: this.lattes, orcid: this.orcid }
@@ -65,7 +66,7 @@ export default class Professor {
   /**
    * Delets this professor in the database.
    */
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<ProfessorCtor>>('professor').del().where({ user_id: this.user_id })
@@ -89,3 +90,19 @@ export default class Professor {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Professor {
+  user_id: Foreign
+  postgraduate: boolean | null
+  linkedin: string | null
+  lattes: string | null
+  orcid: string | null
+}
+
+const ProfessorModel = new Model<Professor>('professor', { foreign: ['user_id'] })
+
+type IProfessorModel = IModel<Professor>
+
+export { ProfessorModel, IProfessorModel }

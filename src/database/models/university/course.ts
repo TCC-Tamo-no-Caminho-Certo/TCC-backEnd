@@ -1,5 +1,6 @@
 import ArisError from '../../../utils/arisError'
-import { CourseTypes } from '../../../types'
+import { CourseTypes } from '../../../@types/types'
+import { Model, Increment, IModel } from '..'
 import db from '../..'
 
 let courses: Required<CourseCtor>[] = []
@@ -14,7 +15,7 @@ export interface CourseCtor {
   name: CourseTypes
 }
 
-export default class Course {
+export default class Course1 {
   protected course_id: number
   protected name: CourseTypes
 
@@ -36,3 +37,16 @@ export default class Course {
     return courses
   }
 }
+
+// --------------- //
+
+interface Course {
+  id: Increment
+  name: CourseTypes
+}
+
+const CourseModel = new Model<Course, never>('course', { increment: 'id' }, true)
+
+type ICourseModel = IModel<Course, never>
+
+export { CourseModel, ICourseModel }

@@ -1,6 +1,6 @@
-import ArisError from '../../../utils/arisError'
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Foreign, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface Campus_CourseFilters {
@@ -15,7 +15,7 @@ export interface Campus_CourseCtor {
   course_id: number
 }
 
-export default class Campus_Course {
+export default class Campus_Course1 {
   protected university_id: number
   protected campus_id: number
   protected course_id: number
@@ -29,13 +29,17 @@ export default class Campus_Course {
     this.course_id = course_id
   }
 
-  protected async n_insert(transaction?: Transaction) {
+  protected async n_insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
-    await txn<Required<Campus_CourseCtor>>('campus_course').insert({ university_id: this.university_id,campus_id: this.campus_id, course_id: this.course_id })
+    await txn<Required<Campus_CourseCtor>>('campus_course').insert({
+      university_id: this.university_id,
+      campus_id: this.campus_id,
+      course_id: this.course_id
+    })
   }
 
-  protected async n_delete(transaction?: Transaction) {
+  protected async n_delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<Campus_CourseCtor>>('campus_course').del().where({ campus_id: this.campus_id, course_id: this.course_id })
@@ -56,3 +60,17 @@ export default class Campus_Course {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Campus_Course {
+  university_id: Foreign
+  campus_id: Foreign
+  course_id: Foreign
+}
+
+const Campus_CourseModel = new Model<Campus_Course, never>('campus_course', { foreign: ['university_id', 'campus_id', 'course_id'] }, true)
+
+type ICampus_CourseModel = IModel<Campus_Course, never>
+
+export { Campus_CourseModel, ICampus_CourseModel }

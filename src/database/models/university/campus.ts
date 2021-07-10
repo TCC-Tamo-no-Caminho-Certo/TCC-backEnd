@@ -1,6 +1,6 @@
-import ArisError from '../../../utils/arisError'
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Increment, Foreign, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface CampusFilters {
@@ -15,7 +15,7 @@ export interface CampusCtor {
   name: string
 }
 
-export default class Campus {
+export default class Campus1 {
   protected campus_id: number
   protected university_id: number
   protected name: string
@@ -26,7 +26,7 @@ export default class Campus {
     this.name = name
   }
 
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     this.campus_id = await txn<Required<CampusCtor>>('campus')
@@ -37,7 +37,7 @@ export default class Campus {
   /**
    * Updates this campus in the database.
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const campus_up = { name: this.name }
@@ -45,7 +45,7 @@ export default class Campus {
     await txn<Required<CampusCtor>>('campus').update(campus_up).where({ campus_id: this.campus_id })
   }
 
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<CampusCtor>>('campus').del().where({ campus_id: this.campus_id })
@@ -66,3 +66,17 @@ export default class Campus {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface Campus {
+  id: Increment
+  university_id: Foreign
+  name: string
+}
+
+const CampusModel = new Model<Campus>('campus', { increment: 'id', foreign: ['university_id'] }, true)
+
+type ICampusModel = IModel<Campus>
+
+export { CampusModel, ICampusModel }

@@ -1,11 +1,5 @@
-import ValSchema, { P } from '../utils/validation'
-import University from '../utils/university'
+import UserService from '../services/user'
 import ArisError from '../utils/arisError'
-import Mail from '../services/nodemailer'
-import redis from '../services/redis'
-import { v4 as uuidv4 } from 'uuid'
-import User from '../utils/user'
-import crypto from 'crypto'
 
 import { captcha, auth } from '../middlewares'
 
@@ -21,9 +15,11 @@ route.get('/api/validate-session', auth, async (req: Request, res: Response) => 
   }
 })
 
-route.get('/api/logout', auth, async (req: Request, res: Response) => {
+route.get('/api/sign-out', auth, async (req: Request, res: Response) => {
+  const auth = req.headers.authorization!
+
   try {
-    User.deleteAccessToken(req)
+    await UserService.signOut(auth)
 
     return res.status(200).send({ success: true, message: 'User logged out!' })
   } catch (error) {
@@ -32,64 +28,29 @@ route.get('/api/logout', auth, async (req: Request, res: Response) => {
   }
 })
 
-route.post('/api/login', captcha, async (req: Request, res: Response) => {
-  const { email, password, remember } = req.body
+route.post('/api/sign-in', captcha, async (req: Request, res: Response) => {
+  const {
+    data: { email, password, remember }
+  } = req.body
 
   try {
-    new ValSchema({
-      email: P.user.email.required(),
-      password: P.user.password.required(),
-      remember: P.auth.remember.allow(null)
-    }).validate({ email, password, remember })
+    const access_token = await UserService.SignIn(email, password, remember)
 
-    const [user_email] = await User.Email.find({ address: <string>email })
-    if (!user_email || !user_email.get('main')) throw new ArisError('User not found!', 400)
-
-    const user_id = user_email.get('user_id')
-
-    const [user] = await User.find({ user_id })
-    await user.verifyPassword(password)
-
-    const roles = (await User.Role.find({ user_id })).map(role => role.format())
-
-    const access_token = await User.generateAccessToken(user_id, roles, remember)
-
-    return res.status(200).send({ success: true, message: 'Login authorized!', access_token })
+    return res.status(200).send({ success: true, message: 'Sign In authorized!', access_token })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Login')
     return res.status(result.status).send(result.send)
   }
 })
 
-route.post('/api/register', captcha, async (req: Request, res: Response) => {
-  const { name, surname, birthday, phone, password, email } = req.body
+route.post('/api/sign-up', captcha, async (req: Request, res: Response) => {
+  const {
+    data,
+    data: { email }
+  } = req.body
 
   try {
-    new ValSchema({
-      name: P.user.name.required(),
-      surname: P.user.surname.required(),
-      phone: P.user.phone,
-      birthday: P.user.birthday.required(),
-      password: P.user.password.required(),
-      email: P.user.email.required()
-    }).validate({ name, surname, phone, birthday, password, email })
-
-    const user_info = { name, surname, phone, birthday, password }
-    const email_info = { user_id: 0, address: email, university_id: undefined, main: true, options: {} }
-
-    // if (university_id) {
-    //   const [university] = await University.find({ university_id })
-    //   const regex = [new RegExp(university.get('regex').email.professor), new RegExp(university.get('regex').email.student)]
-
-    //   email_info.university_id = regex.some(reg => reg.test(email)) ? university_id : undefined
-    // }
-
-    const has_user = await User.exist(email)
-    if (has_user) throw new ArisError('User already exists', 400)
-
-    const token = uuidv4()
-    redis.client.setex(`register:${token}`, 86400, JSON.stringify({ user_info, email_info }))
-    await Mail.confirmRegister({ to: email, token })
+    await UserService.signUp(data, email)
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
@@ -98,25 +59,11 @@ route.post('/api/register', captcha, async (req: Request, res: Response) => {
   }
 })
 
-route.get('/confirm/register/:token', async (req: Request, res: Response) => {
+route.get('/confirm/sign-up/:token', async (req: Request, res: Response) => {
   const { token } = req.params
 
   try {
-    new ValSchema(P.auth.token.required()).validate(token)
-
-    const reply = await redis.client.getAsync(`register:${token}`)
-    if (!reply) throw new ArisError('Invalid token!', 400)
-
-    const { user_info, email_info } = JSON.parse(reply)
-
-    const user = await User.create(user_info)
-    const user_id = user.get('user_id')
-    await User.Role.add(user_id, 'guest')
-
-    email_info.user_id = user_id
-    await User.Email.create(email_info)
-
-    redis.client.del(`register:${token}`)
+    await UserService.confirmSignUp(token)
 
     return res.status(201).send({ success: true, message: 'Register complete!' })
   } catch (error) {
@@ -125,20 +72,11 @@ route.get('/confirm/register/:token', async (req: Request, res: Response) => {
   }
 }) // ADD OPTIONS ON EMAIL INFO
 
-route.get('/api/confirm/email/:token', async (req: Request, res: Response) => {
+route.get('/confirm/email/:token', async (req: Request, res: Response) => {
   const { token } = req.params
 
   try {
-    new ValSchema(P.auth.token.required()).validate(token)
-
-    const reply = await redis.client.getAsync(`email:${token}`)
-    if (!reply) throw new ArisError('Invalid token!', 400)
-
-    const email_info = JSON.parse(reply)
-
-    await User.Email.create(email_info)
-
-    redis.client.del(`email:${token}`)
+    await UserService.email.confirm(token)
 
     return res.status(201).send({ success: true, message: 'Email confirmed!' })
   } catch (error) {
@@ -151,15 +89,7 @@ route.get('/api/forgot-password/:email', async (req: Request, res: Response) => 
   const { email } = req.params
 
   try {
-    new ValSchema(P.user.email.required()).validate(email)
-
-    const user_id = await User.exist(email)
-    if (!user_id) throw new ArisError('User not found!', 400)
-
-    const token = crypto.randomBytes(3).toString('hex')
-
-    redis.client.setex(`reset:${token}`, 3600, user_id.toString())
-    await Mail.forgotPass({ to: email, token })
+    await UserService.forgotPassword(email)
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
@@ -170,26 +100,14 @@ route.get('/api/forgot-password/:email', async (req: Request, res: Response) => 
 
 route.post('/api/reset-password/:token', captcha, async (req: Request, res: Response) => {
   const { token } = req.params
-  const { password } = req.body
+  const {
+    data: { password }
+  } = req.body
 
   try {
-    new ValSchema(P.auth.token.required()).validate(token)
+    const updated = await UserService.resetPassword(token, password)
 
-    const reply = await redis.client.getAsync(`reset:${token}`)
-    if (!reply) throw new ArisError('Invalid token!', 400)
-    const user_id = parseInt(reply)
-
-    if (!password) return res.status(200).send({ success: true, message: 'Valid reset token!' })
-
-    new ValSchema(P.user.password.required()).validate(password)
-
-    const [user] = await User.find({ user_id })
-    if (!user) throw new ArisError('Wrong id stored in redis to reset password!', 500)
-    await user.update({ password })
-
-    redis.client.del(`reset:${token}`)
-
-    return res.status(200).send({ success: true, message: 'Password changed!' })
+    return res.status(200).send(updated ? { success: true, message: 'Password changed!' } : { success: true, message: 'Valid reset token!' })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Change password')
     return res.status(result.status).send(result.send)

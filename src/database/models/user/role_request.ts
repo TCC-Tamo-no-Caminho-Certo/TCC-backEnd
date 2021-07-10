@@ -1,16 +1,18 @@
+import { Model, Increment, Foreign, IModel } from '..'
 import User_Role, { User_RoleCtor } from './user_role'
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../..'
 
-type StatusTypes = 'accepted' | 'rejected' | 'awaiting'
+import { Pagination, RoleTypes } from '../../../@types/types'
+
+type RoleRequestStatus = 'accepted' | 'rejected' | 'awaiting'
 
 export interface RoleReqFilters {
   request_id?: number[] | number
   user_id?: number[] | number
   role_id?: number[] | number
   data?: { [key: string]: any }
-  status?: StatusTypes[] | StatusTypes
+  status?: RoleRequestStatus[] | RoleRequestStatus
   created_at?: [string, string]
   updated_at?: [string, string]
 }
@@ -20,7 +22,7 @@ export interface RoleReqCtor extends User_RoleCtor {
   data?: { [key: string]: any }
   voucher_uuid?: string
   feedback?: string
-  status?: StatusTypes
+  status?: RoleRequestStatus
   created_at?: string
   updated_at?: string
 }
@@ -30,7 +32,7 @@ export default class Role_Request extends User_Role {
   protected data?: { [key: string]: any }
   protected voucher_uuid?: string
   protected feedback?: string
-  protected status: StatusTypes
+  protected status: RoleRequestStatus
   protected created_at: string
   protected updated_at: string
 
@@ -51,7 +53,7 @@ export default class Role_Request extends User_Role {
   /**
    * Inserts this role request in the database.
    */
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     this.request_id = await txn('role_request')
@@ -68,7 +70,7 @@ export default class Role_Request extends User_Role {
   /**
    * Updates this role request in the database.
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const request_up = { voucher_uuid: this.voucher_uuid, data: JSON.stringify(this.data), feedback: this.feedback, status: this.status }
@@ -80,21 +82,10 @@ export default class Role_Request extends User_Role {
   /**
    * Deletes this role request in the database.
    */
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     return await txn('role_request').del().where({ request_id: this.request_id })
-  }
-
-  /**
-   * Checks if an request already exists on the database.
-   */
-  protected static async _exist(user_id: number, role_id: number) {
-    const result = await db('role_request')
-      .select('request_id')
-      .where({ user_id, role_id })
-      .then(row => (row[0] ? true : false))
-    return result
   }
 
   /**
@@ -109,17 +100,17 @@ export default class Role_Request extends User_Role {
       for (key in filter) {
         if (filter[key]) {
           if (key === 'created_at' || key === 'updated_at') builder.whereBetween(key, <[string, string]>filter[key])
-          else if (key === 'data')
-            for (const data_key in filter[key])
+          else if (typeof filter[key] === 'object')
+            for (const data_key in <any>filter[key])
               builder.whereRaw(
                 `data->'$.${data_key}' ${
-                  Array.isArray(filter[key]![data_key])
+                  Array.isArray((<any>filter[key])[data_key])
                     ? `in (${
-                        typeof filter[key]![data_key][0] === 'string'
-                          ? filter[key]![data_key].map((value: string) => `'${value}'`)
-                          : filter[key]![data_key]
+                        typeof (<any>filter[key])[data_key][0] === 'string'
+                          ? (<any>filter[key])[data_key].map((value: string) => `'${value}'`)
+                          : (<any>filter[key])[data_key]
                       })`
-                    : `= ${typeof filter[key]![data_key] === 'string' ? `'${filter[key]![data_key]}'` : filter[key]![data_key]}`
+                    : `= ${typeof (<any>filter[key])[data_key] === 'string' ? `'${(<any>filter[key])[data_key]}'` : (<any>filter[key])[data_key]}`
                 } `
               )
           else Array.isArray(filter[key]) ? builder.whereIn(key, <any[]>filter[key]) : builder.where({ [key]: filter[key] })
@@ -132,3 +123,23 @@ export default class Role_Request extends User_Role {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface RoleRequest {
+  id: Increment
+  user_id: Foreign
+  role: RoleTypes
+  data: { [key: string]: any } | null
+  voucher_uuid: string | null
+  feedback: string | null
+  status: RoleRequestStatus
+  created_at: string
+  updated_at: string
+}
+
+const RoleRequestModel = new Model<RoleRequest>('role_request', { increment: 'id', foreign: ['user_id'] })
+
+type IRoleRequestModel = IModel<RoleRequest>
+
+export { RoleRequestModel, IRoleRequestModel }

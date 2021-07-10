@@ -1,5 +1,6 @@
-import { Pagination } from '../../../types'
-import { Transaction } from 'knex'
+import { Pagination } from '../../../@types/types'
+import { Model, Increment, IModel } from '..'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface UserFilters {
@@ -23,7 +24,7 @@ export interface UserCtor {
   updated_at?: string
 }
 
-export default class User {
+export default class User1 {
   protected user_id: number
   protected name: string
   protected surname: string
@@ -55,7 +56,7 @@ export default class User {
    * Inserts this user in the database, if doesn't already registered.
    * @param User.password - needs to be hashed!
    */
-  protected async _insert(transaction?: Transaction) {
+  protected async _insert(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     this.user_id = await txn<Required<UserCtor> & { active: boolean }>('user')
@@ -73,7 +74,7 @@ export default class User {
    * Updates this user in the database.
    * @param User.password - needs to be hashed!
    */
-  protected async _update(transaction?: Transaction) {
+  protected async _update(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     const user_up = {
@@ -92,7 +93,7 @@ export default class User {
   /**
    * Delets this user in the database.
    */
-  protected async _delete(transaction?: Transaction) {
+  protected async _delete(transaction?: Knex.Transaction) {
     const txn = transaction || db
 
     await txn<Required<UserCtor>>('user').del().where({ user_id: this.user_id })
@@ -118,3 +119,27 @@ export default class User {
     return await base_query
   }
 }
+
+// --------------- //
+
+interface User {
+  id: Increment
+  name: string
+  surname: string
+  full_name: string
+  phone: string | null
+  birthday: string
+  password: string
+  avatar_uuid: string
+  created_at: string
+  updated_at: string
+}
+
+type UserUp = Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>
+type UserIn = Omit<User, 'id' | 'avatar_uuid' | 'created_at' | 'updated_at'>
+
+const UserModel = new Model<User, UserUp, UserIn>('user', { increment: 'id' })
+
+type IUserModel = IModel<User, UserUp, UserIn>
+
+export { UserModel, IUserModel }

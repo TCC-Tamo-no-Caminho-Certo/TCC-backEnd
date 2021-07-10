@@ -1,20 +1,22 @@
 import ArisError from '../../../utils/arisError'
-import { RoleTypes } from '../../../types'
+import { Model, Foreign, IModel } from '..'
 import db from '../..'
+
+import { RoleTypes } from '../../../@types/types'
 
 const roles: Required<RoleCtor>[] = []
 
-db<Required<RoleCtor>>('role').then(row => {
-  if (!row[0]) throw new ArisError('Couldn´t get all roles', 500)
-  roles.push(...row)
-})
+// db<Required<RoleCtor>>('role').then(row => {
+//   if (!row[0]) throw new ArisError('Couldn´t get all roles', 500)
+//   roles.push(...row)
+// })
 
 export interface RoleCtor<T extends RoleTypes = RoleTypes> {
   role_id?: number
   title: T
 }
 
-export default class Role<T extends RoleTypes = RoleTypes> {
+export default class Role1<T extends RoleTypes = RoleTypes> {
   protected role_id: number
   protected title: T
 
@@ -36,3 +38,20 @@ export default class Role<T extends RoleTypes = RoleTypes> {
     return roles
   }
 }
+
+// --------------- //
+
+type RolesList = { [Key in RoleTypes]: boolean }
+
+interface Role extends RolesList {
+  user_id: Foreign
+}
+
+type RoleUp = Partial<Omit<Role, "user_id">>
+type RoleIn = Pick<Role, 'user_id'>
+
+const RoleModel = new Model<Role, RoleUp, RoleIn>('role', { foreign: ['user_id'] })
+
+type IRoleModel = IModel<Role, RoleUp, RoleIn>
+
+export { RoleModel, IRoleModel }

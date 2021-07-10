@@ -3,7 +3,7 @@ import Category from './category'
 import Artefact from './artefact'
 import Data from '../../../utils/data'
 import Status from './status'
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../..'
 
 interface Filters {
@@ -53,7 +53,7 @@ export default class Proposal {
   }
 
   private _update = {
-    async titleAndVersion(proposal_id: number, title: string, version: number, transaction?: Transaction) {
+    async titleAndVersion(proposal_id: number, title: string, version: number, transaction?: Knex.Transaction) {
       const trx = transaction || db
       const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
@@ -62,7 +62,7 @@ export default class Proposal {
         .where({ proposal_id })
     },
 
-    async time(proposal_id: number, transaction?: Transaction) {
+    async time(proposal_id: number, transaction?: Knex.Transaction) {
       const trx = transaction || db
       const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
 

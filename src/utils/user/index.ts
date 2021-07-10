@@ -5,19 +5,19 @@ import ArisError from '../arisError'
 import Email from './email'
 import Role from './role'
 
-import { Pagination, RoleTypes } from '../../types'
+import { Pagination, RoleTypes } from '../../@types/types'
 
 import { v4 as uuidv4 } from 'uuid'
 import { Request } from 'express'
 import argon from 'argon2'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetUser = Required<Omit<UserCtor, 'phone'>> & Pick<UserCtor, 'phone'>
 
 export default class ArisUser extends User {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * Creates an new user.
@@ -195,7 +195,7 @@ export default class ArisUser extends User {
     const [, token] = parts
     const [user_id] = token.split('-', 1)
 
-    const keys = await redis.client.getAsync(`auth:${user_id}*`)
+    const keys = await redis.client.keysAsync(`auth:${user_id}*`)
     await redis.client.delAsync(keys)
   }
 
@@ -223,7 +223,7 @@ export default class ArisUser extends User {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

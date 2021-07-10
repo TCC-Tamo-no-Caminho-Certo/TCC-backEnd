@@ -1,15 +1,15 @@
 import Moderator_University, { Moderator_UniversityCtor, Moderator_UniversityFilters } from '../../database/models/user/moderator_university'
 import ArisError from '../arisError'
 
-import { Pagination } from '../../types'
+import { Pagination } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetModeratorCourse = Required<Moderator_UniversityCtor>
 
 export default class ArisModeratorUniversity extends Moderator_University {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   static async add(Moderator_course_info: Moderator_UniversityCtor) {
     const Moderator_course = new ArisModeratorUniversity(Moderator_course_info)
@@ -62,7 +62,7 @@ export default class ArisModeratorUniversity extends Moderator_University {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

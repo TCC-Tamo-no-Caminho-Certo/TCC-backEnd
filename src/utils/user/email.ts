@@ -1,9 +1,9 @@
 import Email, { EmailCtor, EmailFilters } from '../../database/models/user/email'
 import ArisError from '../arisError'
 
-import { Pagination } from '../../types'
+import { Pagination } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetEmail = Required<Omit<EmailCtor, 'university_id'>> & Pick<EmailCtor, 'university_id'> & { institutional: boolean }
@@ -11,7 +11,7 @@ type GetEmail = Required<Omit<EmailCtor, 'university_id'>> & Pick<EmailCtor, 'un
 export default class ArisEmail extends Email {
   private institutional = this.university_id ? true : false
 
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * Creates an new user.
@@ -87,7 +87,7 @@ export default class ArisEmail extends Email {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

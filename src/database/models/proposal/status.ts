@@ -1,5 +1,5 @@
 import ArisError from '../../../utils/arisError'
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../..'
 
 export interface ArisStatus {
@@ -78,7 +78,7 @@ export default class Status {
   }
 
   static get = {
-    async id(name: string, transaction?: Transaction) {
+    async id(name: string, transaction?: Knex.Transaction) {
       const trx = transaction || db
       const id = await trx('status')
         .select('status_id')

@@ -1,5 +1,6 @@
 import ValSchema, { P } from '../../utils/validation'
 import University from '../../utils/university'
+import UserService from '../../services/user'
 import ArisError from '../../utils/arisError'
 import Mail from '../../services/nodemailer'
 import redis from '../../services/redis'
@@ -12,27 +13,13 @@ import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.post('/email', auth, async (req: Request, res: Response) => {
-  const { _user_id: user_id, email, university_id } = req.body
+  const {
+    auth: { user_id },
+    data
+  } = req.body
 
   try {
-    new ValSchema({
-      email: P.joi.string().email().required(),
-      university_id: P.joi.number().positive().allow(null)
-    }).validate({ email, university_id })
-
-    const [has_email] = await User.Email.find({ address: email })
-    if (has_email) throw new ArisError('Email already in use!', 400)
-
-    if (university_id) {
-      const [university] = await University.find({ university_id })
-      const regex = [new RegExp(university.get('regex').email.professor), new RegExp(university.get('regex').email.student)]
-
-      if (!regex.some(reg => reg.test(email))) throw new ArisError('Invalid email format!', 400)
-    }
-
-    const token = crypto.randomBytes(3).toString('hex')
-    redis.client.setex(`email:${token}`, 86400, JSON.stringify({ user_id, university_id, address: email, options: {} }))
-    await Mail.confirmEmail({ to: email, token })
+    await UserService.email.add(user_id, data)
 
     return res.status(200).send({ success: true, message: 'Email sended!' })
   } catch (error) {
@@ -43,15 +30,14 @@ Router.post('/email', auth, async (req: Request, res: Response) => {
 
 Router.route('/email/:id')
   .patch(auth, async (req: Request, res: Response) => {
-    const { _user_id: user_id, university_id, options } = req.body
-    const email_id = parseInt(req.params.id)
+    const {
+      auth: { user_id },
+      data
+    } = req.body
+    const id = parseInt(req.params.id)
 
     try {
-      new ValSchema(P.joi.number().positive().allow(null)).validate(university_id)
-
-      const [email] = await User.Email.find({ user_id, email_id })
-      if (!email) throw new ArisError('Emails not vinculated with this user!', 400)
-      await email.update({ university_id, options })
+      await UserService.email.update({ id, user_id }, data)
 
       return res.status(200).send({ success: true, message: 'Get user info complete!' })
     } catch (error) {
@@ -61,13 +47,13 @@ Router.route('/email/:id')
   })
 
   .delete(auth, async (req: Request, res: Response) => {
-    const { _user_id: user_id } = req.body
-    const email_id = parseInt(req.params.id)
+    const {
+      auth: { user_id }
+    } = req.body
+    const id = parseInt(req.params.id)
 
     try {
-      const [email] = await User.Email.find({ user_id, email_id })
-      if (!email) throw new ArisError('Emails not vinculated with this user!', 400)
-      await email.delete()
+      await UserService.email.remove({ id, user_id })
 
       return res.status(200).send({ success: true, message: 'Delete email complete!' })
     } catch (error) {

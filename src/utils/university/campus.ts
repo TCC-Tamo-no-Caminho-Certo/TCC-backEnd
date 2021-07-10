@@ -2,15 +2,15 @@ import Campus, { CampusCtor, CampusFilters } from '../../database/models/univers
 import ArisError from '../arisError'
 import Course from './course'
 
-import { Pagination } from '../../types'
+import { Pagination } from '../../@types/types'
 
-import { Transaction } from 'knex'
+import { Knex } from 'knex'
 import db from '../../database'
 
 type GetCampus = Required<CampusCtor>
 
 export default class ArisCampus extends Campus {
-  private txn?: Transaction
+  private txn?: Knex.Transaction
 
   /**
    * Creates an new campus.
@@ -84,7 +84,7 @@ export default class ArisCampus extends Campus {
   /**
    * Bind a transaction to this class.
    */
-  setTxn(txn: Transaction) {
+  setTxn(txn: Knex.Transaction) {
     this.txn = txn
   }
 

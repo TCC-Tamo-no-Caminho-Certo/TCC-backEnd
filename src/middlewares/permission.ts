@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
-import { RoleTypes } from '../types'
+import { RoleTypes } from '../@types/types'
 
-type NRoleTypes = '!admin' | '!guest' | '!student' | '!professor' | '!customer' | '!evaluator' | '!moderator'
+type NRoleTypes = `!${RoleTypes}`
 
 /**
  * @param schemas - schema format: [role, (and) role...], (or) [role, (and) role...], (or)...
@@ -14,8 +14,8 @@ export default (...schemas: (RoleTypes | NRoleTypes)[][]) => {
         const flag = r.length !== 1
 
         const has_role = flag
-          ? req.body._roles.some((user_role: string) => user_role === r[1])
-          : req.body._roles.some((user_role: string) => user_role === r[0])
+          ? req.body.auth.roles.some((user_role: string) => user_role === r[1])
+          : req.body.auth.roles.some((user_role: string) => user_role === r[0])
         const allowed = flag ? !has_role : has_role
 
         return allowed ? acc : 0
