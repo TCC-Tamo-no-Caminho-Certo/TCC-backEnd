@@ -14,31 +14,7 @@ Router.route('/user')
     } = req.body
 
     try {
-      const user = (await User.find({ user_id }))[0].format()
-      const roles = (await User.Role.find({ user_id })).map(role => role.format())
-      const emails = (await User.Email.find({ user_id })).map(email => email.format())
-
-      let moderator: any
-      let professor: any
-      let student: any
-      for (const role of roles) {
-        if (role === 'professor') {
-          professor = (await User.Role.Professor.find({ user_id }))[0].format()
-          const universities = (await User.Role.Professor.Course.find({ user_id })).map(university => university.format())
-
-          professor.universities = universities
-        } else if (role === 'student') {
-          student = (await User.Role.Student.find({ user_id }))[0].format()
-          const universities = (await User.Role.Student.Course.find({ user_id })).map(university => university.format())
-
-          student.universities = universities
-        } else if (role === 'moderator') {
-          moderator = {}
-          moderator.universities = (await User.Role.Moderator.find({ user_id })).map(university => university.format())
-        }
-      }
-
-      const response = { ...user, roles, emails, moderator, professor, student }
+      const response = await UserService.get(user_id)
 
       return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
     } catch (error) {
@@ -93,6 +69,21 @@ Router.put('/user/avatar', auth, async (req: Request, res: Response) => {
     return res.status(200).send({ success: true, message: 'Avatar uploaded!', avatar_uuid })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Upload avatar')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.get('/users', async (req: Request, res: Response) => {
+  const { page, per_page, ...filter } = req.query
+
+  try {
+    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+
+    const users = await UserService.find(filter, pagination)
+
+    return res.status(200).send({ success: true, message: 'Get users complete!', users })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Get users info')
     return res.status(result.status).send(result.send)
   }
 })
