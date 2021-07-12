@@ -7,6 +7,8 @@ import ArisError from '../../utils/arisError'
 import { emitter } from '../../subscribers'
 import crypto from 'crypto'
 
+import { Pagination } from '../../@types/types'
+
 export class EmailSubService {
   private UniversityModel: IUniversityModel
   private EmailModel: IEmailModel
@@ -80,8 +82,8 @@ export class EmailSubService {
     await this.EmailModel.delete(primary)
   }
 
-  async find(filter: any, pagination: { page: number; per_page: number }) {
-    const emails = await this.EmailModel.find(filter, pagination)
+  async find(filter: any, { page, per_page }: Pagination) {
+    const emails = await this.EmailModel.find(filter).paginate(page, per_page)
     return emails
   }
 

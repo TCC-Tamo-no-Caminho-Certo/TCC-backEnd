@@ -7,7 +7,7 @@ import ValSchema, { P } from '../../utils/validation'
 import ArisError from '../../utils/arisError'
 import { emitter } from '../../subscribers'
 
-import { RoleTypes } from '../../@types/types'
+import { Pagination, RoleTypes } from '../../@types/types'
 
 export class RoleSubService {
   private ProfessorModel: IProfessorModel
@@ -30,7 +30,7 @@ export class RoleSubService {
 
   async remove(primary: any) {}
 
-  async find(filter: any, pagination: { page: number; per_page: number }) {}
+  async find(filter: any, { page, per_page }: Pagination) {}
 }
 
 export default new RoleSubService(RoleModel, StudentModel, ProfessorModel, Role_RequestSubService)

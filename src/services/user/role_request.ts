@@ -14,7 +14,7 @@ import ArisError from '../../utils/arisError'
 import { emitter } from '../../subscribers'
 import File from '../../utils/minio'
 
-import { RoleTypes } from '../../@types/types'
+import { Pagination, RoleTypes } from '../../@types/types'
 
 export class Role_RequestSubService {
   private Moderator_UniversityModel: IModerator_UniversityModel
@@ -259,12 +259,8 @@ export class Role_RequestSubService {
 
     await this.RoleModel.createTrx()
 
-    const roles = await this.RoleModel.find({ user_id: request.user_id })
-    delete (roles as any).user_id
-
-    const user_roles: any = Object.keys(roles).filter(key => {
-      if ((roles as any)[key] === 1) return key
-    })
+    const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
+    const user_roles: any = Object.keys(roles).filter(key => (roles as any)[key] === 1)
 
     if (!user_roles.some((role: string) => role === r_role)) {
       const index = user_roles.findIndex((role: string) => role === 'guest')
@@ -324,8 +320,8 @@ export class Role_RequestSubService {
     voucher_uuid && (await File.delete('documents', voucher_uuid))
   }
 
-  async find(filter: any, pagination: { page: number; per_page: number }) {
-    const requests = await this.RoleRequestModel.find(filter, pagination)
+  async find(filter: any, { page, per_page }: Pagination) {
+    const requests = await this.RoleRequestModel.find(filter).paginate(page, per_page)
     return requests
   }
 

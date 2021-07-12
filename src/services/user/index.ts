@@ -166,8 +166,19 @@ export class UserService {
   }
 
   async find(filter: any, { page, per_page }: Pagination) {
-    const users = await this.UserModel.find(filter).paginate(page, per_page)
+    const users = await this.UserModel.find(filter)
+      .select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid')
+      .paginate(page, per_page)
     return users
+  }
+
+  async get(user_id: number) {
+    const [user] = await this.UserModel.query.select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid').where({ id: user_id })
+    const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
+    const user_roles = Object.keys(roles).filter(key => (roles as any)[key] === 1)
+    
+    const response = {...user, role: user_roles}
+    return response
   }
 
   async confirmSignUp(token: string) {
