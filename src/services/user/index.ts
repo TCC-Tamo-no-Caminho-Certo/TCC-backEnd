@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import argon from 'argon2'
 
-import { RoleTypes } from '../../@types/types'
+import { Pagination, RoleTypes } from '../../@types/types'
 
 export class UserService {
   private EmailModel: IEmailModel
@@ -58,7 +58,7 @@ export class UserService {
     emitter.emit('SingUp', { user_data, email_address, token }) // Nodemailer
   }
 
-  async SignIn(email: string, password: string, remember: boolean = false) {
+  async signIn(email: string, password: string, remember: boolean = false) {
     new ValSchema({
       email: P.user.email.required(),
       password: P.user.password.required(),
@@ -72,12 +72,8 @@ export class UserService {
     const [{ password: hash }] = await this.UserModel.find({ id: user_id })
     if (!(await argon.verify(hash, password))) throw new ArisError('Incorrect password!', 400)
 
-    const [roles] = await this.RoleModel.find({ user_id })
-    delete (roles as any).user_id
-
-    const user_roles: any = Object.keys(roles).filter(key => {
-      if ((roles as any)[key] === 1) return key
-    })
+    const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
+    const user_roles: any = Object.keys(roles).filter(key => (roles as any)[key] === 1)
 
     const token = await this.generateAccessToken(user_id, user_roles, remember)
 
@@ -169,8 +165,8 @@ export class UserService {
     emitter.emit('User_Delete', { token })
   }
 
-  async find(filter: any, pagination: { page: number; per_page: number }) {
-    const users = await this.UserModel.find(filter, pagination)
+  async find(filter: any, { page, per_page }: Pagination) {
+    const users = await this.UserModel.find(filter).paginate(page, per_page)
     return users
   }
 

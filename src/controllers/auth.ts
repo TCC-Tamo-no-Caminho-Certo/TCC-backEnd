@@ -32,7 +32,7 @@ route.post('/api/sign-in', captcha, async (req: Request, res: Response) => {
   const { email, password, remember } = req.body
 
   try {
-    const access_token = await UserService.SignIn(email, password, remember)
+    const access_token = await UserService.signIn(email, password, remember)
 
     return res.status(200).send({ success: true, message: 'Sign In authorized!', access_token })
   } catch (error) {
