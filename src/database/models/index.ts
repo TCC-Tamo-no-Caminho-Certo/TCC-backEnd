@@ -46,13 +46,13 @@ export interface IModel<
   insert(data: ParseKeys<Insert>): Promise<ParseKeys<Data>>
   update(ids: RecordIDs<Data>, data: ParseKeys<Update>): Promise<void>
   delete(ids: RecordIDs<Data>): Promise<void>
-  find(filter?: Filter, pagination?: Pagination | undefined): Promise<ParseKeys<Data>[]>
+  find(filter?: Filter): Knex.QueryBuilder<ParseKeys<Data>>
   createTrx(): Promise<void>
   commitTrx(): Promise<void>
   rollbackTrx(): Promise<void>
 
   cache: ParseKeys<Data>[]
-  query: Knex.QueryBuilder<Data>
+  query: Knex.QueryBuilder<ParseKeys<Data>>
   has_cache: boolean
 }
 
@@ -74,8 +74,8 @@ export class Model<
   private static trx?: Knex.Transaction | null
   public static has_trx: boolean = false
 
-  constructor(name: string, primary_keys: { increment?: GetIncrement<Data>; foreign?: GetForeign<Data>[] }, cache = false) {
-    this._name = name
+  constructor(table_name: string, primary_keys: { increment?: GetIncrement<Data>; foreign?: GetForeign<Data>[] }, cache = false) {
+    this._name = table_name
     if (primary_keys.increment) {
       this._increment = primary_keys.increment
       this._primary.push(<any>primary_keys.increment)
@@ -106,7 +106,7 @@ export class Model<
       .insert(data)
       .then(row => row[0])
 
-    if (this._increment) (<ParseKeys<Data>>data)[this._increment] = <any>id
+    if (this._increment) (<any>data)[this._increment] = <any>id
     if (this.has_cache) this._cache.push(<ParseKeys<Data>>data)
 
     return <ParseKeys<Data>>data
@@ -122,10 +122,10 @@ export class Model<
 
     if (this.has_cache)
       this._cache = this._cache.map(value => {
-        const should_update = !this._primary.some(key => value[key] !== primary[key])
+        const should_update = this._primary.some(key => value[key] !== primary[key])
         return should_update ? { ...value, ...data } : value
       })
-  } // Add optional where parameter
+  }
 
   /**
    * Deletes this role request in the database.
@@ -136,16 +136,13 @@ export class Model<
     await trx<ParseKeys<Data>>(this._name).del().where(primary)
 
     if (this.has_cache) this._cache = this._cache.filter(value => !this._primary.some(key => value[key] !== primary[key]))
-  } // Add optional where parameter
+  }
 
   /**
    * Select (with a filter or not) role requests.
    */
-  async find(filter?: Filter, pagination?: Pagination) {
+  find(filter?: Filter) {
     const trx = Model.trx || db
-
-    const page: number = pagination?.page || 1,
-      per_page: number = pagination?.per_page || 50
 
     const base_query = trx<ParseKeys<Data>>(this._name).where(builder => {
       for (const key in filter) {
@@ -169,18 +166,16 @@ export class Model<
       }
     })
 
-    if (pagination) base_query.offset((page - 1) * per_page).limit(per_page)
+    return base_query
+  }
 
-    return await base_query
+  get query() {
+    return db<ParseKeys<Data>>(this._name)
   }
 
   get cache() {
     if (!this.has_cache) throw new ArisError(`${this._name} does not have a cache`, 500)
     return this._cache
-  }
-
-  get query() {
-    return db<Data>(this._name)
   }
 
   // -----TRANSACTION----- //
