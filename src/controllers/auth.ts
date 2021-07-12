@@ -29,9 +29,7 @@ route.get('/api/sign-out', auth, async (req: Request, res: Response) => {
 })
 
 route.post('/api/sign-in', captcha, async (req: Request, res: Response) => {
-  const {
-    data: { email, password, remember }
-  } = req.body
+  const { email, password, remember } = req.body
 
   try {
     const access_token = await UserService.SignIn(email, password, remember)
@@ -44,10 +42,7 @@ route.post('/api/sign-in', captcha, async (req: Request, res: Response) => {
 })
 
 route.post('/api/sign-up', captcha, async (req: Request, res: Response) => {
-  const {
-    data,
-    data: { email }
-  } = req.body
+  const { email, ...data } = req.body
 
   try {
     await UserService.signUp(data, email)
@@ -100,9 +95,7 @@ route.get('/api/forgot-password/:email', async (req: Request, res: Response) => 
 
 route.post('/api/reset-password/:token', captcha, async (req: Request, res: Response) => {
   const { token } = req.params
-  const {
-    data: { password }
-  } = req.body
+  const { password } = req.body
 
   try {
     const updated = await UserService.resetPassword(token, password)
