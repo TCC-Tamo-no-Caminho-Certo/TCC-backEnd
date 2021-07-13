@@ -1,6 +1,6 @@
-import knex from 'knex'
+import knex, { Knex } from 'knex'
 
-export async function up(knex: knex) {
+export async function up(knex: Knex) {
   return knex.schema
     .createTable('proposal', table => {
       table.increments('proposal_id').primary()
@@ -94,7 +94,7 @@ export async function up(knex: knex) {
     )
 }
 
-export async function down(knex: knex) {
+export async function down(knex: Knex) {
   return knex
     .raw(`DROP VIEW proposal_view;`)
     .then(() => knex.schema.dropTable('user_proposal'))

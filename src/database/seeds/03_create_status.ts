@@ -1,4 +1,4 @@
-import knex from 'knex'
+import { Knex } from 'knex'
 
 const data = [
   { name: 'draft', icon: 'draft.svg', description: null },
@@ -8,7 +8,7 @@ const data = [
 ]
 const insert: any[] = []
 
-export async function seed(knex: knex) {
+export async function seed(knex: Knex) {
   for (const key in data) {
     const has_data = await knex('status')
       .where(data[key])

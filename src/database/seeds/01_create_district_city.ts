@@ -1,7 +1,7 @@
-import knex from 'knex'
+import { Knex } from 'knex'
 import axios from 'axios'
 
-export async function seed(knex: knex) {
+export async function seed(knex: Knex) {
   // try {
   //   const trx = await knex.transaction()
 

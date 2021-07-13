@@ -177,7 +177,7 @@ export class UserService {
     const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
     const user_roles = Object.keys(roles).filter(key => (roles as any)[key] === 1)
     
-    const response = {...user, role: user_roles}
+    const response = {...user, roles: user_roles}
     return response
   }
 
