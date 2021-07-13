@@ -1,4 +1,3 @@
-import { Pagination } from '../../@types/types'
 import ArisError from '../../utils/arisError'
 import { Knex } from 'knex'
 import db from '..'
@@ -46,13 +45,13 @@ export interface IModel<
   insert(data: ParseKeys<Insert>): Promise<ParseKeys<Data>>
   update(ids: RecordIDs<Data>, data: ParseKeys<Update>): Promise<void>
   delete(ids: RecordIDs<Data>): Promise<void>
-  find(filter?: Filter): Knex.QueryBuilder<ParseKeys<Data>>
+  find(filter?: Filter): Knex.QueryBuilder<ParseKeys<Data>, ParseKeys<Data>[]>
   createTrx(): Promise<void>
   commitTrx(): Promise<void>
   rollbackTrx(): Promise<void>
 
   cache: ParseKeys<Data>[]
-  query: Knex.QueryBuilder<ParseKeys<Data>>
+  query: Knex.QueryBuilder<ParseKeys<Data>, ParseKeys<Data>[]>
   has_cache: boolean
 }
 
@@ -102,8 +101,8 @@ export class Model<
   async insert(data: ParseKeys<Insert>) {
     const trx = Model.trx || db
 
-    const id = await trx(this._name)
-      .insert(data)
+    const id = await trx<ParseKeys<Insert>, ParseKeys<Data>>(this._name)
+      .insert(data as any)
       .then(row => row[0])
 
     if (this._increment) (<any>data)[this._increment] = <any>id
@@ -118,7 +117,9 @@ export class Model<
   async update(primary: RecordIDs<Data>, data: ParseKeys<Update>) {
     const trx = Model.trx || db
 
-    await trx(this._name).update(data).where(primary)
+    await trx<ParseKeys<Data>>(this._name)
+      .update(data as any)
+      .where(primary)
 
     if (this.has_cache)
       this._cache = this._cache.map(value => {
@@ -144,7 +145,7 @@ export class Model<
   find(filter?: Filter) {
     const trx = Model.trx || db
 
-    const base_query = trx<ParseKeys<Data>>(this._name).where(builder => {
+    const base_query = trx<ParseKeys<Data>, ParseKeys<Data>[]>(this._name).where(builder => {
       for (const key in filter) {
         if (filter[key]) {
           if (key === 'created_at' || key === 'updated_at') builder.whereBetween(<string>key, filter[key])
@@ -170,7 +171,7 @@ export class Model<
   }
 
   get query() {
-    return db<ParseKeys<Data>>(this._name)
+    return db<ParseKeys<Data>, ParseKeys<Data>[]>(this._name)
   }
 
   get cache() {

@@ -3,8 +3,8 @@ import knex, { Knex } from 'knex'
 
 declare module 'knex' {
   namespace Knex {
-    interface QueryBuilder {
-      paginate<TRecord, TResult>(page?: number, per_page?: number): Knex.QueryBuilder<TRecord, TResult>
+    interface QueryBuilder<TRecord, TResult> {
+      paginate(page?: number, per_page?: number): QueryBuilder<TRecord, TResult>
     }
   }
 }

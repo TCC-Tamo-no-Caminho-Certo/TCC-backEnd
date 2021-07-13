@@ -175,7 +175,7 @@ export class UserService {
   async get(user_id: number) {
     const [user] = await this.UserModel.query.select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid').where({ id: user_id })
     const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
-    const user_roles = Object.keys(roles).filter(key => (roles as any)[key] === 1)
+    const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
     
     const response = {...user, roles: user_roles}
     return response

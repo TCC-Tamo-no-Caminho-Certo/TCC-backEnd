@@ -1,6 +1,5 @@
 import UserService from '../../services/user'
 import ArisError from '../../utils/arisError'
-import User from '../../utils/user'
 
 import { auth } from '../../middlewares'
 
