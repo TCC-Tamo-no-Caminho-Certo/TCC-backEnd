@@ -1,9 +1,9 @@
-import knex from 'knex'
+import { Knex } from 'knex'
 
 const data = [{ name: 'Brasil' }]
 const insert: any[] = []
 
-export async function seed(knex: knex) {
+export async function seed(knex: Knex) {
   // for (const key in data) {
   //   const has_country = await knex('country')
   //     .where(data[key])
