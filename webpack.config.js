@@ -2,6 +2,7 @@ const path = require("path");
 const nodeExternals = require("webpack-node-externals");
 
 module.exports = {
+  mode: 'development',
   entry: "./src/server.ts",
   target: "node",
   module: {
@@ -18,7 +19,6 @@ module.exports = {
     extensions: [".ts", ".js"],
   },
   output: {
-    devtoolLineToLine: true,
     filename: "bundle.js",
     sourceMapFilename: "bundle.js.map",
     pathinfo: true,
