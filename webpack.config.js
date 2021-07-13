@@ -18,7 +18,6 @@ module.exports = {
     extensions: [".ts", ".js"],
   },
   output: {
-    devtoolLineToLine: true,
     filename: "bundle.js",
     sourceMapFilename: "bundle.js.map",
     pathinfo: true,
