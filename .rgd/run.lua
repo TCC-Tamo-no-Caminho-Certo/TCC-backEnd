@@ -12,7 +12,7 @@ function runScript()
         if runStat("rm", "-rfv ./build/") then return end
         if runStat("npm", "--no-color run build") then return end
         --if runStat("npm", "--no-color run knex:migrate", "", "CONFIGPATH=/home/rgd/deploy/dev/.config/server.json") then return end
-        if runStat("npm", "--no-color run knex:seed", "", "CONFIGPATH=/home/rgd/deploy/dev/.config/server.json") then return end
+        --if runStat("npm", "--no-color run knex:seed", "", "CONFIGPATH=/home/rgd/deploy/dev/.config/server.json") then return end
         run("pm2", "stop backend-dev", "/home/rgd/deploy/dev/backend")
         if runStat("rm", "-rfv /home/rgd/deploy/dev/backend/") then return end
         if runStat("cp", "-rv ./build/ /home/rgd/deploy/dev/backend/") then return end
@@ -23,7 +23,7 @@ function runScript()
         if runStat("rm", "-rfv ./build/") then return end
         if runStat("npm", "--no-color run build") then return end
         --if runStat("npm", "--no-color run knex:migrate", "", "CONFIGPATH=/home/rgd/deploy/dist/.config/server.json") then return end
-        if runStat("npm", "--no-color run knex:seed", "", "CONFIGPATH=/home/rgd/deploy/dist/.config/server.json") then return end
+        --if runStat("npm", "--no-color run knex:seed", "", "CONFIGPATH=/home/rgd/deploy/dist/.config/server.json") then return end
         run("pm2", "stop backend-dist", "/home/rgd/deploy/dist/backend")
         if runStat("rm", "-rfv /home/rgd/deploy/dist/backend/") then return end
         if runStat("cp", "-rv ./build/ /home/rgd/deploy/dist/backend/") then return end
