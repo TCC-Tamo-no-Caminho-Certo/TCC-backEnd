@@ -14,7 +14,6 @@ import moderatorController from './user/moderator'
 import professorController from './user/professor'
 import studentController from './user/student'
 import emailController from './user/email'
-import usersController from './user/users'
 import userController from './user/user'
 
 import infoController from './info/info'
@@ -36,7 +35,7 @@ export default (app: Application) => {
 
   // User
   app
-    .use('/api', userController, usersController)
+    .use('/api', userController)
     .use('/api/user', emailController, roleController)
     .use('/api/user/role', moderatorController, professorController, studentController, roleReqController, roleReqsController)
 
