@@ -11,12 +11,12 @@ const data = [
 const insert: any[] = []
 
 export async function seed(knex: Knex) {
-  for (const key in data) {
-    const has_data = await knex('role')
-      .where(data[key])
-      .then(row => (row[0] ? row[0].role_id : null))
-    if (!has_data) insert.push(data[key])
-  }
+  // for (const key in data) {
+  //   const has_data = await knex('role')
+  //     .where(data[key])
+  //     .then(row => (row[0] ? row[0].role_id : null))
+  //   if (!has_data) insert.push(data[key])
+  // }
 
-  await knex('role').insert(insert)
+  // await knex('role').insert(insert)
 }
