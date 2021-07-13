@@ -49,6 +49,7 @@ export class Role_RequestSubService {
     this.RoleModel = Role
   }
 
+  // Create
   async createStudent(user_id: number, user_roles: RoleTypes[], data: any) {
     new ValSchema({
       voucher: P.joi.string().allow(null),
@@ -181,6 +182,7 @@ export class Role_RequestSubService {
     }
   }
 
+  // Update
   async updateStudent(primary: any, update_data: any) {
     new ValSchema({
       request_id: P.joi.number().positive().required(),
@@ -249,10 +251,11 @@ export class Role_RequestSubService {
     await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), status: 'awaiting' })
   }
 
-  async accept(id: number) {
-    new ValSchema(P.joi.number().positive().required()).validate(id)
+  // ---
+  async accept(request_id: number) {
+    new ValSchema(P.joi.number().positive().required()).validate(request_id)
 
-    const [request] = await this.RoleRequestModel.find({ id, status: ['awaiting', 'rejected'] })
+    const [request] = await this.RoleRequestModel.find({ id: request_id, status: ['awaiting', 'rejected'] })
     if (!request) throw new ArisError('Request not found!', 400)
 
     const { user_id, role: r_role } = request
@@ -260,7 +263,7 @@ export class Role_RequestSubService {
     await this.RoleModel.createTrx()
 
     const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
-    const user_roles: any = Object.keys(roles).filter(key => (roles as any)[key] === 1)
+    const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
 
     if (!user_roles.some((role: string) => role === r_role)) {
       const index = user_roles.findIndex((role: string) => role === 'guest')
@@ -288,41 +291,68 @@ export class Role_RequestSubService {
         break
     }
 
-    await this.RoleRequestModel.update({ id, user_id }, { status: 'accepted' })
+    await this.RoleRequestModel.update({ id: request_id, user_id }, { status: 'accepted' })
 
     await this.RoleModel.commitTrx()
 
     await this.updateAccessTokenData(user_id, user_roles)
   }
 
-  async reject(id: number, feedback: string) {
-    new ValSchema({ id: P.joi.number().positive().required(), feedback: P.joi.string().allow(null) }).validate({ id, feedback })
+  async reject(request_id: number, feedback: string) {
+    new ValSchema({ request_id: P.joi.number().positive().required(), feedback: P.joi.string().allow(null) }).validate({ request_id, feedback })
 
-    const [request] = await this.RoleRequestModel.find({ id, status: 'awaiting' })
+    const [request] = await this.RoleRequestModel.find({ id: request_id, status: 'awaiting' })
     if (!request) throw new ArisError('Request not found!', 400)
 
-    await this.RoleRequestModel.update({ id, user_id: request.user_id }, { status: 'rejected', feedback })
+    await this.RoleRequestModel.update({ id: request_id, user_id: request.user_id }, { status: 'rejected', feedback })
 
     // const [email] = await User.Email.find({ user_id: request.get('user_id'), main: true })
     // await Mail.roleReqReject({ to: email.get('address'), message: feedback })
   } // Incomplete (need to send email)
 
-  async delete(id: number) {
-    new ValSchema(P.joi.number().positive().required()).validate(id)
+  async delete(request_id: number) {
+    new ValSchema(P.joi.number().positive().required()).validate(request_id)
 
-    const [request] = await this.RoleRequestModel.find({ id })
+    const [request] = await this.RoleRequestModel.find({ id: request_id })
     if (!request) throw new ArisError('Request not found!', 400)
 
     const { voucher_uuid } = request
 
-    await this.RoleRequestModel.delete({ id, user_id: request.user_id })
+    await this.RoleRequestModel.delete({ id: request_id, user_id: request.user_id })
 
     voucher_uuid && (await File.delete('documents', voucher_uuid))
   }
 
   async find(filter: any, { page, per_page }: Pagination) {
+    new ValSchema({
+      full_name: P.filter.string.allow(null),
+      request_id: P.filter.ids.allow(null),
+      user_id: P.filter.ids.allow(null),
+      role_id: P.filter.ids.allow(null),
+      status: P.filter.string.allow(null),
+      created_at: P.filter.date.allow(null),
+      updated_at: P.filter.date.allow(null)
+    }).validate(filter)
+
     const requests = await this.RoleRequestModel.find(filter).paginate(page, per_page)
     return requests
+  }
+
+  async get(user_id: number) {
+    new ValSchema(P.joi.number().positive().required()).validate(user_id)
+
+    const requests = await this.RoleRequestModel.query
+      .select('id', 'role', 'status', 'data', 'voucher_uuid', 'feedback', 'created_at', 'updated_at')
+      .where({ id: user_id })
+
+    return requests
+  }
+
+  async getVoucher(uuid: string) {
+    new ValSchema(P.joi.string().required()).validate(uuid)
+
+    const url = await File.get('documents', uuid)
+    return url
   }
 
   private async updateAccessTokenData(user_id: number, roles: RoleTypes[]) {

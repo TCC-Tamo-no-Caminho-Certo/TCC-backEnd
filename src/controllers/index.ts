@@ -6,13 +6,9 @@ import proposalController from './proposal/proposal'
 import categoryController from './proposal/category'
 import statusController from './proposal/status'
 
-import roleReqsController from './user/role/requests'
-import roleReqController from './user/role/request'
-import roleController from './user/role/role'
+import roleReqController from './user/role_request'
+import roleController from './user/role'
 
-import moderatorController from './user/moderator'
-import professorController from './user/professor'
-import studentController from './user/student'
 import emailController from './user/email'
 import userController from './user/user'
 
@@ -37,7 +33,7 @@ export default (app: Application) => {
   app
     .use('/api', userController)
     .use('/api/user', emailController, roleController)
-    .use('/api/user/role', moderatorController, professorController, studentController, roleReqController, roleReqsController)
+    .use('/api/user/role', roleReqController)
 
   // University
   app

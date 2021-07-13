@@ -1,19 +1,18 @@
-import ValSchema, { P } from '../../../utils/validation'
-import UserService from '../../../services/user'
-import ArisError from '../../../utils/arisError'
-import File from '../../../utils/minio'
-import User from '../../../utils/user'
+import UserService from '../../services/user'
+import ArisError from '../../utils/arisError'
 
-import { auth, permission } from '../../../middlewares'
+import { auth, permission } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
 Router.get('/request', auth, async (req: Request, res: Response) => {
-  const { _user_id: user_id } = req.body
+  const {
+    auth: { user_id }
+  } = req.body
 
   try {
-    const requests = await User.Role.Request.find({ user_id })
+    const requests = await UserService.role.request.get(user_id)
 
     return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
   } catch (error) {
@@ -123,15 +122,31 @@ Router.get('/request/voucher/:uuid', auth, async (req: Request, res: Response) =
   const voucher_uuid = req.params.uuid
 
   try {
-    new ValSchema(P.joi.string().required()).validate(voucher_uuid)
-
-    const url = await File.get('documents', voucher_uuid)
+    const url = await UserService.role.request.getVoucher(voucher_uuid)
 
     return res.status(200).send({ success: true, message: 'Fetch complete!', url })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
   }
-}) // Integrate with get request route
+})
+
+Router.get('/requests', auth, permission(['moderator']), async (req: Request, res: Response) => {
+  const {
+    auth: { user_id }
+  } = req.body
+  const { page, per_page, ...filter } = req.query
+
+  try {
+    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+
+    const requests = UserService.role.request.find(filter, pagination)
+
+    return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Fecth')
+    return res.status(result.status).send(result.send)
+  }
+})
 
 export default Router
