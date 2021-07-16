@@ -1,24 +1,28 @@
-import { Model, Foreign, IModel } from '..'
+import { Model, Increment, Foreign, IModel } from '..'
 
 interface SeasonPeriods {
-  dispatch: string
-  evaluate: string
-  confirm: string
-  in_progress: string
-  complete: string
+  dispatch: number
+  evaluate: number
+  confirm: number
+  in_progress: number
 }
 
-interface Season extends SeasonPeriods {
+type SeasonStatus = 'pre_release' | 'release' | 'canceled' | 'archived'
+
+interface Season {
+  id: Increment
   university_id: Foreign
   title: string
+  status: SeasonStatus
+  begin: string
+  edict_uuid: string
+  periods: SeasonPeriods
+  current_period: 'on_hold' | keyof SeasonPeriods | 'complete'
   description: string | null
-  current_period: keyof SeasonPeriods
 }
 
-type SeasonUp = Partial<Omit<Season, 'university_id' | 'current_period'>>
+const SeasonModel = new Model<Season>('season', { foreign: ['university_id'] })
 
-const SeasonModel = new Model<Season, SeasonUp>('season', { foreign: ['university_id'] })
-
-type ISeasonModel = IModel<Season, SeasonUp>
+type ISeasonModel = IModel<Season>
 
 export { SeasonModel, ISeasonModel }
