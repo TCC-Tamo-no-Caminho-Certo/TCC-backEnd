@@ -14,9 +14,9 @@ Router.route('/role/:title')
     const { title } = req.params
 
     try {
-      await UserService.role.get(user_id, title)
+      const result = await UserService.role.get(user_id, title)
 
-      return res.status(200).send({ success: true, message: 'Fetch role complete!' })
+      return res.status(200).send({ success: true, message: 'Fetch role complete!', [title]: result })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Fetch role')
       return res.status(result.status).send(result.send)
