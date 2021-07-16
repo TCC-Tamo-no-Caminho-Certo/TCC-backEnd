@@ -1,32 +1,45 @@
-import ValSchema, { P } from '../../utils/validation'
-import University from '../../utils/university'
 import UserService from '../../services/user'
 import ArisError from '../../utils/arisError'
-import Mail from '../../services/nodemailer'
-import redis from '../../services/redis'
-import User from '../../utils/user'
-import crypto from 'crypto'
 
 import { auth } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.post('/email', auth, async (req: Request, res: Response) => {
-  const {
-    auth: { user_id },
-    data
-  } = req.body
+Router.route('/email')
+  .get(auth, async (req: Request, res: Response) => {
+    const { page, per_page } = req.query
+    const {
+      auth: { user_id }
+    } = req.body
 
-  try {
-    await UserService.email.add(user_id, data)
+    try {
+      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
 
-    return res.status(200).send({ success: true, message: 'Email sended!' })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Send email')
-    return res.status(result.status).send(result.send)
-  }
-})
+      const emails = await UserService.email.find({ user_id }, pagination)
+
+      return res.status(200).send({ success: true, message: 'Fetch complete!', emails })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Fetch')
+      return res.status(result.status).send(result.send)
+    }
+  })
+
+  .post(auth, async (req: Request, res: Response) => {
+    const {
+      auth: { user_id },
+      data
+    } = req.body
+
+    try {
+      await UserService.email.add(user_id, data)
+
+      return res.status(200).send({ success: true, message: 'Email sended!' })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Send email')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
 Router.route('/email/:id')
   .patch(auth, async (req: Request, res: Response) => {
