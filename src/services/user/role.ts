@@ -1,4 +1,7 @@
 import { Moderator_UniversityModel, IModerator_UniversityModel } from '../../database/models/user/moderator_university'
+import { Professor_UniversityModel, IProfessor_UniversityModel } from '../../database/models/user/professor_university'
+import { Student_UniversityModel, IStudent_UniversityModel } from '../../database/models/user/student_university'
+import { UniversityModel, IUniversityModel } from '../../database/models/university/university'
 import { ProfessorModel, IProfessorModel } from '../../database/models/user/professor'
 import { StudentModel, IStudentModel } from '../../database/models/user/student'
 import { RoleModel, IRoleModel } from '../../database/models/user/role'
@@ -13,6 +16,9 @@ import { Pagination, RoleTypes } from '../../@types/types'
 
 export class RoleSubService {
   private Moderator_UniversityModel: IModerator_UniversityModel
+  private Professor_UniversityModel: IProfessor_UniversityModel
+  private Student_UniversityModel: IStudent_UniversityModel
+  private UniversityModel: IUniversityModel
   private ProfessorModel: IProfessorModel
   private StudentModel: IStudentModel
   private RoleModel: IRoleModel
@@ -23,10 +29,16 @@ export class RoleSubService {
     Role: IRoleModel,
     Student: IStudentModel,
     Professor: IProfessorModel,
+    University: IUniversityModel,
+    Student_University: IStudent_UniversityModel,
+    Professor_University: IProfessor_UniversityModel,
     Moderator_University: IModerator_UniversityModel,
     request_sub: typeof Role_RequestSubService
   ) {
     this.Moderator_UniversityModel = Moderator_University
+    this.Professor_UniversityModel = Professor_University
+    this.Student_UniversityModel = Student_University
+    this.UniversityModel = University
     this.ProfessorModel = Professor
     this.StudentModel = Student
     this.RoleModel = Role
@@ -34,7 +46,6 @@ export class RoleSubService {
     this.request = request_sub
   }
 
-  // Update
   async update(user_id: any, role: string, role_data: any) {
     new ValSchema({
       user_id: P.joi.number().positive().required(),
@@ -68,7 +79,6 @@ export class RoleSubService {
     }
   }
 
-  // Remove
   async remove(user_id: any, role: string) {
     new ValSchema({
       user_id: P.joi.number().positive().required(),
@@ -100,10 +110,43 @@ export class RoleSubService {
     await this.updateAccessTokenData(user_id, user_roles)
   }
 
-  // ---
   async find(filter: any, { page, per_page }: Pagination) {}
 
-  async get(user_id: number, role: string) {}
+  async get(user_id: number, role: string) {
+    switch (<RoleTypes>role) {
+      case 'student': {
+        const result: any = await this.StudentModel.find({ user_id })
+        const universities = this.parseUniversities(await this.Student_UniversityModel.find({ user_id }))
+        result.universities = universities
+        return result
+      }
+
+      case 'professor': {
+        const result: any = this.ProfessorModel.find({ user_id })
+        const universities = this.parseUniversities(await this.Student_UniversityModel.find({ user_id }))
+        result.universities = universities
+        return result
+      }
+
+      case 'moderator': {
+        const result: any = {}
+        const universities = this.parseUniversities(await this.Moderator_UniversityModel.find({ user_id }))
+        result.universities = universities
+        return result
+      }
+
+      default:
+        throw new ArisError(`Delete role ${role} not implemented!`, 500)
+    }
+  }
+
+  private parseUniversities(role_university: { user_id: number; university_id: number; [Key: string]: any }[]) {
+    return role_university.map(({ university_id, user_id, ...data }) => ({
+      university_id,
+      name: this.UniversityModel.cache.find(university => university.id === university_id)!.name,
+      ...data
+    }))
+  }
 
   private async updateAccessTokenData(user_id: number, roles: RoleTypes[]) {
     await Redis.client.setAsync(
@@ -116,4 +159,13 @@ export class RoleSubService {
   }
 }
 
-export default new RoleSubService(RoleModel, StudentModel, ProfessorModel, Moderator_UniversityModel, Role_RequestSubService)
+export default new RoleSubService(
+  RoleModel,
+  StudentModel,
+  ProfessorModel,
+  UniversityModel,
+  Student_UniversityModel,
+  Professor_UniversityModel,
+  Moderator_UniversityModel,
+  Role_RequestSubService
+)

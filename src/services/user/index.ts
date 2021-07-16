@@ -73,7 +73,7 @@ export class UserService {
     if (!(await argon.verify(hash, password))) throw new ArisError('Incorrect password!', 400)
 
     const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
-    const user_roles: any = Object.keys(roles).filter(key => (roles as any)[key] === 1)
+    const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
 
     const token = await this.generateAccessToken(user_id, user_roles, remember)
 
@@ -176,8 +176,8 @@ export class UserService {
     const [user] = await this.UserModel.query.select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid').where({ id: user_id })
     const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
     const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
-    
-    const response = {...user, roles: user_roles}
+
+    const response = { ...user, roles: user_roles }
     return response
   }
 
@@ -253,17 +253,6 @@ export class UserService {
     await Redis.client.setexAsync(`auth:${user_id}-${token}`, remember ? 2592000 : 86400, user_id.toString())
 
     return `${user_id}-${token}`
-  }
-
-  private async updateAccessTokenData(user_id: number, roles: RoleTypes[]) {
-    // await Redis.client.delAsync(`auth:data:${user_id}`)
-    await Redis.client.setAsync(
-      `auth:data:${user_id}`,
-      JSON.stringify({
-        id: user_id,
-        roles
-      })
-    )
   }
 }
 
