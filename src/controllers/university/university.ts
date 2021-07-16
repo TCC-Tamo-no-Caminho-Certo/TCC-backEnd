@@ -1,56 +1,44 @@
-import ArisError from '../../utils/arisError'
 import UniversityService from '../../services/university'
+import ArisError from '../../utils/arisError'
 
 import { auth, permission } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.get('/universities', auth, async (req: Request, res: Response) => {
-  try {
-    const universities = await UniversityService.find()
+Router.get('/university/:id', auth, async (req: Request, res: Response) => {
+  const university_id = parseInt(req.params.id)
 
-    return res.status(200).send({ success: true, message: 'Get universities complete!', universities })
+  try {
+    const universities = UniversityService.getById(university_id)
+
+    return res.status(200).send({ success: true, message: 'Fetch complete!', universities })
   } catch (error) {
-    const result = ArisError.errorHandler(error, 'Get Universities')
+    const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
   }
 })
 
-Router.route('/university')
-  .get(auth, async (req: Request, res: Response) => { // Implement
-    const { filter } = req.query
+Router.post('/university', auth, permission(['admin']), async (req: Request, res: Response) => {
+  const { data } = req.body
 
-    try {
-      const universities = await UniversityService.find()
+  try {
+    await UniversityService.register(data)
 
-      return res.status(200).send({ success: true, message: 'Get university complete!', universities })
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Get University')
-      return res.status(result.status).send(result.send)
-    }
-  })
-
-  .post(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const { name, regex } = req.body
-
-    try {
-      await UniversityService.register({ name, regex })
-
-      return res.status(200).send({ success: true, message: 'University created!' })
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Create university')
-      return res.status(result.status).send(result.send)
-    }
-  })
+    return res.status(200).send({ success: true, message: 'University created!' })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Create university')
+    return res.status(result.status).send(result.send)
+  }
+})
 
 Router.route('/university/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const { name, regex } = req.body
     const university_id = parseInt(req.params.id)
+    const { data } = req.body
 
     try {
-      await UniversityService.update({ university_id }, { name, regex })
+      await UniversityService.update({ university_id }, data)
 
       return res.status(200).send({ success: true, message: 'University updated!' })
     } catch (error) {
@@ -71,5 +59,18 @@ Router.route('/university/:id')
       return res.status(result.status).send(result.send)
     }
   })
+
+Router.get('/universities', auth, async (req: Request, res: Response) => {
+  const { ...filter } = req.query
+
+  try {
+    const universities = UniversityService.find(filter)
+
+    return res.status(200).send({ success: true, message: 'Get universities complete!', universities })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Get Universities')
+    return res.status(result.status).send(result.send)
+  }
+}) // Implement filter in  university service
 
 export default Router
