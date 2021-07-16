@@ -1,5 +1,4 @@
-import ValSchema, { P } from '../../utils/validation'
-import University from '../../utils/university'
+import UniversityService from '../../services/university'
 import ArisError from '../../utils/arisError'
 
 import { auth, permission } from '../../middlewares'
@@ -7,44 +6,28 @@ import { auth, permission } from '../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.route('/:id/course')
-  .get(auth, async (req: Request, res: Response) => {
-    const page = req.query.page
-    const per_page = req.query.per_page
-    const campus_id = parseInt(req.params.id)
+Router.get('/:university_id/campus/:campus_id/course', auth, async (req: Request, res: Response) => {
+  const university_id = parseInt(req.params.university_id)
+  const campus_id = parseInt(req.params.campus_id)
 
-    try {
-      new ValSchema({
-        page: P.joi.number().positive(),
-        per_page: P.joi.number().min(1).max(100),
-        campus_id: P.joi.number().positive().required()
-      }).validate({ page, per_page, campus_id })
-      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+  try {
+    const courses = UniversityService.campus.course.getByCampus(university_id, campus_id)
 
-      const courses = await University.Campus.Course.find({ campus_id }, pagination)
-      const result = courses.map(course => course.format())
+    return res.status(200).send({ success: true, message: 'Get course complete!', courses })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Get course')
+    return res.status(result.status).send(result.send)
+  }
+})
 
-      return res.status(200).send({ success: true, message: 'Get course complete!', courses: result })
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Get course')
-      return res.status(result.status).send(result.send)
-    }
-  })
-
+Router.route('/:university_id/campus/:campus_id/course/:id')
   .post(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const { name } = req.body
-    const campus_id = parseInt(req.params.id)
+    const university_id = parseInt(req.params.university_id)
+    const campus_id = parseInt(req.params.campus_id)
+    const course_id = parseInt(req.params.id)
 
     try {
-      new ValSchema({
-        campus_id: P.joi.number().positive().required(),
-        name: P.joi.string().required()
-      }).validate({ name, campus_id })
-      
-      const [campus] = await University.Campus.find({ campus_id })
-      if (!campus) throw new ArisError('Campus not found!', 403)
-
-      await University.Campus.Course.add(campus.get('university_id'), campus_id, name)
+      await UniversityService.campus.course.add(university_id, campus_id, course_id)
 
       return res.status(200).send({ success: true, message: 'Course added!' })
     } catch (error) {
@@ -53,27 +36,19 @@ Router.route('/:id/course')
     }
   })
 
-Router.delete('/:id/course/:co_id', auth, permission(['admin']), async (req: Request, res: Response) => {
-  const { name } = req.body
-  const campus_id = parseInt(req.params.id)
-  const course_id = parseInt(req.params.co_id)
+  .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
+    const university_id = parseInt(req.params.university_id)
+    const campus_id = parseInt(req.params.campus_id)
+    const course_id = parseInt(req.params.id)
 
-  try {
-    new ValSchema({
-      campus_id: P.joi.number().positive().required(),
-      course_id: P.joi.number().positive().required(),
-      name: P.joi.string().required()
-    }).validate({ name, campus_id, course_id })
+    try {
+      await UniversityService.campus.course.remove({ university_id, campus_id, course_id })
 
-    const [course] = await University.Campus.Course.find({ campus_id, course_id })
-    if (!course) throw new ArisError('Course not found!', 400)
-    await course.delete()
-
-    return res.status(200).send({ success: true, message: 'Course deleted!' })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Delete course')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Course deleted!' })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Delete course')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
 export default Router
