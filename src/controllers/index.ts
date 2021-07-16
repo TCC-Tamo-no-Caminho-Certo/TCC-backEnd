@@ -38,8 +38,7 @@ export default (app: Application) => {
   // University
   app
     .use('/api', universityController)
-    .use('/api/university', campusController)
-    .use('/api/university/campus', courseController)
+    .use('/api/university', campusController, courseController)
 
   // Info
   app
