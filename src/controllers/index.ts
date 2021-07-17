@@ -1,4 +1,5 @@
 import universityController from './university/university'
+import seasonController from './university/season'
 import campusController from './university/campus'
 import courseController from './university/course'
 
@@ -32,13 +33,13 @@ export default (app: Application) => {
   // User
   app
     .use('/api', userController)
-    .use('/api/user', emailController, roleController)
     .use('/api/user/role', roleReqController)
+    .use('/api/user', emailController, roleController)
 
   // University
   app
     .use('/api', universityController)
-    .use('/api/university', campusController, courseController)
+    .use('/api/university', seasonController, campusController, courseController)
 
   // Info
   app
