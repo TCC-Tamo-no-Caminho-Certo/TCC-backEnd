@@ -19,7 +19,6 @@ export class SeasonSubService {
       season_data: P.joi
         .object({
           title: P.joi.string().required(),
-          status: P.joi.forbidden().default('pre-release'), // .equal('pre-release')
           begin: P.joi.date().required(),
           edict: P.joi.string().required(),
           periods: P.joi
@@ -30,11 +29,13 @@ export class SeasonSubService {
               in_progress: P.joi.number().integer().positive().less(60).required()
             })
             .required(),
-          current_period: P.joi.forbidden().default('on_hold'),
           description: P.joi.string().allow(null)
         })
         .required()
     }).validate({ university_id, season_data })
+
+    season_data.university_id = university_id
+    season_data.periods = JSON.stringify(season_data.periods)
 
     const { edict } = season_data
     delete season_data.edict
@@ -47,13 +48,13 @@ export class SeasonSubService {
     const seasons = await this.SeasonModel.find({ university_id })
 
     const is_valid = seasons.some(season => {
-      const timeDifference = new Date(season.begin).getTime() - new Date(season_data.begin).getTime(),
-        dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24))
+      const time_diff = new Date(season.begin).getTime() - new Date(season_data.begin).getTime(),
+        day_diff = Math.floor(time_diff / (1000 * 3600 * 24))
 
-      return dayDifference < 0 ? dayDifference + season.periods.dispatch <= 0 : dayDifference - season_data.periods.dispatch >= 0
+      return day_diff < 0 ? day_diff + season.periods.dispatch <= 0 : day_diff - season_data.periods.dispatch >= 0
     })
 
-    if (!is_valid) throw new ArisError('Season not valid', 400)
+    if (!is_valid && seasons.length !== 0) throw new ArisError('Season not valid', 400)
 
     const new_season = await this.SeasonModel.insert(season_data)
     return new_season
@@ -69,21 +70,24 @@ export class SeasonSubService {
         .required(),
       update_data: P.joi
         .object({
-          university_id: P.joi.number().positive().required(),
-          title: P.joi.string().required(),
-          description: P.joi.string().allow(null),
-          current_period: P.joi.string().equal('dispatch', 'evaluate', 'confirm', 'in_progress', 'complete'),
-          dispatch: P.joi.date().required(),
-          evaluate: P.joi.date().required(),
-          confirm: P.joi.date().required(),
-          in_progress: P.joi.date().required(),
-          complete: P.joi.date().required()
+          title: P.joi.string(),
+          begin: P.joi.date(),
+          edict: P.joi.string(),
+          periods: P.joi
+            .object({
+              dispatch: P.joi.number().integer().positive().less(60),
+              evaluate: P.joi.number().integer().positive().less(60),
+              confirm: P.joi.number().integer().positive().less(60),
+              in_progress: P.joi.number().integer().positive().less(60)
+            })
+            .required(),
+          description: P.joi.string().allow(null)
         })
         .required()
     }).validate({ primary, update_data })
 
     await this.SeasonModel.update(primary, update_data)
-  }
+  } // Implement validations
 
   async delete(primary: any) {
     new ValSchema({

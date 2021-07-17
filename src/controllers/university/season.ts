@@ -53,7 +53,7 @@ Router.route('/:university_id/season/:id')
     }
   })
 
-  .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
+  .delete(auth, permission(['moderator'], ['admin']), async (req: Request, res: Response) => {
     const university_id = parseInt(req.params.university_id)
     const id = parseInt(req.params.id)
 
