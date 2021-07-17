@@ -115,21 +115,25 @@ export class RoleSubService {
   async get(user_id: number, role: string) {
     switch (<RoleTypes>role) {
       case 'student': {
-        const result: any = await this.StudentModel.find({ user_id })
+        let result: any = {}
+        const [student] = await this.StudentModel.find({ user_id })
         const universities = this.parseUniversities(await this.Student_UniversityModel.find({ user_id }))
+        result = { ...student }
         result.universities = universities
         return result
       }
 
       case 'professor': {
-        const result: any = this.ProfessorModel.find({ user_id })
-        const universities = this.parseUniversities(await this.Student_UniversityModel.find({ user_id }))
+        let result: any = {}
+        const [professor] = await this.ProfessorModel.find({ user_id })
+        const universities = this.parseUniversities(await this.Professor_UniversityModel.find({ user_id }))
+        result = { ...professor }
         result.universities = universities
         return result
       }
 
       case 'moderator': {
-        const result: any = {}
+        let result: any = {}
         const universities = this.parseUniversities(await this.Moderator_UniversityModel.find({ user_id }))
         result.universities = universities
         return result
