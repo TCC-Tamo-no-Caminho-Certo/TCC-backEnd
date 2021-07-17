@@ -136,7 +136,7 @@ export class RoleSubService {
       }
 
       default:
-        throw new ArisError(`Delete role ${role} not implemented!`, 500)
+        throw new ArisError(`Get role ${role} not implemented!`, 500)
     }
   }
 

@@ -9,13 +9,14 @@ const Router = express.Router()
 Router.route('/user')
   .get(auth, async (req: Request, res: Response) => {
     const {
-      auth: { user_id }
+      auth: { user_id, roles }
     } = req.body
 
     try {
-      const response = await UserService.get(user_id)
+      const user: any = await UserService.get(user_id)
+      user.roles = roles
 
-      return res.status(200).send({ success: true, message: 'Get user info complete!', user: response })
+      return res.status(200).send({ success: true, message: 'Get user info complete!', user })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Get user info')
       return res.status(result.status).send(result.send)

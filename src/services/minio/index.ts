@@ -2,7 +2,7 @@ import * as Minio from 'minio'
 import Logger from '../logger'
 
 class MinioManager {
-  publicBuckets: string[] = ['profile']
+  publicBuckets: string[] = ['profile', 'edict']
   privateBuckets: string[] = ['documents']
   public client: Minio.Client = <Minio.Client>{}
   public enabled: boolean = false
@@ -69,7 +69,7 @@ class MinioManager {
           })
       })
     })
-    //this.client.putObject
+
     this.enabled = true
   }
 
