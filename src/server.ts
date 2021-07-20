@@ -6,6 +6,7 @@ import logger from './services/logger'
 import compression from 'compression'
 import redis from './services/redis'
 import minio from './services/minio'
+import jobs from './database/jobs'
 import express from 'express'
 import https from 'https'
 import http from 'http'
@@ -31,6 +32,8 @@ if (config.minio.use) {
   minio.initialize(config.minio.host, config.minio.port, config.minio.useSsl, config.minio.accessKey, config.minio.secretKey)
   logger.info(`Using minio at ${config.minio.host}:${config.minio.port}`)
 }
+
+jobs.initialize()
 
 // App Configuration
 
