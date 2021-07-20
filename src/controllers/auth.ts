@@ -32,9 +32,9 @@ route.post('/api/sign-in', captcha, async (req: Request, res: Response) => {
   const { email, password, remember } = req.body
 
   try {
-    const access_token = await UserService.signIn(email, password, remember)
+    const { access_token, user } = await UserService.signIn(email, password, remember)
 
-    return res.status(200).send({ success: true, message: 'Sign In authorized!', access_token })
+    return res.status(200).send({ success: true, message: 'Sign In authorized!', access_token, user })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Login')
     return res.status(result.status).send(result.send)

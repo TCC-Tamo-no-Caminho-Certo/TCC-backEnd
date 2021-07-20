@@ -69,17 +69,23 @@ export class UserService {
     if (!have_email) throw new ArisError('User not found!', 400)
     const { user_id } = have_email
 
-    const [{ password: hash }] = await this.UserModel.find({ id: user_id })
+    const [user] = await this.UserModel.find({ id: user_id })
+    const { password: hash } = user
+
     if (!(await argon.verify(hash, password))) throw new ArisError('Incorrect password!', 400)
 
     const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
     const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
 
-    const token = await this.generateAccessToken(user_id, user_roles, remember)
+    const access_token = await this.generateAccessToken(user_id, user_roles, remember)
 
     emitter.emit('SingIn', { user_id, roles: user_roles, remember })
 
-    return token
+    const user_data: any = user
+    user_data.roles = user_roles
+    delete user_data.password
+
+    return { access_token, user: user_data }
   }
 
   async signOut(auth: string) {
