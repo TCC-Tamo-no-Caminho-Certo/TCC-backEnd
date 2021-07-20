@@ -6,23 +6,24 @@ import { auth } from '../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
+Router.get('/users(/:id)?', auth, async (req: Request, res: Response) => {
+  const { page, per_page, ...filter } = req.query
+  const { id } = req.params
+
+  try {
+    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+    filter.id = id
+
+    const users = await UserService.find(filter, pagination)
+
+    return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'user' : 'users']: id ? users[0] : users })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Fetch')
+    return res.status(result.status).send(result.send)
+  }
+})
+
 Router.route('/user')
-  .get(auth, async (req: Request, res: Response) => {
-    const {
-      auth: { user_id, roles }
-    } = req.body
-
-    try {
-      const user: any = await UserService.get(user_id)
-      user.roles = roles
-
-      return res.status(200).send({ success: true, message: 'Get user info complete!', user })
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Get user info')
-      return res.status(result.status).send(result.send)
-    }
-  })
-
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },
@@ -69,21 +70,6 @@ Router.put('/user/avatar', auth, async (req: Request, res: Response) => {
     return res.status(200).send({ success: true, message: 'Avatar uploaded!', avatar_uuid })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Upload avatar')
-    return res.status(result.status).send(result.send)
-  }
-})
-
-Router.get('/users', async (req: Request, res: Response) => {
-  const { page, per_page, ...filter } = req.query
-
-  try {
-    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-
-    const users = await UserService.find(filter, pagination)
-
-    return res.status(200).send({ success: true, message: 'Get users complete!', users })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Get users info')
     return res.status(result.status).send(result.send)
   }
 })

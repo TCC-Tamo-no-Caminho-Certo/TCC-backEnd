@@ -6,7 +6,7 @@ import { auth, permission } from '../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.get('/request', auth, async (req: Request, res: Response) => {
+Router.get('/user/roles/requests', auth, async (req: Request, res: Response) => {
   const {
     auth: { user_id }
   } = req.body
@@ -21,7 +21,7 @@ Router.get('/request', auth, async (req: Request, res: Response) => {
   }
 })
 
-Router.post('/request/:role', auth, async (req: Request, res: Response, next) => {
+Router.post('/users/roles/request/:role', auth, async (req: Request, res: Response, next) => {
   const { auth, data } = req.body
   const { role } = req.params
   try {
@@ -50,7 +50,7 @@ Router.post('/request/:role', auth, async (req: Request, res: Response, next) =>
   }
 })
 
-Router.patch('/request/:role/:id', auth, async (req: Request, res: Response) => {
+Router.patch('/users/roles/request/:role/:id', auth, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id)
   const { auth, data } = req.body
   const { role } = req.params
@@ -78,7 +78,7 @@ Router.patch('/request/:role/:id', auth, async (req: Request, res: Response) => 
   }
 })
 
-Router.patch('/request/accept/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
+Router.patch('/users/roles/request/accept/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
@@ -91,7 +91,7 @@ Router.patch('/request/accept/:id', auth, permission(['admin'], ['moderator']), 
   }
 })
 
-Router.patch('/request/reject/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
+Router.patch('/users/roles/request/reject/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
   const { feedback } = req.body
 
@@ -105,7 +105,7 @@ Router.patch('/request/reject/:id', auth, permission(['admin'], ['moderator']), 
   }
 })
 
-Router.delete('/request/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
+Router.delete('/users/roles/request/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
   const request_id = parseInt(req.params.id)
 
   try {
@@ -118,7 +118,7 @@ Router.delete('/request/:id', auth, permission(['admin'], ['moderator']), async 
   }
 })
 
-Router.get('/request/voucher/:uuid', auth, async (req: Request, res: Response) => {
+Router.get('/users/roles/request/voucher/:uuid', auth, async (req: Request, res: Response) => {
   const voucher_uuid = req.params.uuid
 
   try {
@@ -131,11 +131,11 @@ Router.get('/request/voucher/:uuid', auth, async (req: Request, res: Response) =
   }
 })
 
-Router.get('/requests', auth, permission(['moderator']), async (req: Request, res: Response) => {
+Router.get('/users/roles/requests', auth, permission(['moderator']), async (req: Request, res: Response) => {
+  const { page, per_page, ...filter } = req.query
   const {
     auth: { user_id }
   } = req.body
-  const { page, per_page, ...filter } = req.query
 
   try {
     const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }

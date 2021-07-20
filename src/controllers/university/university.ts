@@ -6,20 +6,23 @@ import { auth, permission } from '../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.get('/university/:id', auth, async (req: Request, res: Response) => {
-  const university_id = parseInt(req.params.id)
+Router.get('/universities(/:id)?', auth, async (req: Request, res: Response) => {
+  const { ...filter } = req.query
+  const { id } = req.params
 
   try {
-    const universities = UniversityService.getById(university_id)
+    filter.id = id
+
+    const universities = UniversityService.find(filter)
 
     return res.status(200).send({ success: true, message: 'Fetch complete!', universities })
   } catch (error) {
     const result = ArisError.errorHandler(error, 'Fetch')
     return res.status(result.status).send(result.send)
   }
-})
+}) // Implement filter in  university service
 
-Router.post('/university', auth, permission(['admin']), async (req: Request, res: Response) => {
+Router.post('/universities', auth, permission(['admin']), async (req: Request, res: Response) => {
   const { data } = req.body
 
   try {
@@ -32,7 +35,7 @@ Router.post('/university', auth, permission(['admin']), async (req: Request, res
   }
 })
 
-Router.route('/university/:id')
+Router.route('/universities/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
     const university_id = parseInt(req.params.id)
     const { data } = req.body
@@ -59,18 +62,5 @@ Router.route('/university/:id')
       return res.status(result.status).send(result.send)
     }
   })
-
-Router.get('/universities', auth, async (req: Request, res: Response) => {
-  const { ...filter } = req.query
-
-  try {
-    const universities = UniversityService.find(filter)
-
-    return res.status(200).send({ success: true, message: 'Get universities complete!', universities })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Get Universities')
-    return res.status(result.status).send(result.send)
-  }
-}) // Implement filter in  university service
 
 export default Router

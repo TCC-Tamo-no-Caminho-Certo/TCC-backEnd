@@ -6,19 +6,35 @@ import { auth } from '../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.route('/role/:title')
+Router.get('/users(/:id)?/roles/moderator|professor|student', auth, async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id)
+  const path = req.path.split('/')
+  const title = path[path.length - 1]
+
+  try {
+    const result = await UserService.role.get(id, title)
+
+    return res.status(200).send({ success: true, message: 'Fetch role complete!', [title]: result })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Fetch role')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.route('/user/roles/moderator|professor|student')
   .get(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id }
     } = req.body
-    const { title } = req.params
+    const path = req.path.split('/')
+    const title = path[path.length - 1]
 
     try {
       const result = await UserService.role.get(user_id, title)
 
-      return res.status(200).send({ success: true, message: 'Fetch role complete!', [title]: result })
+      return res.status(200).send({ success: true, message: 'Fetch complete!', [title]: result })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Fetch role')
+      const result = ArisError.errorHandler(error, 'Fetch')
       return res.status(result.status).send(result.send)
     }
   })
@@ -28,7 +44,8 @@ Router.route('/role/:title')
       auth: { user_id },
       data
     } = req.body
-    const { title } = req.params
+    const path = req.path.split('/')
+    const title = path[path.length - 1]
 
     try {
       await UserService.role.update(user_id, title, data)
@@ -44,7 +61,8 @@ Router.route('/role/:title')
     const {
       auth: { user_id }
     } = req.body
-    const { title } = req.params
+    const path = req.path.split('/')
+    const title = path[path.length - 1]
 
     try {
       await UserService.role.remove(user_id, title)

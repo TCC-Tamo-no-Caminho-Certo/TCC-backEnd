@@ -333,10 +333,11 @@ export class Role_RequestSubService {
       created_at: P.filter.date.allow(null),
       updated_at: P.filter.date.allow(null)
     }).validate(filter)
+    delete filter.full_name
 
     const requests = await this.RoleRequestModel.find(filter).paginate(page, per_page)
     return requests
-  }
+  } // Implement full name filter
 
   async get(user_id: number) {
     new ValSchema(P.joi.number().positive().required()).validate(user_id)

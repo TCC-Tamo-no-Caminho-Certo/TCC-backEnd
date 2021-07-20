@@ -32,14 +32,11 @@ export default (app: Application) => {
 
   // User
   app
-    .use('/api', userController)
-    .use('/api/user/role', roleReqController)
-    .use('/api/user', emailController, roleController)
+    .use('/api', roleReqController, roleController, emailController, userController)
 
   // University
   app
-    .use('/api', universityController)
-    .use('/api/university', seasonController, campusController, courseController)
+    .use('/api', courseController, campusController, seasonController, universityController)
 
   // Info
   app

@@ -6,17 +6,38 @@ import { auth } from '../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.route('/email')
+Router.get('/users(/:user_id)?/emails(/:id)?', auth, async (req: Request, res: Response) => {
+  const { page, per_page, ...filter } = req.query
+  const { id, user_id } = req.params
+
+  try {
+    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+    filter.user_id = user_id
+    filter.id = id
+
+    const emails = await UserService.email.find(filter, pagination)
+
+    return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'email' : 'emails']: id ? emails[0] : emails })
+  } catch (error) {
+    const result = ArisError.errorHandler(error, 'Fetch')
+    return res.status(result.status).send(result.send)
+  }
+})
+
+Router.route('/user/emails(/:id)?')
   .get(auth, async (req: Request, res: Response) => {
-    const { page, per_page } = req.query
+    const { page, per_page, ...filter } = req.query
+    const { id } = req.params
     const {
       auth: { user_id }
     } = req.body
 
     try {
       const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+      filter.user_id = user_id
+      filter.id = id
 
-      const emails = await UserService.email.find({ user_id }, pagination)
+      const emails = await UserService.email.find(filter, pagination)
 
       return res.status(200).send({ success: true, message: 'Fetch complete!', emails })
     } catch (error) {
@@ -41,7 +62,7 @@ Router.route('/email')
     }
   })
 
-Router.route('/email/:id')
+Router.route('/user/emails/:id')
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },

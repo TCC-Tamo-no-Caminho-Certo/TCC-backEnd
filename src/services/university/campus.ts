@@ -47,6 +47,11 @@ export class CampusSubService {
     await this.CampusModel.delete(primary)
   }
 
+  find(filter?: any) {
+    const campus = this.CampusModel.cache
+    return campus
+  } // Implement filter
+
   getByUniversity(university_id: number) {
     const campus = this.CampusModel.cache.filter(camp => camp.university_id === university_id)
     return campus
