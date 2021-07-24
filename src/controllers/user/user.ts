@@ -4,24 +4,25 @@ import ArisError from '../../utils/arisError'
 import { auth } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
-const Router = express.Router()
+const Router = express
+  .Router()
 
-Router.get('/users(/:id)?', auth, async (req: Request, res: Response) => {
-  const { page, per_page, ...filter } = req.query
-  const { id } = req.params
+  .get('/users(/:id)?', auth, async (req: Request, res: Response) => {
+    const { page, per_page, ...filter } = req.query
+    const { id } = req.params
 
-  try {
-    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-    filter.id = id
+    try {
+      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+      filter.id = id
 
-    const users = await UserService.find(filter, pagination)
+      const users = await UserService.find(filter, pagination)
 
-    return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'user' : 'users']: id ? users[0] : users })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Fetch')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'user' : 'users']: id ? users[0] : users })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Fetch')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
 Router.route('/user')
   .patch(auth, async (req: Request, res: Response) => {

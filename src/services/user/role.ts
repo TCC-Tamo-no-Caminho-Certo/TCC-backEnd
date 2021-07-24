@@ -110,9 +110,17 @@ export class RoleSubService {
     await this.updateAccessTokenData(user_id, user_roles)
   }
 
-  async find(filter: any, { page, per_page }: Pagination) {}
+  async find(filter: any, { page, per_page }: Pagination) {
+    const roles = await this.RoleModel.find(filter).paginate(page, per_page)
+    const users_role = roles.map(({ user_id, ...role_array }) => ({
+      user_id,
+      roles: Object.keys(role_array).filter(key => (<any>role_array)[key] === 1) as RoleTypes[]
+    }))
 
-  async get(user_id: number, role: string) {
+    return users_role
+  }
+
+  async getRoleData(user_id: number, role: string) {
     switch (<RoleTypes>role) {
       case 'student': {
         let result: any = {}

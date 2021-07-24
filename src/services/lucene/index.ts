@@ -137,5 +137,4 @@ class SearchManager {
   }
 }
 
-const searchManager = new SearchManager()
-export default searchManager
+export default new SearchManager()

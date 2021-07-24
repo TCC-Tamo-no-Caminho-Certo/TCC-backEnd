@@ -4,28 +4,28 @@ import ArisError from '../../utils/arisError'
 import { auth } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
-const Router = express.Router()
+const Router = express
+  .Router()
 
-Router.get('/users(/:user_id)?/emails(/:id)?', auth, async (req: Request, res: Response) => {
-  const { page, per_page, ...filter } = req.query
-  const { id, user_id } = req.params
+  .get('/users(/:user_id)?/emails(/:id)?', auth, async (req: Request, res: Response) => {
+    const { page, per_page, ...filter } = req.query
+    const { id, user_id } = req.params
 
-  try {
-    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-    filter.user_id = user_id
-    filter.id = id
+    try {
+      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+      filter.user_id = user_id
+      filter.id = id
 
-    const emails = await UserService.email.find(filter, pagination)
+      const emails = await UserService.email.find(filter, pagination)
 
-    return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'email' : 'emails']: id ? emails[0] : emails })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Fetch')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'email' : 'emails']: id ? emails[0] : emails })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Fetch')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
-Router.route('/user/emails(/:id)?')
-  .get(auth, async (req: Request, res: Response) => {
+  .get('/user/emails(/:id)?', auth, async (req: Request, res: Response) => {
     const { page, per_page, ...filter } = req.query
     const { id } = req.params
     const {
@@ -46,7 +46,7 @@ Router.route('/user/emails(/:id)?')
     }
   })
 
-  .post(auth, async (req: Request, res: Response) => {
+  .post('/user/emails', auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },
       data

@@ -4,39 +4,40 @@ import ArisError from '../../utils/arisError'
 import { auth, permission } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
-const Router = express.Router()
+const Router = express
+  .Router()
 
-Router.get('/universities(/:university_id)?/seasons(/:id)?', auth, async (req: Request, res: Response) => {
-  const { id, university_id } = req.params
-  const { page, per_page, ...filter } = req.query
+  .get('/universities(/:university_id)?/seasons(/:id)?', auth, async (req: Request, res: Response) => {
+    const { id, university_id } = req.params
+    const { page, per_page, ...filter } = req.query
 
-  try {
-    const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-    filter.university_id = university_id
-    filter.id = id
+    try {
+      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+      filter.university_id = university_id
+      filter.id = id
 
-    const seasons = await UniversityService.season.find(filter, pagination)
+      const seasons = await UniversityService.season.find(filter, pagination)
 
-    return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'season' : 'seasons']: id ? seasons[0] : seasons })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Fetch')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'season' : 'seasons']: id ? seasons[0] : seasons })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Fetch')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
-Router.post('/universities/:university_id/seasons', auth, permission(['moderator']), async (req: Request, res: Response) => {
-  const university_id = parseInt(req.params.university_id)
-  const { data } = req.body
+  .post('/universities/:university_id/seasons', auth, permission(['moderator']), async (req: Request, res: Response) => {
+    const university_id = parseInt(req.params.university_id)
+    const { data } = req.body
 
-  try {
-    await UniversityService.season.add(university_id, data)
+    try {
+      await UniversityService.season.add(university_id, data)
 
-    return res.status(200).send({ success: true, message: 'Season created!' })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Create season')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Season created!' })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Create season')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
 Router.route('/universities/:university_id/seasons/:id')
   .patch(auth, permission(['moderator']), async (req: Request, res: Response) => {

@@ -4,38 +4,39 @@ import ArisError from '../../utils/arisError'
 import { auth, permission } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
-const Router = express.Router()
+const Router = express
+  .Router()
 
-Router.get('/universities(/:university_id)?/campus(/:id)?', auth, async (req: Request, res: Response) => {
-  const { ...filter } = req.query
-  const { id, university_id } = req.params
+  .get('/universities(/:university_id)?/campus(/:id)?', auth, async (req: Request, res: Response) => {
+    const { ...filter } = req.query
+    const { id, university_id } = req.params
 
-  try {
-    filter.university_id = university_id
-    filter.id = id
+    try {
+      filter.university_id = university_id
+      filter.id = id
 
-    const campus = UniversityService.campus.find(filter)
+      const campus = UniversityService.campus.find(filter)
 
-    return res.status(200).send({ success: true, message: 'Get Campus complete!', campus: id ? campus[0] : campus })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Get campus')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Get Campus complete!', campus: id ? campus[0] : campus })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Get campus')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
-Router.post('/universities/:university_id/campus', auth, permission(['admin']), async (req: Request, res: Response) => {
-  const university_id = parseInt(req.params.university_id)
-  const { name } = req.body
+  .post('/universities/:university_id/campus', auth, permission(['admin']), async (req: Request, res: Response) => {
+    const university_id = parseInt(req.params.university_id)
+    const { name } = req.body
 
-  try {
-    await UniversityService.campus.add(university_id, { name })
+    try {
+      await UniversityService.campus.add(university_id, { name })
 
-    return res.status(200).send({ success: true, message: 'Campus created!' })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Create campus')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Campus created!' })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Create campus')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
 Router.route('/universities/:university_id/campus/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {

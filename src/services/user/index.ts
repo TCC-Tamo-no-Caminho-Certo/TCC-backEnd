@@ -3,6 +3,7 @@ import { UserModel, IUserModel } from '../../database/models/user/user'
 import { RoleModel, IRoleModel } from '../../database/models/user/role'
 import EmailSubService from './email'
 import RoleSubService from './role'
+import Lucene from '../lucene'
 import Redis from '../redis'
 
 import ValSchema, { P } from '../../utils/validation'
@@ -172,6 +173,17 @@ export class UserService {
   }
 
   async find(filter: any, { page, per_page }: Pagination) {
+    if (Lucene.enabled) {
+      const d_page = page || 1 - 1,
+        d_per_page = per_page || 50
+      filter.id = await Lucene.searchBatch(
+        Array.isArray(filter.name) ? filter.name : [filter.name],
+        d_page * d_per_page,
+        d_page * d_per_page + d_per_page
+      )
+      delete filter.name
+    }
+
     const users = await this.UserModel.find(filter)
       .select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid')
       .paginate(page, per_page)

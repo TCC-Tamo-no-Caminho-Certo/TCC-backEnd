@@ -4,25 +4,26 @@ import ArisError from '../../utils/arisError'
 import { auth, permission } from '../../middlewares'
 
 import express, { Request, Response } from 'express'
-const Router = express.Router()
+const Router = express
+  .Router()
 
-Router.get('/universities(/:university_id)?/campus(/:campus_id)?/courses(/:id)?', auth, async (req: Request, res: Response) => {
-  const { ...filter } = req.query
-  const { id, campus_id, university_id } = req.params
+  .get('/universities(/:university_id)?/campus(/:campus_id)?/courses(/:id)?', auth, async (req: Request, res: Response) => {
+    const { ...filter } = req.query
+    const { id, campus_id, university_id } = req.params
 
-  try {
-    filter.university_id = university_id
-    filter.campus_id = campus_id
-    filter.id = id
+    try {
+      filter.university_id = university_id
+      filter.campus_id = campus_id
+      filter.id = id
 
-    const courses = UniversityService.campus.course.find(filter)
+      const courses = UniversityService.campus.course.find(filter)
 
-    return res.status(200).send({ success: true, message: 'Get course complete!', [id ? 'course' : 'courses']: id ? courses[0] : courses })
-  } catch (error) {
-    const result = ArisError.errorHandler(error, 'Get course')
-    return res.status(result.status).send(result.send)
-  }
-})
+      return res.status(200).send({ success: true, message: 'Get course complete!', [id ? 'course' : 'courses']: id ? courses[0] : courses })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Get course')
+      return res.status(result.status).send(result.send)
+    }
+  })
 
 Router.route('/universities/:university_id/campus/:campus_id/courses/:id')
   .post(auth, permission(['admin']), async (req: Request, res: Response) => {
