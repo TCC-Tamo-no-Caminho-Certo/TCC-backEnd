@@ -3,7 +3,7 @@ import ArisError from '../../utils/arisError'
 import lucene from '../../services/lucene'
 import logger from '../../services/logger'
 import redis from '../../services/redis'
-import User from '../../utils/user'
+//import User from '../../utils/user'
 
 import { auth, permission } from '../../middlewares'
 
@@ -20,13 +20,13 @@ Router.get('/lucene-reset', async (req: Request, res: Response) => {
 
     await lucene.deleteAll()
 
-    const users = await User.find({})
-    for (const user of users) {
-      const user_id = user.get('user_id')
-      const name = user.get('full_name')
-      const success = await lucene.add({ id: user_id, name: name })
-      logger.info(`Adding user ${user_id} - ${name}: ${success}`)
-    }
+    // const users = await User.find({})
+    // for (const user of users) {
+    //   const user_id = user.get('user_id')
+    //   const name = user.get('full_name')
+    //   const success = await lucene.add({ id: user_id, name: name })
+    //   logger.info(`Adding user ${user_id} - ${name}: ${success}`)
+    // }
 
     return res.status(200).send({ success: true, message: 'Lucene database reseted!' })
   } catch (error) {
