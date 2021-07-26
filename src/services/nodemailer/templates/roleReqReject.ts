@@ -1,13 +1,15 @@
 import transport from "../transport";
 import ArisError from "../../../utils/arisError";
+import logger from "../../logger";
 
 interface MailConfig {
   to: string
   message: string
 }
 
-export default async ({ to, message }: MailConfig) =>
-  transport.sendMail(
+export default async ({ to, message }: MailConfig) => {
+  logger.info(`Sending RoleRequest email to ${to}`);
+  await transport.sendMail(
     {
       from: "<steamslab.brasil@gmail.com>",
       to: to,
@@ -381,6 +383,9 @@ export default async ({ to, message }: MailConfig) =>
       </html>`,
     },
     (err) => {
+      logger.error(`Failed to send RoleRequest email to ${to}`);
+      if (err?.message) logger.error(err.message);
       if (err) throw new ArisError("Couldn´t send reset password email!", 500);
     }
   );
+}
