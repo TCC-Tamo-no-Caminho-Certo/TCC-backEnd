@@ -174,19 +174,15 @@ export class UserService {
 
   async find(filter: any, { page, per_page }: Pagination) {
     new ValSchema({
-      page: P.joi.number().positive(),
-      per_page: P.joi.number().min(1).max(100),
-      filter: P.joi.object({
-        user_id: P.filter.ids.allow(null),
-        name: P.filter.names.allow(null),
-        surname: P.filter.names.allow(null),
-        phone: P.filter.string.allow(null),
-        birthday: P.filter.string.allow(null),
-        full_name: P.filter.string.allow(null),
-        created_at: P.filter.date.allow(null),
-        updated_at: P.filter.date.allow(null)
-      })
-    }).validate({ page, per_page, filter })
+      id: P.filter.ids.allow(null),
+      name: P.filter.names.allow(null),
+      surname: P.filter.names.allow(null),
+      phone: P.filter.string.allow(null),
+      birthday: P.filter.string.allow(null),
+      full_name: P.filter.string.allow(null),
+      created_at: P.filter.date.allow(null),
+      updated_at: P.filter.date.allow(null)
+    }).validate(filter)
 
     if (Lucene.enabled && filter.full_name) {
       const d_page = page || 1 - 1,
@@ -196,7 +192,7 @@ export class UserService {
         d_page * d_per_page,
         d_page * d_per_page + d_per_page
       )
-    }
+    } else delete filter.full_name
 
     const users = await this.UserModel.find(filter)
       .select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid')

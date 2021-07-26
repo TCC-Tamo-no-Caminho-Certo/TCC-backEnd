@@ -13,7 +13,7 @@ const Router = express
 
     try {
       const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-      filter.id = id
+      filter.id = id || filter.id
 
       const users = await UserService.find(filter, pagination)
 
