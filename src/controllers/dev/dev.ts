@@ -4,7 +4,6 @@ import ArisError from '../../utils/arisError'
 import lucene from '../../services/lucene'
 import logger from '../../services/logger'
 import redis from '../../services/redis'
-//import User from '../../utils/user'
 
 import { auth, permission } from '../../middlewares'
 
@@ -79,7 +78,7 @@ Router.get('/lucene-search', async (req: Request, res: Response) => {
 Router.get('/test-email', async (req: Request, res: Response) => {
   const { email } = req.query
   try {
-    if (email !== null && email !== undefined) {
+    if (email) {
       await nodemailer.confirmEmail({ to: email.toString(), token: 'NONE' })
       return res.status(200).send({ success: true })
     } else {
