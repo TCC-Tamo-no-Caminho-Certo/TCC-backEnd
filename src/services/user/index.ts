@@ -187,12 +187,17 @@ export class UserService {
     if (Lucene.enabled && filter.full_name) {
       const d_page = page || 1 - 1,
         d_per_page = per_page || 50
-      filter.id = await Lucene.searchBatch(
+
+      const data = await Lucene.searchBatch(
         Array.isArray(filter.full_name) ? filter.full_name : [filter.full_name],
         d_page * d_per_page,
         d_page * d_per_page + d_per_page
       )
-    } else delete filter.full_name
+
+      filter.id = !filter.id ? [] : Array.isArray(filter.id) ? filter.id : [filter.id]
+      if (data.success) data.results?.forEach(result => (<number[]>filter.id).push(parseInt(result.fields.id)))
+    }
+    delete filter.full_name
 
     const users = await this.UserModel.find(filter)
       .select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid')
