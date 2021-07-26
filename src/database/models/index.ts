@@ -83,7 +83,7 @@ export class Model<
       this._foreign = primary_keys.foreign
       this._primary.push(...(<any>primary_keys.foreign))
     }
-    if (!primary_keys.increment && !primary_keys.foreign) throw new ArisError('A primary key must be provided!', 500)
+    if (!this._primary[0]) throw new ArisError('A primary key must be provided!', 500)
 
     this.has_cache = cache
     cache && this.initializeCache()
@@ -123,7 +123,7 @@ export class Model<
 
     if (this.has_cache)
       this._cache = this._cache.map(value => {
-        const should_update = this._primary.some(key => value[key] !== primary[key])
+        const should_update = !this._primary.some(key => value[key] !== primary[key])
         return should_update ? { ...value, ...data } : value
       })
   }
@@ -149,6 +149,7 @@ export class Model<
       for (const key in filter) {
         if (filter[key]) {
           if (key === 'created_at' || key === 'updated_at') builder.whereBetween(<string>key, filter[key])
+          else if (Array.isArray(filter[key])) builder.whereIn(key, filter[key])
           else if (typeof filter[key] === 'object')
             for (const data_key in filter[key])
               builder.whereRaw(
@@ -162,7 +163,7 @@ export class Model<
                     : `= ${typeof (<any>filter[key])[data_key] === 'string' ? `'${(<any>filter[key])[data_key]}'` : (<any>filter[key])[data_key]}`
                 } `
               )
-          else Array.isArray(filter[key]) ? builder.whereIn(key, filter[key]) : builder.where({ [key]: filter[key] })
+          else builder.where({ [key]: filter[key] })
         }
       }
     })
@@ -171,6 +172,7 @@ export class Model<
   }
 
   get query() {
+    if (this.has_cache) throw new ArisError('Can not query a model with cache', 500)
     return db<ParseKeys<Data>, ParseKeys<Data>[]>(this._name)
   }
 
