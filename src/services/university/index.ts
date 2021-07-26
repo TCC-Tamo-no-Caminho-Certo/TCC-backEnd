@@ -80,6 +80,11 @@ export class UniversityService {
   }
 
   find(filter?: any) {
+    new ValSchema({
+      id: P.filter.ids.allow(null),
+      name: P.filter.names.allow(null)
+    }).validate(filter)
+
     const universities = this.UniversityModel.cache
     return universities
   } // Implement filter

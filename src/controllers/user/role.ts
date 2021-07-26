@@ -17,7 +17,7 @@ const Router = express
 
       const roles = await UserService.role.find(filter, pagination)
 
-      return res.status(200).send({ success: true, message: 'Fetch complete!', [user_id ? 'user' : 'users']: user_id ? roles[0] : roles })
+      return res.status(200).send({ success: true, message: 'Fetch complete!', [user_id ? 'roles' : 'users']: user_id ? roles[0].roles : roles })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Fetch')
       return res.status(result.status).send(result.send)
