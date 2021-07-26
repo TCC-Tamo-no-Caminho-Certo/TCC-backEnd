@@ -1,4 +1,5 @@
 import nodemailer from '../../services/nodemailer'
+import UserService from '../../services/user'
 import ArisError from '../../utils/arisError'
 import lucene from '../../services/lucene'
 import logger from '../../services/logger'
@@ -20,13 +21,12 @@ Router.get('/lucene-reset', async (req: Request, res: Response) => {
 
     await lucene.deleteAll()
 
-    // const users = await User.find({})
-    // for (const user of users) {
-    //   const user_id = user.get('user_id')
-    //   const name = user.get('full_name')
-    //   const success = await lucene.add({ id: user_id, name: name })
-    //   logger.info(`Adding user ${user_id} - ${name}: ${success}`)
-    // }
+    const users = await UserService.find({}, {})
+    for (const user of users) {
+      const { id, full_name } = user
+      const success = await lucene.add({ id, name: full_name })
+      logger.info(`Adding user ${id} - ${full_name}: ${success}`)
+    }
 
     return res.status(200).send({ success: true, message: 'Lucene database reseted!' })
   } catch (error) {
