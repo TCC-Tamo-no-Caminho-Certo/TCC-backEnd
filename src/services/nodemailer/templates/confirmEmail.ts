@@ -9,7 +9,7 @@ interface MailConfig {
 }
 
 export default async ({ to, token }: MailConfig) => {
-  logger.info(`Sending RoleRequest email to ${to}`);
+  logger.info(`Sending ConfirmEmail email to ${to}`);
   await transport.sendMail(
     {
       from: "<steamslab.brasil@gmail.com>",
@@ -403,7 +403,7 @@ export default async ({ to, token }: MailConfig) => {
       </html>`,
     },
     (err) => {
-      logger.error(`Failed to send RoleRequest email to ${to}`);
+      logger.error(`Failed to send ConfirmEmail email to ${to}`);
       if (err?.message) logger.error(err.message);
       if (err) throw new ArisError("Couldn`t send email in confirm email template!", 500);
     }

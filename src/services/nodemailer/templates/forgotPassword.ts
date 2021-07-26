@@ -1,13 +1,15 @@
 import transport from "../transport";
 import ArisError from "../../../utils/arisError";
 import config from "../../../config";
+import logger from "../../logger";
 
 interface MailConfig {
   to: string
   token: string
 }
 
-export default async ({ to, token }: MailConfig) =>
+export default async ({ to, token }: MailConfig) => {
+  logger.info(`Sending ForgotPassword email to ${to}`);
   transport.sendMail(
     {
       from: "<steamslab.brasil@gmail.com>",
@@ -397,6 +399,9 @@ export default async ({ to, token }: MailConfig) =>
       </html>`,
     },
     (err) => {
+      logger.error(`Failed to send ForgotPassword email to ${to}`);
+      if (err?.message) logger.error(err.message);
       if (err) throw new ArisError("Couldn´t send reset password email!", 500);
     }
   );
+}

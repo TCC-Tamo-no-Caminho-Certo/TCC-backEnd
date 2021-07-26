@@ -1,13 +1,15 @@
 import transport from '../transport'
 import ArisError from '../../../utils/arisError'
 import config from '../../../config'
+import logger from '../../logger';
 
 interface MailConfig {
   to: string
   token: string
 }
 
-export default async ({ to, token }: MailConfig) =>
+export default async ({ to, token }: MailConfig) => {
+  logger.info(`Sending ConfirmRegister email to ${to}`);
   transport.sendMail(
     {
       from: '<steamslab.brasil@gmail.com>',
@@ -200,6 +202,9 @@ export default async ({ to, token }: MailConfig) =>
       </html>`
     },
     err => {
+      logger.error(`Failed to send ConfirmRegister email to ${to}`);
+      if (err?.message) logger.error(err.message);
       if (err) throw new ArisError('Couldn`t send email for confirm email!', 500)
     }
-  )
+  );
+}
