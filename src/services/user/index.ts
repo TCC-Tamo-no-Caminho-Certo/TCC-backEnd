@@ -193,7 +193,7 @@ export class UserService {
         d_page * d_per_page + d_per_page
       )
     } else delete filter.full_name
-
+throw new ArisError(JSON.stringify(filter), 500)
     const users = await this.UserModel.find(filter)
       .select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid')
       .paginate(page, per_page)
