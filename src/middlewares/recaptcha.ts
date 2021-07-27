@@ -13,8 +13,10 @@ export default config.captcha.use
 
       if (!data.success) return res.status(403).send({ success: false, message: 'You might be a robot, sorry!', score: data.score })
 
+      delete req.body.captcha
       next()
     }
   : (req: Request, res: Response, next: NextFunction) => {
+      delete req.body.captcha
       next()
     }
