@@ -12,6 +12,7 @@ import https from 'https'
 import http from 'http'
 import cors from 'cors'
 import path from 'path'
+import { P } from './utils/validation'
 
 // Initialize External Modules
 
@@ -64,12 +65,21 @@ app.get('*', (req, res) => res.sendFile(path.resolve(config.server.root.replace(
 
 config.server.endpoints.forEach((endpoint: EndpointConfig) => {
   if (endpoint.enabled) {
-    if (endpoint.useSSL) {
-      https.createServer(endpoint.options, app).listen(endpoint.port, endpoint.host)
-      logger?.info(`Listening on https://${endpoint.host}:${endpoint.port}`)
-    } else {
-      http.createServer(app).listen(endpoint.port, endpoint.host)
-      logger.info(`Listening on http://${endpoint.host}:${endpoint.port}`)
+    try {
+      if (endpoint.useSSL) {
+        https.createServer(endpoint.options, app).listen(endpoint.port, endpoint.host)
+        logger?.info(`Listening on https://${endpoint.host}:${endpoint.port}`)
+      } else {
+        http.createServer(app).listen(endpoint.port, endpoint.host)
+        logger.info(`Listening on http://${endpoint.host}:${endpoint.port}`)
+      }
+    } catch (ex) {
+      logger?.fatal(`Failed to listen on https://${endpoint.host}:${endpoint.port}`)
+      if (ex) {
+        logger?.fatal(`${ex.name} - ${ex.message}`)
+        if (ex.stack) logger?.fatal(ex.stack)
+        throw ex
+      }
     }
   }
 })
