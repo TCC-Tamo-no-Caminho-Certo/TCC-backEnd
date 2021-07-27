@@ -203,8 +203,10 @@ export default async ({ to, token }: MailConfig) => {
     },
     err => {
       logger.error(`Failed to send ConfirmRegister email to ${to}`);
-      if (err?.message) logger.error(err.message);
-      if (err) throw new ArisError('Couldn`t send email for confirm email!', 500)
+      if (err) {
+        logger.error(`${err.name} - ${err.message}`);
+        if (err.stack) logger.error(err.stack);
+      }
     }
   );
 }
