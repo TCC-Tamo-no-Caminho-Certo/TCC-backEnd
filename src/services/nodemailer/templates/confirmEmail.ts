@@ -1,21 +1,20 @@
-import transport from "../transport";
-import ArisError from "../../../utils/arisError";
-import config from "../../../config";
-import logger from "../../logger";
+import transport from '../transport'
+import config from '../../../config'
+import logger from '../../logger'
 
 interface MailConfig {
   to: string
   token: string
 }
 
-export default async ({ to, token }: MailConfig) => {
-  logger.info(`Sending ConfirmEmail email to ${to}`);
-  await transport.sendMail(
+export default ({ to, token }: MailConfig) => {
+  logger.info(`Sending ConfirmEmail email to ${to}`)
+  transport.sendMail(
     {
-      from: "<steamslab.brasil@gmail.com>",
+      from: '<steamslab.brasil@gmail.com>',
       to: to,
-      subject: "Confirmação de Email - SteamsLab",
-      text: "",
+      subject: 'Confirmação de Email - SteamsLab',
+      text: '',
       html: `
       <!DOCTYPE html>
       <html>
@@ -249,11 +248,7 @@ export default async ({ to, token }: MailConfig) => {
                                   bgcolor="#FF6D8D"
                                 >
                                   <a
-                                    href="http://${
-                                      config.environment === "development"
-                                        ? "dev."
-                                        : null
-                                    }steamslab.com/confirm/email/${token}"
+                                    href="http://${config.environment === 'development' ? 'dev.' : null}steamslab.com/confirm/email/${token}"
                                     target="_blank"
                                     style="
                                       font-size: 20px;
@@ -400,14 +395,14 @@ export default async ({ to, token }: MailConfig) => {
             </tr>
           </table>
         </body>
-      </html>`,
+      </html>`
     },
-    (err) => {
-      logger.error(`Failed to send ConfirmEmail email to ${to}`);
+    err => {
+      logger.error(`Failed to send ConfirmEmail email to ${to}`)
       if (err) {
-        logger.error(`${err.name} - ${err.message}`);
-        if (err.stack) logger.error(err.stack);
+        logger.error(`${err.name} - ${err.message}`)
+        if (err.stack) logger.error(err.stack)
       }
     }
-  );
+  )
 }

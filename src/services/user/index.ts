@@ -195,7 +195,7 @@ export class UserService {
       )
 
       filter.id = !filter.id ? [] : Array.isArray(filter.id) ? filter.id : [filter.id]
-      if (data.success) data.results?.forEach(result => (<number[]>filter.id).push(parseInt(result.fields.id)))
+      if (data.success) data.results?.forEach(result => filter.id.push(parseInt(result.fields.id)))
     }
     delete filter.full_name
 

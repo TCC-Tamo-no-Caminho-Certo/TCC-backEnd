@@ -1,15 +1,14 @@
 import transport from '../transport'
-import ArisError from '../../../utils/arisError'
 import config from '../../../config'
-import logger from '../../logger';
+import logger from '../../logger'
 
 interface MailConfig {
   to: string
   token: string
 }
 
-export default async ({ to, token }: MailConfig) => {
-  logger.info(`Sending ConfirmRegister email to ${to}`);
+export default ({ to, token }: MailConfig) => {
+  logger.info(`Sending ConfirmRegister email to ${to}`)
   transport.sendMail(
     {
       from: '<steamslab.brasil@gmail.com>',
@@ -134,7 +133,9 @@ export default async ({ to, token }: MailConfig) => {
                             <table border="0" cellspacing="0" cellpadding="0">
                               <tr>
                                 <td align="center" style="border-radius: 8px" bgcolor="#FF6D8D">
-                                  <a href="https://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm/register/${token}" target="_blank" style=" font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; display: inline-block; ">Confirmar Conta</a>
+                                  <a href="https://${
+                                    config.environment === 'development' ? 'dev.' : ''
+                                  }steamslab.com/confirm/register/${token}" target="_blank" style=" font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; display: inline-block; ">Confirmar Conta</a>
                                 </td>
                               </tr>
                             </table>
@@ -151,7 +152,11 @@ export default async ({ to, token }: MailConfig) => {
                   <tr>
                     <td bgcolor="#ffffff" align="left" style=" padding: 20px 30px 20px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px; ">
                       <p style="margin: 0">
-                        <a href="https://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm/register/${token}" target="_blank" style="color: #ff6d8d">https://${config.environment === 'development' ? 'dev.' : ''}steamslab.com/confirm/register/${token}</a>
+                        <a href="https://${
+                          config.environment === 'development' ? 'dev.' : ''
+                        }steamslab.com/confirm/register/${token}" target="_blank" style="color: #ff6d8d">https://${
+        config.environment === 'development' ? 'dev.' : ''
+      }steamslab.com/confirm/register/${token}</a>
                       </p>
                     </td>
                   </tr>
@@ -202,11 +207,11 @@ export default async ({ to, token }: MailConfig) => {
       </html>`
     },
     err => {
-      logger.error(`Failed to send ConfirmRegister email to ${to}`);
+      logger.error(`Failed to send ConfirmRegister email to ${to}`)
       if (err) {
-        logger.error(`${err.name} - ${err.message}`);
-        if (err.stack) logger.error(err.stack);
+        logger.error(`${err.name} - ${err.message}`)
+        if (err.stack) logger.error(err.stack)
       }
     }
-  );
+  )
 }

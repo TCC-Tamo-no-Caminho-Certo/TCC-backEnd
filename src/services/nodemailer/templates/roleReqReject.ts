@@ -1,20 +1,19 @@
-import transport from "../transport";
-import ArisError from "../../../utils/arisError";
-import logger from "../../logger";
+import transport from '../transport'
+import logger from '../../logger'
 
 interface MailConfig {
   to: string
   message: string
 }
 
-export default async ({ to, message }: MailConfig) => {
-  logger.info(`Sending RoleRequest email to ${to}`);
-  await transport.sendMail(
+export default ({ to, message }: MailConfig) => {
+  logger.info(`Sending RoleRequest email to ${to}`)
+  transport.sendMail(
     {
-      from: "<steamslab.brasil@gmail.com>",
+      from: '<steamslab.brasil@gmail.com>',
       to: to,
-      subject: "Recuperação de Conta - SteamsLab",
-      text: "",
+      subject: 'Recuperação de Conta - SteamsLab',
+      text: '',
       html: `
       <!DOCTYPE html>
       <html>
@@ -380,15 +379,15 @@ export default async ({ to, message }: MailConfig) => {
             </tr>
           </table>
         </body>
-      </html>`,
+      </html>`
     },
-    (err) => {
-      logger.error(`Failed to send RoleRequest email to ${to}`);
-      if (err?.message) logger.error(err.message);
+    err => {
+      logger.error(`Failed to send RoleRequest email to ${to}`)
+      if (err?.message) logger.error(err.message)
       if (err) {
-        logger.error(`${err.name} - ${err.message}`);
-        if (err.stack) logger.error(err.stack);
+        logger.error(`${err.name} - ${err.message}`)
+        if (err.stack) logger.error(err.stack)
       }
     }
-  );
+  )
 }
