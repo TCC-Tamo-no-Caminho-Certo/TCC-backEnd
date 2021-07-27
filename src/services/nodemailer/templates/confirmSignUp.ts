@@ -135,7 +135,7 @@ export default ({ to, token }: MailConfig) => {
                                 <td align="center" style="border-radius: 8px" bgcolor="#FF6D8D">
                                   <a href="https://${
                                     config.environment === 'development' ? 'dev.' : ''
-                                  }steamslab.com/confirm/register/${token}" target="_blank" style=" font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; display: inline-block; ">Confirmar Conta</a>
+                                  }steamslab.com/confirm/sign-up/${token}" target="_blank" style=" font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; display: inline-block; ">Confirmar Conta</a>
                                 </td>
                               </tr>
                             </table>
@@ -154,9 +154,9 @@ export default ({ to, token }: MailConfig) => {
                       <p style="margin: 0">
                         <a href="https://${
                           config.environment === 'development' ? 'dev.' : ''
-                        }steamslab.com/confirm/register/${token}" target="_blank" style="color: #ff6d8d">https://${
+                        }steamslab.com/confirm/sign-up/${token}" target="_blank" style="color: #ff6d8d">https://${
         config.environment === 'development' ? 'dev.' : ''
-      }steamslab.com/confirm/register/${token}</a>
+      }steamslab.com/confirm/sign-up/${token}</a>
                       </p>
                     </td>
                   </tr>

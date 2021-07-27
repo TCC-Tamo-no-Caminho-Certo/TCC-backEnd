@@ -1,11 +1,11 @@
 import confirmEmail from './templates/confirmEmail'
 import roleReqReject from './templates/roleReqReject'
 import forgotPassword from './templates/forgotPassword'
-import confirmRegister from './templates/confirmRegister'
+import confirmSignUp from './templates/confirmSignUp'
 
 export default class Mail {
   static forgotPass = forgotPassword
   static confirmEmail = confirmEmail
   static roleReqReject = roleReqReject
-  static confirmRegister = confirmRegister
+  static confirmSignUp = confirmSignUp
 }
