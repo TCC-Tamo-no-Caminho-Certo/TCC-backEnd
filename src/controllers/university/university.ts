@@ -16,12 +16,14 @@ const Router = express
 
       const universities = UniversityService.find(filter)
 
-      return res.status(200).send({ success: true, message: 'Fetch complete!', universities })
+      return res
+        .status(200)
+        .send({ success: true, message: 'Fetch complete!', [id ? 'university' : 'universities']: id ? universities[0] : universities })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Fetch')
       return res.status(result.status).send(result.send)
     }
-  }) // Implement filter in  university service
+  })
 
   .post('/universities', auth, permission(['admin']), async (req: Request, res: Response) => {
     const { data } = req.body
@@ -38,11 +40,11 @@ const Router = express
 
 Router.route('/universities/:id')
   .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const university_id = parseInt(req.params.id)
+    const id = parseInt(req.params.id)
     const { data } = req.body
 
     try {
-      await UniversityService.update({ university_id }, data)
+      await UniversityService.update({ id }, data)
 
       return res.status(200).send({ success: true, message: 'University updated!' })
     } catch (error) {
@@ -52,10 +54,10 @@ Router.route('/universities/:id')
   })
 
   .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const university_id = parseInt(req.params.id)
+    const id = parseInt(req.params.id)
 
     try {
-      await UniversityService.delete({ university_id })
+      await UniversityService.delete({ id })
 
       return res.status(200).send({ success: true, message: 'University deleted!' })
     } catch (error) {

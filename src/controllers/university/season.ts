@@ -13,8 +13,8 @@ const Router = express
 
     try {
       const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-      filter.university_id = university_id
-      filter.id = id
+      filter.university_id = university_id || filter.university_id
+      filter.id = id || filter.id
 
       const seasons = await UniversityService.season.find(filter, pagination)
 

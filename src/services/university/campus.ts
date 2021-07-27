@@ -48,12 +48,7 @@ export class CampusSubService {
   }
 
   find(filter?: any) {
-    const campus = this.CampusModel.cache
-    return campus
-  } // Implement filter
-
-  getByUniversity(university_id: number) {
-    const campus = this.CampusModel.cache.filter(camp => camp.university_id === university_id)
+    const campus = this.CampusModel.findCache(filter)
     return campus
   }
 }

@@ -85,13 +85,8 @@ export class UniversityService {
       name: P.filter.names.allow(null)
     }).validate(filter)
 
-    const universities = this.UniversityModel.cache
+    const universities = this.UniversityModel.findCache(filter)
     return universities
-  } // Implement filter
-
-  getById(university_id: number) {
-    const university = this.UniversityModel.cache.filter(university => university.id === university_id)
-    return university
   }
 }
 

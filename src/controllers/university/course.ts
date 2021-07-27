@@ -12,9 +12,9 @@ const Router = express
     const { id, campus_id, university_id } = req.params
 
     try {
-      filter.university_id = university_id
-      filter.campus_id = campus_id
-      filter.id = id
+      filter.university_id = university_id || filter.university_id
+      filter.campus_id = campus_id || filter.campus_id
+      filter.id = id || filter.id
 
       const courses = UniversityService.campus.course.find(filter)
 

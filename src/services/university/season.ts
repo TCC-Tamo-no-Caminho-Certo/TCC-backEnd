@@ -87,7 +87,7 @@ export class SeasonSubService {
     }).validate({ primary, update_data })
 
     await this.SeasonModel.update(primary, update_data)
-  } // Implement validations
+  }
 
   async delete(primary: any) {
     new ValSchema({

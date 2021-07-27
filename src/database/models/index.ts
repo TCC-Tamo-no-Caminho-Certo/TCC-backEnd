@@ -46,6 +46,8 @@ export interface IModel<
   update(ids: RecordIDs<Data>, data: ParseKeys<Update>): Promise<void>
   delete(ids: RecordIDs<Data>): Promise<void>
   find(filter?: Filter): Knex.QueryBuilder<ParseKeys<Data>, ParseKeys<Data>[]>
+  findCache(filter?: Filter): ParseKeys<Data>[]
+  
   createTrx(): Promise<void>
   commitTrx(): Promise<void>
   rollbackTrx(): Promise<void>
@@ -171,14 +173,26 @@ export class Model<
     return base_query
   }
 
-  get query() {
-    if (this.has_cache) throw new ArisError('Can not query a model with cache', 500)
-    return db<ParseKeys<Data>, ParseKeys<Data>[]>(this._name)
+  findCache(filter?: Filter) {
+    const result = this._cache.filter(data => {
+      let should_return = 1
+      for (const key in filter)
+        if (filter[key]) should_return *= Array.isArray(filter[key]) ? filter[key].some((value: any) => value == data[key]) : filter[key] == data[key]
+
+      return should_return
+    })
+
+    return result
   }
 
   get cache() {
     if (!this.has_cache) throw new ArisError(`${this._name} does not have a cache`, 500)
     return this._cache
+  }
+
+  get query() {
+    if (this.has_cache) throw new ArisError('Can not query a model with cache', 500)
+    return db<ParseKeys<Data>, ParseKeys<Data>[]>(this._name)
   }
 
   // -----TRANSACTION----- //
