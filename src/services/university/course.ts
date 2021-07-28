@@ -40,9 +40,10 @@ export class CourseSubService {
 
   private parse(campus_course: { university_id: number; campus_id: number; course_id: number }[]) {
     return campus_course.map(({ university_id, campus_id, course_id }) => ({
+      name: this.CourseModel.cache.find(course => course.id === course_id)!.name,
+      id: course_id,
       university_id,
-      campus_id,
-      name: this.CourseModel.cache.find(course => course.id === course_id)!.name
+      campus_id
     }))
   }
 }

@@ -73,7 +73,7 @@ const Router = express
         return res.status(result.status).send(result.send)
       }
     }
-  )
+  ) // Refatorar permission nessa rota
 
   .patch('/users/roles/requests/:id/moderator|professor|student', auth, async (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
