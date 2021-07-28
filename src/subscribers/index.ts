@@ -43,6 +43,11 @@ export interface Events {
   User_Delete: {
     token: string
   }
+
+  Role_Req_Reject: {
+    email_address: string
+    feedback: string
+  }
 }
 
 class MyEmitter<T = Events> extends EventEmitter {

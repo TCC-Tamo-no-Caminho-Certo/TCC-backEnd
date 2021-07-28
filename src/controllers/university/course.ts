@@ -8,8 +8,8 @@ const Router = express
   .Router()
 
   .get('/universities(/:university_id)?/campus(/:campus_id)?/courses(/:id)?', auth, async (req: Request, res: Response) => {
-    const { ...filter } = req.query
     const { id, campus_id, university_id } = req.params
+    const { ...filter } = req.query
 
     try {
       filter.university_id = university_id || filter.university_id

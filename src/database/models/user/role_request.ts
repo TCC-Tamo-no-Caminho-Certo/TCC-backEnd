@@ -7,8 +7,7 @@ interface RoleRequest {
   id: Increment
   user_id: Foreign
   role: RoleTypes
-  data: { [key: string]: any } | null
-  voucher_uuid: string | null
+  data: { [key: string]: any }
   feedback: string | null
   status: RoleRequestStatus
   created_at: string

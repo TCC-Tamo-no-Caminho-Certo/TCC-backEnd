@@ -67,9 +67,9 @@ export class Role_RequestSubService {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      const voucher_uuid = await file.insert('documents')
+      data.voucher_uuid = await file.insert('documents')
 
-      await this.RoleRequestModel.insert({ user_id, role: 'student', data: JSON.stringify(data), status: 'awaiting', voucher_uuid, feedback: null })
+      await this.RoleRequestModel.insert({ user_id, role: 'student', data: JSON.stringify(data), status: 'awaiting', feedback: null })
     } else {
       const [{ regex: uni_regex }] = await this.UniversityModel.find({ id: university_id })
       const regex = new RegExp(uni_regex.email.student)
@@ -120,9 +120,9 @@ export class Role_RequestSubService {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      const voucher_uuid = await file.insert('documents')
+      data.voucher_uuid = await file.insert('documents')
 
-      await this.RoleRequestModel.insert({ user_id, role: 'professor', data: JSON.stringify(data), status: 'awaiting', voucher_uuid, feedback: null })
+      await this.RoleRequestModel.insert({ user_id, role: 'professor', data: JSON.stringify(data), status: 'awaiting', feedback: null })
     } else {
       const [{ regex: uni_regex }] = await this.UniversityModel.find({ id: university_id })
       const regex = new RegExp(uni_regex.email.professor)
@@ -176,7 +176,6 @@ export class Role_RequestSubService {
         role: 'moderator',
         data: JSON.stringify(data),
         status: 'awaiting',
-        voucher_uuid: null,
         feedback: null
       })
     }
@@ -200,15 +199,15 @@ export class Role_RequestSubService {
     const [request] = await this.RoleRequestModel.find(primary)
     if (!request) throw new ArisError('Request not found!', 400)
 
-    let voucher_uuid = request.voucher_uuid
-    if (voucher && voucher_uuid) {
+    const { voucher_uuid: old_uuid } = request.data
+    if (voucher && old_uuid) {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      voucher_uuid = await file.update('documents', voucher_uuid)
+      update_data.voucher_uuid = await file.update('documents', old_uuid)
     }
 
-    await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), voucher_uuid, status: 'awaiting' })
+    await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), status: 'awaiting' })
   }
 
   async updateProfessor(primary: any, update_data: any) {
@@ -228,15 +227,15 @@ export class Role_RequestSubService {
     const [request] = await this.RoleRequestModel.find(primary)
     if (!request) throw new ArisError('Request not found!', 400)
 
-    let voucher_uuid = request.voucher_uuid
-    if (voucher && voucher_uuid) {
+    const { voucher_uuid: old_uuid } = request.data
+    if (voucher && old_uuid) {
       const file = new File(voucher)
       if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
 
-      voucher_uuid = await file.update('documents', voucher_uuid)
+      update_data.voucher_uuid = await file.update('documents', old_uuid)
     }
 
-    await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), voucher_uuid, status: 'awaiting' })
+    await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), status: 'awaiting' })
   }
 
   async updateModerator(primary: any, update_data: any) {
@@ -306,9 +305,9 @@ export class Role_RequestSubService {
 
     await this.RoleRequestModel.update({ id: request_id, user_id: request.user_id }, { status: 'rejected', feedback })
 
-    // const [email] = await User.Email.find({ user_id: request.get('user_id'), main: true })
-    // await Mail.roleReqReject({ to: email.get('address'), message: feedback })
-  } // Incomplete (need to send email)
+    const [{ address: email_address }] = await EmailModel.find({ user_id: request.user_id, main: true })
+    emitter.emit('Role_Req_Reject', { email_address, feedback })
+  }
 
   async delete(request_id: number) {
     new ValSchema(P.joi.number().positive().required()).validate(request_id)
@@ -316,7 +315,7 @@ export class Role_RequestSubService {
     const [request] = await this.RoleRequestModel.find({ id: request_id })
     if (!request) throw new ArisError('Request not found!', 400)
 
-    const { voucher_uuid } = request
+    const { voucher_uuid } = request.data
 
     await this.RoleRequestModel.delete({ id: request_id, user_id: request.user_id })
 
@@ -325,27 +324,16 @@ export class Role_RequestSubService {
 
   async find(filter: any, { page, per_page }: Pagination) {
     new ValSchema({
-      full_name: P.filter.string.allow(null),
-      request_id: P.filter.ids.allow(null),
+      id: P.filter.ids.allow(null),
       user_id: P.filter.ids.allow(null),
-      role_id: P.filter.ids.allow(null),
       status: P.filter.string.allow(null),
       created_at: P.filter.date.allow(null),
       updated_at: P.filter.date.allow(null)
     }).validate(filter)
-    delete filter.full_name
 
-    const requests = await this.RoleRequestModel.find(filter).paginate(page, per_page)
-    return requests
-  } // Implement full name filter
-
-  async get(user_id: number) {
-    new ValSchema(P.joi.number().positive().required()).validate(user_id)
-
-    const requests = await this.RoleRequestModel.query
-      .select('id', 'role', 'status', 'data', 'voucher_uuid', 'feedback', 'created_at', 'updated_at')
-      .where({ id: user_id })
-
+    const requests = await this.RoleRequestModel.find(filter)
+      .select('id', 'user_id', 'role', 'status', 'data', 'feedback', 'created_at', 'updated_at')
+      .paginate(page, per_page)
     return requests
   }
 

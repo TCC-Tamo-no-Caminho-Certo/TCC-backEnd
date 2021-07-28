@@ -3,10 +3,10 @@ import logger from '../../logger'
 
 interface MailConfig {
   to: string
-  message: string
+  feedback: string
 }
 
-export default ({ to, message }: MailConfig) => {
+export default ({ to, feedback }: MailConfig) => {
   logger.info(`Sending RoleRequest email to ${to}`)
   transport.sendMail(
     {
@@ -220,7 +220,7 @@ export default ({ to, message }: MailConfig) => {
                                       color: #666666;
                                     "
                                   >
-                                  ${message}
+                                  ${feedback}
                                   </h1>
                                 </td>
                               </tr>

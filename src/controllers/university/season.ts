@@ -8,8 +8,8 @@ const Router = express
   .Router()
 
   .get('/universities(/:university_id)?/seasons(/:id)?', auth, async (req: Request, res: Response) => {
-    const { id, university_id } = req.params
     const { page, per_page, ...filter } = req.query
+    const { id, university_id } = req.params
 
     try {
       const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
