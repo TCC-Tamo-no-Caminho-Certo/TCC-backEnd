@@ -7,53 +7,75 @@ import express, { Request, Response } from 'express'
 const Router = express
   .Router()
 
-  .get('/user/roles/requests', auth, async (req: Request, res: Response) => {
-    const {
-      auth: { user_id }
-    } = req.body
+  .get('/users(/:user_id)?/roles/requests(/:id)?', auth, permission(['moderator']), async (req: Request, res: Response) => {
+    const { page, per_page, ...filter } = req.query
+    const { id, user_id } = req.params
 
     try {
-      const requests = await UserService.role.request.get(user_id)
+      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
+      filter.user_id = user_id || filter.user_id
+      filter.id = id || filter.id
 
-      return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
+      const requests = await UserService.role.request.find(filter, pagination)
+
+      return res.status(200).send({ success: true, message: 'Fecth complete!', [id ? 'request' : 'requests']: id ? requests[0] : requests })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Fecth')
       return res.status(result.status).send(result.send)
     }
   })
 
-  .post('/users/roles/requests/moderator|professor|student', auth, async (req: Request, res: Response, next) => {
-    const { auth, data } = req.body
-    const path = req.path.split('/')
-    const role = path[path.length - 1]
+  .post(
+    '/users/roles/requests/moderator|professor|student',
+    auth,
+    (req: Request, res: Response, next) => {
+      const path = req.path.split('/')
+      const role = path[path.length - 1]
 
-    try {
       switch (role) {
         case 'student':
-          permission(['student'], ['guest'])(req, res, next)
-          await UserService.role.request.createStudent(auth.user_id, auth.roles, data)
-          return res.status(200).send({ success: true, message: 'Student request sended!' })
+          return permission(['student'], ['guest'])(req, res, next)
 
         case 'professor':
-          permission(['professor'], ['guest'])(req, res, next)
-          await UserService.role.request.createProfessor(auth.user_id, auth.roles, data)
-          return res.status(200).send({ success: true, message: 'Professor request sended!' })
+          return permission(['professor'], ['guest'])(req, res, next)
 
         case 'moderator':
-          permission(['moderator'], ['professor'])(req, res, next)
-          await UserService.role.request.createModerator(auth.user_id, auth.roles, data)
-          return res.status(200).send({ success: true, message: 'Moderator request sended!' })
+          return permission(['moderator'], ['professor'])(req, res, next)
 
         default:
-          return res.status(403).send({ success: false, message: 'Role provided do not exists!' })
+          return res.status(403).send({ success: false, message: 'Role provided does not exists!' })
       }
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Request role')
-      return res.status(result.status).send(result.send)
-    }
-  })
+    },
+    async (req: Request, res: Response, next) => {
+      const { auth, data } = req.body
+      const path = req.path.split('/')
+      const role = path[path.length - 1]
 
-  .patch('/users/roles/requests/moderator|professor|student/:id', auth, async (req: Request, res: Response) => {
+      try {
+        switch (role) {
+          case 'student':
+            await UserService.role.request.createStudent(auth.user_id, auth.roles, data)
+            return res.status(200).send({ success: true, message: 'Student request sended!' })
+
+          case 'professor':
+            await UserService.role.request.createProfessor(auth.user_id, auth.roles, data)
+            return res.status(200).send({ success: true, message: 'Professor request sended!' })
+
+          case 'moderator':
+            await UserService.role.request.createModerator(auth.user_id, auth.roles, data)
+            return res.status(200).send({ success: true, message: 'Moderator request sended!' })
+
+          default:
+            return res.status(403).send({ success: false, message: 'Role provided do not exists!' })
+        }
+      } catch (error) {
+        const result = ArisError.errorHandler(error, 'Request role')
+        return res.status(result.status).send(result.send)
+      }
+    }
+  )
+
+  .patch('/users/roles/requests/:id/moderator|professor|student', auth, async (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
     const { auth, data } = req.body
     const path = req.path.split('/')
@@ -82,7 +104,7 @@ const Router = express
     }
   })
 
-  .patch('/users/roles/requests/accept/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
+  .patch('/users/roles/requests/:id/accept', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
     const request_id = parseInt(req.params.id)
 
     try {
@@ -95,7 +117,7 @@ const Router = express
     }
   })
 
-  .patch('/users/roles/requests/reject/:id', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
+  .patch('/users/roles/requests/:id/reject', auth, permission(['admin'], ['moderator']), async (req: Request, res: Response) => {
     const request_id = parseInt(req.params.id)
     const { feedback } = req.body
 
@@ -131,24 +153,6 @@ const Router = express
       return res.status(200).send({ success: true, message: 'Fetch complete!', url })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Fetch')
-      return res.status(result.status).send(result.send)
-    }
-  })
-
-  .get('/users/roles/requests', auth, permission(['moderator']), async (req: Request, res: Response) => {
-    const { page, per_page, ...filter } = req.query
-    const {
-      auth: { user_id }
-    } = req.body
-
-    try {
-      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-
-      const requests = UserService.role.request.find(filter, pagination)
-
-      return res.status(200).send({ success: true, message: 'Fecth complete!', requests })
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Fecth')
       return res.status(result.status).send(result.send)
     }
   })
