@@ -28,8 +28,7 @@ Router.route('/user')
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },
-      data,
-      data: { password }
+      data: { password, ...data }
     } = req.body
 
     try {
