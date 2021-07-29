@@ -108,11 +108,11 @@ export class UserService {
         phone: P.user.phone.allow(null),
         new_password: P.user.password.allow(null)
       }),
-      //password: P.joi.string().required()
-    }).validate({ primary, update_data/*, password*/ })
+      password: P.joi.string().required()
+    }).validate({ primary, update_data, password })
 
     const [user] = await this.UserModel.find(primary)
-    //if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
+    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
 
     if (update_data.new_password) {
       update_data.password = await argon.hash(update_data.new_password)
