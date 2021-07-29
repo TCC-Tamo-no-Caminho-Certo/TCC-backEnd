@@ -7,7 +7,7 @@ import express, { Request, Response } from 'express'
 const Router = express
   .Router()
 
-  .get('/users(/:user_id)?/roles/requests(/:id)?', auth, permission(['moderator']), async (req: Request, res: Response) => {
+  .get('/users(/:user_id)?/roles/requests(/:id)?', auth, async (req: Request, res: Response) => {
     const { page, per_page, ...filter } = req.query
     const { id, user_id } = req.params
 

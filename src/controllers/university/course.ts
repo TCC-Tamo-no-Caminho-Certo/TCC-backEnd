@@ -27,12 +27,10 @@ const Router = express
 
 Router.route('/universities/:university_id/campus/:campus_id/courses/:id')
   .post(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const university_id = parseInt(req.params.university_id)
-    const campus_id = parseInt(req.params.campus_id)
-    const course_id = parseInt(req.params.id)
+    const { id: course_id, campus_id, university_id } = req.params
 
     try {
-      await UniversityService.campus.course.add(university_id, campus_id, course_id)
+      await UniversityService.campus.course.add({ university_id, campus_id, course_id })
 
       return res.status(200).send({ success: true, message: 'Course added!' })
     } catch (error) {
@@ -42,9 +40,7 @@ Router.route('/universities/:university_id/campus/:campus_id/courses/:id')
   })
 
   .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
-    const university_id = parseInt(req.params.university_id)
-    const campus_id = parseInt(req.params.campus_id)
-    const course_id = parseInt(req.params.id)
+    const { id: course_id, campus_id, university_id } = req.params
 
     try {
       await UniversityService.campus.course.remove({ university_id, campus_id, course_id })

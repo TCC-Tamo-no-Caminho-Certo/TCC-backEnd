@@ -12,14 +12,14 @@ export class CourseSubService {
     this.CourseModel = Course
   }
 
-  async add(university_id: number, campus_id: number, course_id: number) {
+  async add(campus_course_data: any) {
     new ValSchema({
       university_id: P.joi.number().positive().required(),
       campus_id: P.joi.number().positive().required(),
       course_id: P.joi.number().positive().required()
-    }).validate({ university_id, campus_id, course_id })
+    }).validate(campus_course_data)
 
-    const new_course = await this.Campus_CourseModel.insert({ university_id, campus_id, course_id })
+    const new_course = await this.Campus_CourseModel.insert(campus_course_data)
     return new_course
   }
 
