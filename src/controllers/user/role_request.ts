@@ -25,55 +25,33 @@ const Router = express
     }
   })
 
-  .post(
-    '/users/roles/requests/moderator|professor|student',
-    auth,
-    (req: Request, res: Response, next) => {
-      const path = req.path.split('/')
-      const role = path[path.length - 1]
+  .post('/users/roles/requests/moderator|professor|student', auth, async (req: Request, res: Response, next) => {
+    const { auth, data } = req.body
+    const path = req.path.split('/')
+    const role = path[path.length - 1]
 
+    try {
       switch (role) {
         case 'student':
-          return permission(['student'], ['guest'])(req, res, next)
+          await UserService.role.request.createStudent(auth.user_id, auth.roles, data)
+          return res.status(200).send({ success: true, message: 'Student request sended!' })
 
         case 'professor':
-          return permission(['professor'], ['guest'])(req, res, next)
+          await UserService.role.request.createProfessor(auth.user_id, auth.roles, data)
+          return res.status(200).send({ success: true, message: 'Professor request sended!' })
 
         case 'moderator':
-          return permission(['moderator'], ['professor'])(req, res, next)
+          await UserService.role.request.createModerator(auth.user_id, auth.roles, data)
+          return res.status(200).send({ success: true, message: 'Moderator request sended!' })
 
         default:
-          return res.status(403).send({ success: false, message: 'Role provided does not exists!' })
+          return res.status(403).send({ success: false, message: 'Role provided do not exists!' })
       }
-    },
-    async (req: Request, res: Response, next) => {
-      const { auth, data } = req.body
-      const path = req.path.split('/')
-      const role = path[path.length - 1]
-
-      try {
-        switch (role) {
-          case 'student':
-            await UserService.role.request.createStudent(auth.user_id, auth.roles, data)
-            return res.status(200).send({ success: true, message: 'Student request sended!' })
-
-          case 'professor':
-            await UserService.role.request.createProfessor(auth.user_id, auth.roles, data)
-            return res.status(200).send({ success: true, message: 'Professor request sended!' })
-
-          case 'moderator':
-            await UserService.role.request.createModerator(auth.user_id, auth.roles, data)
-            return res.status(200).send({ success: true, message: 'Moderator request sended!' })
-
-          default:
-            return res.status(403).send({ success: false, message: 'Role provided do not exists!' })
-        }
-      } catch (error) {
-        const result = ArisError.errorHandler(error, 'Request role')
-        return res.status(result.status).send(result.send)
-      }
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Request role')
+      return res.status(result.status).send(result.send)
     }
-  ) // Refatorar permission nessa rota
+  })
 
   .patch('/users/roles/requests/:id/moderator|professor|student', auth, async (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
