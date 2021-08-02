@@ -7,7 +7,7 @@ import express, { Request, Response } from 'express'
 const Router = express
   .Router()
 
-  .get(/\/users(\/:user_id)?\/roles$/, auth, async (req: Request, res: Response) => {
+  .get('/users(/:user_id)?/roles', auth, async (req: Request, res: Response) => {
     const { page, per_page, ...filter } = req.query
     const { user_id } = req.params
 
@@ -24,7 +24,7 @@ const Router = express
     }
   })
 
-  .get(/\/users(\/:id)?\/roles\/(moderator|professor|student)$/, auth, async (req: Request, res: Response) => {
+  .get('/users(/:id)?/roles(/moderator|/professor|/student)', auth, async (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
     const path = req.path.split('/')
     const title = path[path.length - 1]
@@ -39,7 +39,7 @@ const Router = express
     }
   })
 
-Router.route(/\/users\/roles\/(moderator|professor|student)$/)
+Router.route(/\/users\/roles\/(moderator|professor|student)/)
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },

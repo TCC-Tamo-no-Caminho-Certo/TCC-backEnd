@@ -17,9 +17,9 @@ const Router = express
 
       const campus = UniversityService.campus.find(filter)
 
-      return res.status(200).send({ success: true, message: 'Get Campus complete!', campus: id ? campus[0] : campus })
+      return res.status(200).send({ success: true, message: 'Fetch complete!', campus: id ? campus[0] : campus })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Get campus')
+      const result = ArisError.errorHandler(error, 'Fetch')
       return res.status(result.status).send(result.send)
     }
   })
