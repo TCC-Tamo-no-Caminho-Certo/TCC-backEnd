@@ -120,7 +120,7 @@ export class RoleSubService {
     return users_role
   }
 
-  async getRoleData(user_id: number, role: string) {
+  async findRoleData(user_id: number, role: string) {
     switch (<RoleTypes>role) {
       case 'student': {
         let result: any = {}

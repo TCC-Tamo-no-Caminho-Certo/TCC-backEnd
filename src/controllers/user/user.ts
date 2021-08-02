@@ -34,9 +34,9 @@ Router.route('/user')
     try {
       const user = await UserService.update({ id: user_id }, data, password)
 
-      return res.status(200).send({ success: true, message: 'Update complete!', user })
+      return res.status(200).send({ success: true, message: 'User updated!', user })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Update')
+      const result = ArisError.errorHandler(error, 'Update user')
       return res.status(result.status).send(result.send)
     }
   })
@@ -51,9 +51,9 @@ Router.route('/user')
     try {
       await UserService.delete({ id: user_id }, password, auth)
 
-      return res.status(200).send({ success: true, message: 'Delete complete!' })
+      return res.status(200).send({ success: true, message: 'User deleted!' })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Delete')
+      const result = ArisError.errorHandler(error, 'Delete user')
       return res.status(result.status).send(result.send)
     }
   })

@@ -7,7 +7,7 @@ import express, { Request, Response } from 'express'
 const Router = express
   .Router()
 
-  .get('/users(/:user_id)?/roles', auth, async (req: Request, res: Response) => {
+  .get(/\/users(\/:user_id)?\/roles$/, auth, async (req: Request, res: Response) => {
     const { page, per_page, ...filter } = req.query
     const { user_id } = req.params
 
@@ -24,13 +24,13 @@ const Router = express
     }
   })
 
-  .get('/users(/:id)?/roles/moderator|professor|student', auth, async (req: Request, res: Response) => {
+  .get(/\/users(\/:id)?\/roles\/(moderator|professor|student)$/, auth, async (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
     const path = req.path.split('/')
     const title = path[path.length - 1]
 
     try {
-      const result = await UserService.role.getRoleData(id, title)
+      const result = await UserService.role.findRoleData(id, title)
 
       return res.status(200).send({ success: true, message: 'Fetch complete!', [title]: result })
     } catch (error) {
@@ -39,24 +39,7 @@ const Router = express
     }
   })
 
-Router.route('/user/roles/moderator|professor|student')
-  .get(auth, async (req: Request, res: Response) => {
-    const {
-      auth: { user_id }
-    } = req.body
-    const path = req.path.split('/')
-    const title = path[path.length - 1]
-
-    try {
-      const result = await UserService.role.getRoleData(user_id, title)
-
-      return res.status(200).send({ success: true, message: 'Fetch complete!', [title]: result })
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Fetch')
-      return res.status(result.status).send(result.send)
-    }
-  })
-
+Router.route(/\/users\/roles\/(moderator|professor|student)$/)
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },
@@ -68,9 +51,9 @@ Router.route('/user/roles/moderator|professor|student')
     try {
       await UserService.role.update(user_id, title, data)
 
-      return res.status(200).send({ success: true, message: 'Patch role complete!' })
+      return res.status(200).send({ success: true, message: 'Role Updated!' })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Patch role')
+      const result = ArisError.errorHandler(error, 'Update role')
       return res.status(result.status).send(result.send)
     }
   })
@@ -85,7 +68,7 @@ Router.route('/user/roles/moderator|professor|student')
     try {
       await UserService.role.remove(user_id, title)
 
-      return res.status(200).send({ success: true, message: 'Remove role complete!' })
+      return res.status(200).send({ success: true, message: 'Role removed!' })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Remove role')
       return res.status(result.status).send(result.send)

@@ -25,28 +25,7 @@ const Router = express
     }
   })
 
-  .get('/user/emails(/:id)?', auth, async (req: Request, res: Response) => {
-    const { page, per_page, ...filter } = req.query
-    const { id } = req.params
-    const {
-      auth: { user_id }
-    } = req.body
-
-    try {
-      const pagination = { page: parseInt(<string>page), per_page: parseInt(<string>per_page) }
-      filter.user_id = user_id
-      filter.id = id
-
-      const emails = await UserService.email.find(filter, pagination)
-
-      return res.status(200).send({ success: true, message: 'Fetch complete!', emails })
-    } catch (error) {
-      const result = ArisError.errorHandler(error, 'Fetch')
-      return res.status(result.status).send(result.send)
-    }
-  })
-
-  .post('/user/emails', auth, async (req: Request, res: Response) => {
+  .post('/users/emails', auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },
       data
@@ -62,7 +41,7 @@ const Router = express
     }
   })
 
-Router.route('/user/emails/:id')
+Router.route('/users/emails/:id')
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },
@@ -73,9 +52,9 @@ Router.route('/user/emails/:id')
     try {
       await UserService.email.update({ id, user_id }, data)
 
-      return res.status(200).send({ success: true, message: 'Get user info complete!' })
+      return res.status(200).send({ success: true, message: 'Email updated!' })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Get user info')
+      const result = ArisError.errorHandler(error, 'Update email')
       return res.status(result.status).send(result.send)
     }
   })
@@ -89,7 +68,7 @@ Router.route('/user/emails/:id')
     try {
       await UserService.email.remove({ id, user_id })
 
-      return res.status(200).send({ success: true, message: 'Delete email complete!' })
+      return res.status(200).send({ success: true, message: 'Email deleted!' })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Delete email')
       return res.status(result.status).send(result.send)
