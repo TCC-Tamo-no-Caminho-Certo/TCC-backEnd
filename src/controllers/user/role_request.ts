@@ -25,7 +25,7 @@ const Router = express
     }
   })
 
-  .post('/users/roles/requests/moderator|professor|student', auth, async (req: Request, res: Response, next) => {
+  .post(/\/users\/roles\/requests\/(moderator|professor|student)$/, auth, async (req: Request, res: Response, next) => {
     const { auth, data } = req.body
     const path = req.path.split('/')
     const role = path[path.length - 1]
@@ -53,29 +53,17 @@ const Router = express
     }
   })
 
-  .patch('/users/roles/requests/:id/moderator|professor|student', auth, async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id)
-    const { auth, data } = req.body
-    const path = req.path.split('/')
-    const role = path[path.length - 2]
+  .patch('/users/roles/requests/:id', auth, async (req: Request, res: Response) => {
+    const { id } = req.params
+    const {
+      auth: { user_id },
+      data
+    } = req.body
 
     try {
-      switch (role) {
-        case 'student':
-          await UserService.role.request.updateStudent({ id, user_id: auth.user_id }, data)
-          return res.status(200).send({ success: true, message: 'Student request updated!' })
+      await UserService.role.request.update({ id, user_id }, data)
 
-        case 'professor':
-          await UserService.role.request.updateProfessor({ id, user_id: auth.user_id }, data)
-          return res.status(200).send({ success: true, message: 'Professor request updated!' })
-
-        case 'moderator':
-          await UserService.role.request.updateModerator({ id, user_id: auth.user_id }, data)
-          return res.status(200).send({ success: true, message: 'Moderator request updated!' })
-
-        default:
-          return res.status(403).send({ success: false, message: 'Role provided do not exists!' })
-      }
+      return res.status(200).send({ success: true, message: 'Request updated!' })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Update request')
       return res.status(result.status).send(result.send)
@@ -88,9 +76,9 @@ const Router = express
     try {
       await UserService.role.request.accept(request_id)
 
-      return res.status(200).send({ success: true, message: 'Accept complete!' })
+      return res.status(200).send({ success: true, message: 'Request accepted!' })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Accept')
+      const result = ArisError.errorHandler(error, 'Accept request')
       return res.status(result.status).send(result.send)
     }
   })
@@ -102,9 +90,9 @@ const Router = express
     try {
       await UserService.role.request.reject(request_id, feedback)
 
-      return res.status(200).send({ success: true, message: 'Reject complete!' })
+      return res.status(200).send({ success: true, message: 'Request rejected!' })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Reject')
+      const result = ArisError.errorHandler(error, 'Reject request')
       return res.status(result.status).send(result.send)
     }
   })
@@ -115,9 +103,9 @@ const Router = express
     try {
       await UserService.role.request.delete(request_id)
 
-      return res.status(200).send({ success: true, message: 'Delete complete!' })
+      return res.status(200).send({ success: true, message: 'Request deleted!' })
     } catch (error) {
-      const result = ArisError.errorHandler(error, 'Delete')
+      const result = ArisError.errorHandler(error, 'Delete request')
       return res.status(result.status).send(result.send)
     }
   })

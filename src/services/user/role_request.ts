@@ -182,9 +182,26 @@ export class Role_RequestSubService {
   }
 
   // Update
-  async updateStudent(primary: any, update_data: any) {
+  async update(primary: any, update_data: any) {
+    new ValSchema({ id: P.joi.number().positive().required(), user_id: P.joi.number().positive().required() }).validate(primary)
+
+    const [request] = await this.RoleRequestModel.find(primary)
+    if (!request) throw new ArisError('Request not found!', 400)
+
+    switch (request.role) {
+      case 'student':
+        return this.updateStudent(request, update_data)
+
+      case 'professor':
+        return this.updateProfessor(request, update_data)
+
+      case 'moderator':
+        return this.updateModerator(request, update_data)
+    }
+  }
+
+  private async updateStudent(request: any, update_data: any) {
     new ValSchema({
-      request_id: P.joi.number().positive().required(),
       voucher: P.joi.string().allow(null),
       university_id: P.joi.number().positive(),
       campus_id: P.joi.number().positive(),
@@ -193,11 +210,9 @@ export class Role_RequestSubService {
       semester: P.joi.number().min(1).max(10)
     }).validate(update_data)
 
+    const { id, user_id, data } = request
     const { voucher } = update_data
     delete update_data.voucher
-
-    const [request] = await this.RoleRequestModel.find(primary)
-    if (!request) throw new ArisError('Request not found!', 400)
 
     const { voucher_uuid: old_uuid } = request.data
     if (voucher && old_uuid) {
@@ -207,12 +222,11 @@ export class Role_RequestSubService {
       update_data.voucher_uuid = await file.update('documents', old_uuid)
     }
 
-    await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), status: 'awaiting' })
+    await this.RoleRequestModel.update({ id, user_id }, { data: JSON.stringify({ ...data, ...update_data }), status: 'awaiting' })
   }
 
-  async updateProfessor(primary: any, update_data: any) {
+  private async updateProfessor(request: any, update_data: any) {
     new ValSchema({
-      request_id: P.joi.number().positive().required(),
       voucher: P.joi.string().allow(null),
       university_id: P.joi.number().positive(),
       campus_id: P.joi.number().positive(),
@@ -221,11 +235,9 @@ export class Role_RequestSubService {
       full_time: P.joi.bool()
     }).validate(update_data)
 
+    const { id, user_id, data } = request
     const { voucher } = update_data
     delete update_data.voucher
-
-    const [request] = await this.RoleRequestModel.find(primary)
-    if (!request) throw new ArisError('Request not found!', 400)
 
     const { voucher_uuid: old_uuid } = request.data
     if (voucher && old_uuid) {
@@ -235,19 +247,17 @@ export class Role_RequestSubService {
       update_data.voucher_uuid = await file.update('documents', old_uuid)
     }
 
-    await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), status: 'awaiting' })
+    await this.RoleRequestModel.update({ id, user_id }, { data: JSON.stringify({ ...data, ...update_data }), status: 'awaiting' })
   }
 
-  async updateModerator(primary: any, update_data: any) {
+  private async updateModerator(request: any, update_data: any) {
     new ValSchema({
-      request_id: P.joi.number().positive().required(),
       pretext: P.joi.string().allow(null)
     }).validate(update_data)
 
-    const [request] = await this.RoleRequestModel.find(primary)
-    if (!request) throw new ArisError('Request not found!', 400)
+    const { id, user_id, data } = request
 
-    await this.RoleRequestModel.update(primary, { data: JSON.stringify(update_data), status: 'awaiting' })
+    await this.RoleRequestModel.update({ id, user_id }, { data: JSON.stringify({ ...data, ...update_data }), status: 'awaiting' })
   }
 
   // ---
