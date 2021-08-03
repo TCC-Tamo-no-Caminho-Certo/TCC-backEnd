@@ -46,8 +46,8 @@ export interface IModel<
   update(ids: RecordIDs<Data>, data: ParseKeys<Update>): Promise<void>
   delete(ids: RecordIDs<Data>): Promise<void>
   find(filter?: Filter): Knex.QueryBuilder<ParseKeys<Data>, ParseKeys<Data>[]>
-  findCache(filter?: Filter): ParseKeys<Data>[]
-  
+  findCache(select: (keyof Data)[] | '*', filter?: Filter): ParseKeys<Data>[]
+
   createTrx(): Promise<void>
   commitTrx(): Promise<void>
   rollbackTrx(): Promise<void>
@@ -173,14 +173,28 @@ export class Model<
     return base_query
   }
 
-  findCache(filter?: Filter) {
-    const result = this._cache.filter(data => {
+  findCache(select: (keyof Data)[] | '*', filter?: Filter) {
+    // const result = this._cache.filter(data => {
+    //   let should_return = 1
+    //   for (const key in filter)
+    //     if (filter[key]) should_return *= Array.isArray(filter[key]) ? filter[key].some((value: any) => value == data[key]) : filter[key] == data[key]
+
+    //   return should_return
+    // })
+    const result = []
+
+    for (const data of this._cache) {
       let should_return = 1
+
       for (const key in filter)
         if (filter[key]) should_return *= Array.isArray(filter[key]) ? filter[key].some((value: any) => value == data[key]) : filter[key] == data[key]
 
-      return should_return
-    })
+      if (should_return) {
+        let formatted_data: any = {}
+        select !== '*' ? select.forEach(key => (formatted_data[key] = data[key])) : (formatted_data = data)
+        result.push(formatted_data)
+      }
+    }
 
     return result
   }
