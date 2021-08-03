@@ -111,6 +111,10 @@ export class RoleSubService {
   }
 
   async find(filter: any, { page, per_page }: Pagination) {
+    new ValSchema({
+      user_id: P.filter.ids.allow(null)
+    }).validate(filter)
+
     const roles = await this.RoleModel.find(filter).paginate(page, per_page)
     const users_role = roles.map(({ user_id, ...role_array }) => ({
       user_id,
@@ -121,6 +125,11 @@ export class RoleSubService {
   }
 
   async findRoleData(user_id: number, role: string) {
+    new ValSchema({
+      user_id: P.joi.number().positive().required(),
+      role: P.joi.string().equal('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator').required()
+    }).validate({ user_id, role })
+
     switch (<RoleTypes>role) {
       case 'student': {
         let result: any = {}
@@ -153,13 +162,16 @@ export class RoleSubService {
   }
 
   async findUniversities(user_id: number) {
+    new ValSchema(P.joi.number().positive().required()).validate(user_id)
+
     const ids = await this.Moderator_UniversityModel.query
       .select('university_id')
       .where({ user_id })
       .union(
         this.Student_UniversityModel.query.select('university_id').where({ user_id }) as any,
         this.Professor_UniversityModel.query.select('university_id').where({ user_id }) as any
-      ).then(rows => rows.map(row => row.university_id))
+      )
+      .then(rows => rows.map(row => row.university_id))
 
     const universities = this.UniversityModel.findCache(['id', 'name'], { id: ids })
 
