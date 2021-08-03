@@ -24,13 +24,26 @@ const Router = express
     }
   })
 
-  .get('/users(/:id)?/roles(/moderator|/professor|/student)', auth, async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id)
+  .get('/users(/:user_id)?/roles/universities', auth, async (req: Request, res: Response) => {
+    const user_id = parseInt(req.params.user_id)
+
+    try {
+      const universities = await UserService.role.findUniversities(user_id)
+
+      return res.status(200).send({ success: true, message: 'Fetch compete!', universities })
+    } catch (error) {
+      const result = ArisError.errorHandler(error, 'Fetch')
+      return res.status(result.status).send(result.send)
+    }
+  })
+
+  .get('/users(/:user_id)?/roles(/moderator|/professor|/student)', auth, async (req: Request, res: Response) => {
+    const user_id = parseInt(req.params.user_id)
     const path = req.path.split('/')
     const title = path[path.length - 1]
 
     try {
-      const result = await UserService.role.findRoleData(id, title)
+      const result = await UserService.role.findRoleData(user_id, title)
 
       return res.status(200).send({ success: true, message: 'Fetch complete!', [title]: result })
     } catch (error) {
@@ -39,7 +52,7 @@ const Router = express
     }
   })
 
-Router.route(/\/users\/roles\/(moderator|professor|student)/)
+Router.route('/users/roles(/moderator|/professor|/student)')
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },

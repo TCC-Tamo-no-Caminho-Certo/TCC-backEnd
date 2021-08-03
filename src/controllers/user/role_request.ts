@@ -25,7 +25,7 @@ const Router = express
     }
   })
 
-  .post(/\/users\/roles\/requests\/(moderator|professor|student)$/, auth, async (req: Request, res: Response, next) => {
+  .post('/users/roles/requests/(/moderator|/professor|/student)', auth, async (req: Request, res: Response, next) => {
     const { auth, data } = req.body
     const path = req.path.split('/')
     const role = path[path.length - 1]

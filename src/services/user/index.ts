@@ -210,12 +210,6 @@ export class UserService {
     return users
   }
 
-  async get(user_id: number) {
-    const [user] = await this.UserModel.query.select('id', 'name', 'surname', 'full_name', 'phone', 'birthday', 'avatar_uuid').where({ id: user_id })
-
-    return user
-  }
-
   async confirmSignUp(token: string) {
     new ValSchema(P.joi.string().required()).validate(token)
 

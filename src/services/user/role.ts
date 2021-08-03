@@ -152,6 +152,20 @@ export class RoleSubService {
     }
   }
 
+  async findUniversities(user_id: number) {
+    const ids = await this.Moderator_UniversityModel.query
+      .select('university_id')
+      .where({ user_id })
+      .union(
+        this.Student_UniversityModel.query.select('university_id').where({ user_id }) as any,
+        this.Professor_UniversityModel.query.select('university_id').where({ user_id }) as any
+      ).then(rows => rows.map(row => row.university_id))
+
+    const universities = this.UniversityModel.findCache(['id', 'name'], { id: ids })
+
+    return universities
+  }
+
   private parseUniversities(role_university: { user_id: number; university_id: number; [Key: string]: any }[]) {
     return role_university.map(({ university_id, user_id, ...data }) => ({
       university_id,
