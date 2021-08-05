@@ -85,7 +85,7 @@ export class UniversityService {
       name: P.filter.names.allow(null)
     }).validate(filter)
 
-    const universities = this.UniversityModel.findCache(filter)
+    const universities = this.UniversityModel.findCache('*', filter)
     return universities
   }
 }

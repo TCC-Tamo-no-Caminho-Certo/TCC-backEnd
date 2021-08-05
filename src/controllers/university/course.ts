@@ -8,17 +8,17 @@ const Router = express
   .Router()
 
   .get('/universities(/:university_id)?/campus(/:campus_id)?/courses(/:id)?', auth, async (req: Request, res: Response) => {
-    const { id, campus_id, university_id } = req.params
+    const { id: course_id, campus_id, university_id } = req.params
     const { ...filter } = req.query
 
     try {
       filter.university_id = university_id || filter.university_id
       filter.campus_id = campus_id || filter.campus_id
-      filter.id = id || filter.id
+      filter.course_id = course_id || filter.course_id
 
       const courses = UniversityService.campus.course.find(filter)
 
-      return res.status(200).send({ success: true, message: 'Fetch complete!', [id ? 'course' : 'courses']: id ? courses[0] : courses })
+      return res.status(200).send({ success: true, message: 'Fetch complete!', [course_id ? 'course' : 'courses']: course_id ? courses[0] : courses })
     } catch (error) {
       const result = ArisError.errorHandler(error, 'Fetch')
       return res.status(result.status).send(result.send)

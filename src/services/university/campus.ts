@@ -48,7 +48,7 @@ export class CampusSubService {
   }
 
   find(filter?: any) {
-    const campus = this.CampusModel.findCache(filter)
+    const campus = this.CampusModel.findCache('*', filter)
     return campus
   }
 }
