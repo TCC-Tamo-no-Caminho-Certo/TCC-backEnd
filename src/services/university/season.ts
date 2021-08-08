@@ -86,6 +86,8 @@ export class SeasonSubService {
         .required()
     }).validate({ primary, update_data })
 
+    update_data.periods = JSON.stringify(update_data.periods)
+
     await this.SeasonModel.update(primary, update_data)
   }
 
