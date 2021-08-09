@@ -25,7 +25,7 @@ const Router = express
     }
   })
 
-  .post('/universities', auth, permission(['admin']), async (req: Request, res: Response) => {
+  .post('/universities', auth, permission(['dev']), async (req: Request, res: Response) => {
     const { data } = req.body
 
     try {
@@ -39,7 +39,7 @@ const Router = express
   })
 
 Router.route('/universities/:id')
-  .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
+  .patch(auth, permission(['dev']), async (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
     const { data } = req.body
 
@@ -53,7 +53,7 @@ Router.route('/universities/:id')
     }
   })
 
-  .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
+  .delete(auth, permission(['dev']), async (req: Request, res: Response) => {
     const id = parseInt(req.params.id)
 
     try {

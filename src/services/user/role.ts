@@ -1,6 +1,7 @@
-import { Moderator_UniversityModel, IModerator_UniversityModel } from '../../database/models/user/moderator_university'
-import { Professor_UniversityModel, IProfessor_UniversityModel } from '../../database/models/user/professor_university'
-import { Student_UniversityModel, IStudent_UniversityModel } from '../../database/models/user/student_university'
+import { Administrator_UniversityModel, IAdministrator_UniversityModel } from '../../database/models/user_university/administrator'
+import { Moderator_UniversityModel, IModerator_UniversityModel } from '../../database/models/user_university/moderator'
+import { Professor_UniversityModel, IProfessor_UniversityModel } from '../../database/models/user_university/professor'
+import { Student_UniversityModel, IStudent_UniversityModel } from '../../database/models/user_university/student'
 import { UniversityModel, IUniversityModel } from '../../database/models/university/university'
 import { ProfessorModel, IProfessorModel } from '../../database/models/user/professor'
 import { StudentModel, IStudentModel } from '../../database/models/user/student'
@@ -15,6 +16,7 @@ import { emitter } from '../../subscribers'
 import { Pagination, RoleTypes } from '../../@types/types'
 
 export class RoleSubService {
+  private Administrator_UniversityModel: IAdministrator_UniversityModel
   private Moderator_UniversityModel: IModerator_UniversityModel
   private Professor_UniversityModel: IProfessor_UniversityModel
   private Student_UniversityModel: IStudent_UniversityModel
@@ -33,8 +35,10 @@ export class RoleSubService {
     Student_University: IStudent_UniversityModel,
     Professor_University: IProfessor_UniversityModel,
     Moderator_University: IModerator_UniversityModel,
+    Administrator_University: IAdministrator_UniversityModel,
     request_sub: typeof Role_RequestSubService
   ) {
+    this.Administrator_UniversityModel = Administrator_University
     this.Moderator_UniversityModel = Moderator_University
     this.Professor_UniversityModel = Professor_University
     this.Student_UniversityModel = Student_University
@@ -127,7 +131,7 @@ export class RoleSubService {
   async findRoleData(user_id: number, role: string) {
     new ValSchema({
       user_id: P.joi.number().positive().required(),
-      role: P.joi.string().equal('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator').required()
+      role: P.joi.string().equal('dev', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator').required()
     }).validate({ user_id, role })
 
     switch (<RoleTypes>role) {
@@ -152,6 +156,13 @@ export class RoleSubService {
       case 'moderator': {
         let result: any = {}
         const universities = this.parseUniversities(await this.Moderator_UniversityModel.find({ user_id }))
+        result.universities = universities
+        return result
+      }
+
+      case 'administrator': {
+        let result: any = {}
+        const universities = this.parseUniversities(await this.Administrator_UniversityModel.find({ user_id }))
         result.universities = universities
         return result
       }
@@ -205,5 +216,6 @@ export default new RoleSubService(
   Student_UniversityModel,
   Professor_UniversityModel,
   Moderator_UniversityModel,
+  Administrator_UniversityModel,
   Role_RequestSubService
 )

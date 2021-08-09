@@ -26,7 +26,7 @@ const Router = express
   })
 
 Router.route('/universities/:university_id/campus/:campus_id/courses/:id')
-  .post(auth, permission(['admin']), async (req: Request, res: Response) => {
+  .post(auth, permission(['administrator']), async (req: Request, res: Response) => {
     const { id: course_id, campus_id, university_id } = req.params
 
     try {
@@ -39,7 +39,7 @@ Router.route('/universities/:university_id/campus/:campus_id/courses/:id')
     }
   })
 
-  .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
+  .delete(auth, permission(['administrator']), async (req: Request, res: Response) => {
     const { id: course_id, campus_id, university_id } = req.params
 
     try {

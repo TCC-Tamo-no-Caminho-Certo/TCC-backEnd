@@ -24,7 +24,7 @@ const Router = express
     }
   })
 
-  .post('/universities/:university_id/campus', auth, permission(['admin']), async (req: Request, res: Response) => {
+  .post('/universities/:university_id/campus', auth, permission(['administrator']), async (req: Request, res: Response) => {
     const university_id = parseInt(req.params.university_id)
     const { name } = req.body
 
@@ -39,7 +39,7 @@ const Router = express
   })
 
 Router.route('/universities/:university_id/campus/:id')
-  .patch(auth, permission(['admin']), async (req: Request, res: Response) => {
+  .patch(auth, permission(['administrator']), async (req: Request, res: Response) => {
     const university_id = parseInt(req.params.university_id)
     const campus_id = parseInt(req.params.id)
     const { name } = req.body
@@ -54,7 +54,7 @@ Router.route('/universities/:university_id/campus/:id')
     }
   })
 
-  .delete(auth, permission(['admin']), async (req: Request, res: Response) => {
+  .delete(auth, permission(['administrator']), async (req: Request, res: Response) => {
     const university_id = parseInt(req.params.university_id)
     const campus_id = parseInt(req.params.id)
 

@@ -37,7 +37,7 @@ const Router = express
     }
   })
 
-  .get('/users(/:user_id)?/roles(/moderator|/professor|/student)', auth, async (req: Request, res: Response) => {
+  .get('/users(/:user_id)?/roles(/administrator|/moderator|/professor|/student)', auth, async (req: Request, res: Response) => {
     const user_id = parseInt(req.params.user_id)
     const path = req.path.split('/')
     const title = path[path.length - 1]
@@ -50,9 +50,9 @@ const Router = express
       const result = ArisError.errorHandler(error, 'Fetch')
       return res.status(result.status).send(result.send)
     }
-  })
+  }) // for now user_id is mandatory
 
-Router.route('/users/roles(/moderator|/professor|/student)')
+Router.route('/users/roles(/administrator|/moderator|/professor|/student)')
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },

@@ -64,7 +64,6 @@ export class EmailSubService {
 
       await this.EmailModel.createTrx()
 
-      // await this.EmailModel.update(main_email, { main: false }) test if works
       await this.EmailModel.update({ id: main_email.id, user_id: main_email.user_id }, { main: false })
 
       await this.EmailModel.update(primary, update_data)

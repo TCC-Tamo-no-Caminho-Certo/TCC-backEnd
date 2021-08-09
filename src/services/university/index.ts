@@ -44,14 +44,14 @@ export class UniversityService {
     return response
   }
 
-  async update(primary: any, university_data?: any) {
+  async update(primary: any, update_data?: any) {
     new ValSchema({
       primary: P.joi
         .object({
           university_id: P.joi.number().integer().positive().required()
         })
         .required(),
-      university_data: P.joi.object({
+      update_data: P.joi.object({
         name: P.joi.string(),
         regex: P.joi.object({
           email: P.joi
@@ -68,9 +68,11 @@ export class UniversityService {
             .required()
         })
       })
-    }).validate({ primary, university_data })
+    }).validate({ primary, update_data })
 
-    await this.UniversityModel.update(primary, university_data)
+    update_data.regex = JSON.stringify(update_data.regex)
+
+    await this.UniversityModel.update(primary, update_data)
   }
 
   async delete(primary: any) {
