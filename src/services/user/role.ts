@@ -162,8 +162,8 @@ export class RoleSubService {
 
       case 'administrator': {
         let result: any = {}
-        const universities = this.parseUniversities(await this.Administrator_UniversityModel.find({ user_id }))
-        result.universities = universities
+        const [university] = this.parseUniversities(await this.Administrator_UniversityModel.find({ user_id }))
+        result.university = university
         return result
       }
 
