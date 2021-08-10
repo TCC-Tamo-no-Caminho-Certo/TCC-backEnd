@@ -75,7 +75,7 @@ export class UserService {
 
     if (!(await argon.verify(hash, password))) throw new ArisError('Incorrect password!', 400)
 
-    const [roles] = await this.RoleModel.find({ user_id }).select('dev', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator')
+    const [roles] = await this.RoleModel.find({ user_id }).select('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator')
     const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
 
     const access_token = await this.generateAccessToken(user_id, user_roles, remember)

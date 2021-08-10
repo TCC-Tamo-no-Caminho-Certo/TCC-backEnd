@@ -25,7 +25,7 @@ const Router = express
     }
   })
 
-  .post('/users/roles/requests/(/moderator|/professor|/student)', auth, async (req: Request, res: Response, next) => {
+  .post('/users/roles/requests(/moderator|/professor|/student)', auth, async (req: Request, res: Response, next) => {
     const { auth, data } = req.body
     const path = req.path.split('/')
     const role = path[path.length - 1]
@@ -70,7 +70,7 @@ const Router = express
     }
   })
 
-  .patch('/users/roles/requests/:id/accept', auth, permission(['dev'], ['moderator']), async (req: Request, res: Response) => {
+  .patch('/users/roles/requests/:id/accept', auth, permission(['developer'], ['moderator']), async (req: Request, res: Response) => {
     const request_id = parseInt(req.params.id)
 
     try {
@@ -83,7 +83,7 @@ const Router = express
     }
   })
 
-  .patch('/users/roles/requests/:id/reject', auth, permission(['dev'], ['moderator']), async (req: Request, res: Response) => {
+  .patch('/users/roles/requests/:id/reject', auth, permission(['developer'], ['moderator']), async (req: Request, res: Response) => {
     const request_id = parseInt(req.params.id)
     const { feedback } = req.body
 
@@ -97,7 +97,7 @@ const Router = express
     }
   })
 
-  .delete('/users/roles/requests/:id', auth, permission(['dev'], ['moderator']), async (req: Request, res: Response) => {
+  .delete('/users/roles/requests/:id', auth, permission(['developer'], ['moderator']), async (req: Request, res: Response) => {
     const request_id = parseInt(req.params.id)
 
     try {
@@ -110,7 +110,7 @@ const Router = express
     }
   })
 
-  .get('/users/roles/requests/voucher/:uuid', auth, permission(['dev'], ['moderator']), async (req: Request, res: Response) => {
+  .get('/users/roles/requests/voucher/:uuid', auth, permission(['developer'], ['moderator']), async (req: Request, res: Response) => {
     const voucher_uuid = req.params.uuid
 
     try {

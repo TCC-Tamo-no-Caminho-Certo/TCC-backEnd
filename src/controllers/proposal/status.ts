@@ -16,7 +16,7 @@ route.get('/get', async (req: Request, res: Response) => {
   }
 })
 
-route.post('/post', permission(['dev']), async (req: Request, res: Response) => {
+route.post('/post', permission(['developer']), async (req: Request, res: Response) => {
   const { name, icon, description } = req.body
 
   try {
@@ -32,7 +32,7 @@ route.post('/post', permission(['dev']), async (req: Request, res: Response) => 
   }
 })
 
-route.post('/update/:id', permission(['dev']), async (req: Request, res: Response) => {
+route.post('/update/:id', permission(['developer']), async (req: Request, res: Response) => {
   const { name, icon, description } = req.body
   const status_id = parseInt(req.params.id)
 
@@ -56,7 +56,7 @@ route.post('/update/:id', permission(['dev']), async (req: Request, res: Respons
   }
 })
 
-route.post('/delete/:id', permission(['dev']), async (req: Request, res: Response) => {
+route.post('/delete/:id', permission(['developer']), async (req: Request, res: Response) => {
   const status_id = parseInt(req.params.id)
 
   try {

@@ -191,7 +191,7 @@ export class RoleSubService {
 
   private parseUniversities(role_university: { user_id: number; university_id: number; [Key: string]: any }[]) {
     return role_university.map(({ university_id, user_id, ...data }) => ({
-      university_id,
+      id: university_id,
       name: this.UniversityModel.cache.find(university => university.id === university_id)!.name,
       ...data
     }))

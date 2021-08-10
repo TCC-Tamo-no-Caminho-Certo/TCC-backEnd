@@ -1,4 +1,4 @@
-export type RoleTypes = 'dev' | 'guest' | 'student' | 'professor' | 'customer' | 'evaluator' | 'moderator' | 'administrator'
+export type RoleTypes = 'developer' | 'guest' | 'student' | 'professor' | 'customer' | 'evaluator' | 'moderator' | 'administrator'
 
 export type CourseTypes =
   | 'Ciência da Computação'

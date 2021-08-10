@@ -10,7 +10,7 @@ import { auth, permission } from '../../middlewares'
 import express, { Request, Response } from 'express'
 const Router = express.Router()
 
-Router.use(auth, permission(['dev']))
+Router.use(auth, permission(['developer']))
 
 Router.get('/lucene-reset', async (req: Request, res: Response) => {
   try {
