@@ -29,19 +29,19 @@ const Router = express
     const { auth, data } = req.body
     const path = req.path.split('/')
     const role = path[path.length - 1]
-return res.status(200).json(auth)
+
     try {
       switch (role) {
         case 'student':
-          await UserService.role.request.createStudent(auth.user_id, auth.roles, data)
+          await UserService.role.request.createStudent(auth.id, auth.roles, data)
           return res.status(200).send({ success: true, message: 'Student request sended!' })
 
         case 'professor':
-          await UserService.role.request.createProfessor(auth.user_id, auth.roles, data)
+          await UserService.role.request.createProfessor(auth.id, auth.roles, data)
           return res.status(200).send({ success: true, message: 'Professor request sended!' })
 
         case 'moderator':
-          await UserService.role.request.createModerator(auth.user_id, auth.roles, data)
+          await UserService.role.request.createModerator(auth.id, auth.roles, data)
           return res.status(200).send({ success: true, message: 'Moderator request sended!' })
 
         default:
