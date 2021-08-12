@@ -271,7 +271,7 @@ export class Role_RequestSubService {
 
     await this.RoleModel.createTrx()
 
-    const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
+    const [roles] = await this.RoleModel.find({ user_id }).select('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator')
     const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
 
     if (!user_roles.some((role: string) => role === r_role)) {

@@ -53,7 +53,7 @@ export class RoleSubService {
   async update(user_id: any, role: string, role_data: any) {
     new ValSchema({
       user_id: P.joi.number().positive().required(),
-      role: P.joi.string().equal('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator').required(),
+      role: P.joi.string().equal('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator').required(),
       role_data: P.joi
         .when('role', { is: 'student', then: P.joi.object({ lattes: P.joi.string().allow(null), linkedin: P.joi.string().allow(null) }).required() })
         .when('role', {
@@ -86,7 +86,7 @@ export class RoleSubService {
   async remove(user_id: any, role: string) {
     new ValSchema({
       user_id: P.joi.number().positive().required(),
-      role: P.joi.string().equal('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator').required()
+      role: P.joi.string().equal('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator').required()
     }).validate({ user_id, role })
 
     switch (<RoleTypes>role) {
@@ -106,7 +106,16 @@ export class RoleSubService {
         throw new ArisError(`Delete role ${role} not implemented!`, 500)
     }
 
-    const [roles] = await this.RoleModel.find({ user_id }).select('admin', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator')
+    const [roles] = await this.RoleModel.find({ user_id }).select(
+      'developer',
+      'guest',
+      'student',
+      'professor',
+      'customer',
+      'evaluator',
+      'moderator',
+      'administrator'
+    )
     const user_roles = Object.keys(roles).filter(key => roles[key] === 1 && key !== role) as RoleTypes[]
 
     user_roles.length === 0 && user_roles.push('guest')
@@ -131,7 +140,7 @@ export class RoleSubService {
   async findRoleData(user_id: number, role: string) {
     new ValSchema({
       user_id: P.joi.number().positive().required(),
-      role: P.joi.string().equal('dev', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator').required()
+      role: P.joi.string().equal('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator').required()
     }).validate({ user_id, role })
 
     switch (<RoleTypes>role) {
