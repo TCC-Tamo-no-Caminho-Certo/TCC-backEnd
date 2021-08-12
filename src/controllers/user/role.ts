@@ -50,7 +50,7 @@ const Router = express
       const result = ArisError.errorHandler(error, 'Fetch')
       return res.status(result.status).send(result.send)
     }
-  }) // for now user_id is mandatory
+  }) // for now user_id is mandatory (create filter in findRoleData function)
 
 Router.route('/users/roles(/administrator|/moderator|/professor|/student)')
   .patch(auth, async (req: Request, res: Response) => {

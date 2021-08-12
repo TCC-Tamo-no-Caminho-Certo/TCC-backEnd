@@ -29,7 +29,7 @@ const Router = express
     const { auth, data } = req.body
     const path = req.path.split('/')
     const role = path[path.length - 1]
-
+return res.status(200).json(auth)
     try {
       switch (role) {
         case 'student':
