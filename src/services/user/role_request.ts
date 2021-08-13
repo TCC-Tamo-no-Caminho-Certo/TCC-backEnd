@@ -355,11 +355,10 @@ export class Role_RequestSubService {
   }
 
   private async updateAccessTokenData(user_id: number, roles: RoleTypes[]) {
-    // await Redis.client.delAsync(`auth:data:${user_id}`)
     await Redis.client.setAsync(
       `auth:data:${user_id}`,
       JSON.stringify({
-        id: user_id,
+        user_id,
         roles
       })
     )

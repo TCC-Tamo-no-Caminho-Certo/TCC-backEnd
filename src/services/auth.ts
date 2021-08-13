@@ -38,7 +38,7 @@ export class AuthService {
     await this.Redis.client.setAsync(
       `auth:data:${user_id}`,
       JSON.stringify({
-        id: user_id,
+        user_id,
         roles
       })
     )

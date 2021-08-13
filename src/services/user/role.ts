@@ -83,11 +83,15 @@ export class RoleSubService {
     }
   }
 
-  async remove(user_id: any, role: string) {
+  async remove(user_id: any, user_roles: string[], role: string) {
     new ValSchema({
       user_id: P.joi.number().positive().required(),
       role: P.joi.string().equal('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator').required()
     }).validate({ user_id, role })
+
+    if (!user_roles.some(value => value === role)) throw new ArisError('User do not have this role!', 400)
+
+    await this.RoleModel.createTrx()
 
     switch (<RoleTypes>role) {
       case 'student':
@@ -106,21 +110,20 @@ export class RoleSubService {
         throw new ArisError(`Delete role ${role} not implemented!`, 500)
     }
 
-    const [roles] = await this.RoleModel.find({ user_id }).select(
-      'developer',
-      'guest',
-      'student',
-      'professor',
-      'customer',
-      'evaluator',
-      'moderator',
-      'administrator'
-    )
-    const user_roles = Object.keys(roles).filter(key => roles[key] === 1 && key !== role) as RoleTypes[]
+    const update_data = { [role]: false }
 
-    user_roles.length === 0 && user_roles.push('guest')
+    const new_roles = user_roles.filter(value => value !== role) as RoleTypes[]
 
-    await this.updateAccessTokenData(user_id, user_roles)
+    if (new_roles.length === 0) {
+      update_data.guest = true
+      new_roles.push('guest')
+    }
+
+    await this.RoleModel.update({ user_id }, update_data)
+
+    await this.RoleModel.commitTrx()
+
+    await this.updateAccessTokenData(user_id, new_roles)
   }
 
   async find(filter: any, { page, per_page }: Pagination) {
@@ -210,7 +213,7 @@ export class RoleSubService {
     await Redis.client.setAsync(
       `auth:data:${user_id}`,
       JSON.stringify({
-        id: user_id,
+        user_id,
         roles
       })
     )

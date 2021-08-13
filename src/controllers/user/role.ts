@@ -72,14 +72,12 @@ Router.route('/users/roles(/administrator|/moderator|/professor|/student)')
   })
 
   .delete(auth, async (req: Request, res: Response) => {
-    const {
-      auth: { user_id }
-    } = req.body
+    const { auth } = req.body
     const path = req.path.split('/')
     const title = path[path.length - 1]
 
     try {
-      await UserService.role.remove(user_id, title)
+      await UserService.role.remove(auth.user_id, auth.roles, title)
 
       return res.status(200).send({ success: true, message: 'Role removed!' })
     } catch (error) {
