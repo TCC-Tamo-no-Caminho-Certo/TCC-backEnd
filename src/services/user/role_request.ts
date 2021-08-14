@@ -279,7 +279,6 @@ export class Role_RequestSubService {
       index ? (user_roles[index] = r_role) : user_roles.push(r_role)
 
       await this.RoleModel.update({ user_id }, { guest: false, [r_role]: true })
-      await this.ProfessorModel.insert({ user_id, postgraduate: null, lattes: null, linkedin: null, orcid: null })
     }
 
     switch (r_role) {
