@@ -267,36 +267,51 @@ export class Role_RequestSubService {
     const [request] = await this.RoleRequestModel.find({ id: request_id, status: ['awaiting', 'rejected'] })
     if (!request) throw new ArisError('Request not found!', 400)
 
-    const { user_id, role: r_role } = request
+    const { user_id, role: req_role } = request
 
     await this.RoleModel.createTrx()
 
-    const [roles] = await this.RoleModel.find({ user_id }).select('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator')
+    const [roles] = await this.RoleModel.find({ user_id }).select(
+      'developer',
+      'guest',
+      'student',
+      'professor',
+      'customer',
+      'evaluator',
+      'moderator',
+      'administrator'
+    )
     const user_roles = Object.keys(roles).filter(key => roles[key] === 1) as RoleTypes[]
 
-    if (!user_roles.some((role: string) => role === r_role)) {
+    if (!user_roles.some((role: string) => role === req_role)) {
       const index = user_roles.findIndex((role: string) => role === 'guest')
-      index ? (user_roles[index] = r_role) : user_roles.push(r_role)
+      index ? (user_roles[index] = req_role) : user_roles.push(req_role)
 
-      await this.RoleModel.update({ user_id }, { guest: false, [r_role]: true })
+      await this.RoleModel.update({ user_id }, { guest: false, [req_role]: true })
     }
 
-    switch (r_role) {
-      case 'professor':
-        if (!request.data) throw new ArisError('Couldn´t find professor role request data', 500)
+    switch (req_role) {
+      case 'professor': {
+        if (!request.data) throw new ArisError(`Couldn´t find professor role request data`, 500)
+        const { university_id, campus_id, course_id, full_time, register } = request.data
         await this.ProfessorModel.insert({ user_id, postgraduate: null, linkedin: null, lattes: null, orcid: null })
-        await this.Professor_UniversityModel.insert({ user_id, ...(request.data as any) })
+        await this.Professor_UniversityModel.insert({ user_id, university_id, campus_id, course_id, full_time, register })
         break
+      }
 
-      case 'student':
-        if (!request.data) throw new ArisError('Couldn´t find student role request data', 500)
+      case 'student': {
+        if (!request.data) throw new ArisError(`Couldn´t find student role request data`, 500)
+        const { university_id, campus_id, course_id, semester, register } = request.data
         await this.StudentModel.insert({ user_id, linkedin: null, lattes: null })
-        await this.Student_UniversityModel.insert({ user_id, ...(request.data as any) })
+        await this.Student_UniversityModel.insert({ user_id, university_id, campus_id, course_id, semester, register })
+      }
 
-      case 'moderator':
-        if (!request.data) throw new ArisError('Couldn´t find moderator role request data', 500)
-        await this.Moderator_UniversityModel.insert({ user_id, ...(request.data as any) })
+      case 'moderator': {
+        if (!request.data) throw new ArisError(`Couldn´t find moderator role request data`, 500)
+        const { university_id } = request.data
+        await this.Moderator_UniversityModel.insert({ user_id, university_id })
         break
+      }
     }
 
     await this.RoleRequestModel.update({ id: request_id, user_id }, { status: 'accepted' })
