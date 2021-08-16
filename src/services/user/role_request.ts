@@ -285,7 +285,7 @@ export class Role_RequestSubService {
 
     if (!user_roles.some((role: string) => role === req_role)) {
       const index = user_roles.findIndex((role: string) => role === 'guest')
-      index ? (user_roles[index] = req_role) : user_roles.push(req_role)
+      index !== -1 ? (user_roles[index] = req_role) : user_roles.push(req_role)
 
       await this.RoleModel.update({ user_id }, { guest: false, [req_role]: true })
     }
@@ -315,7 +315,6 @@ export class Role_RequestSubService {
     }
 
     await this.RoleRequestModel.update({ id: request_id, user_id }, { status: 'accepted' })
-
     await this.RoleModel.commitTrx()
 
     await this.updateAccessTokenData(user_id, user_roles)

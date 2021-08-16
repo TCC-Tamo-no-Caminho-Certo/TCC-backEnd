@@ -120,7 +120,6 @@ export class RoleSubService {
     }
 
     await this.RoleModel.update({ user_id }, update_data)
-
     await this.RoleModel.commitTrx()
 
     await this.updateAccessTokenData(user_id, new_roles)
