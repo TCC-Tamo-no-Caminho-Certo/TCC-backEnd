@@ -34,8 +34,8 @@ export class EmailSubService {
     if (university_id) {
       const [university] = await this.UniversityModel.find({ id: university_id })
       if (!university) throw new ArisError('University not found!', 400)
-      const regex = [new RegExp(university.regex.email.professor), new RegExp(university.regex.email.student)]
 
+      const regex = [new RegExp(university.regex.email.professor), new RegExp(university.regex.email.student)]
       if (!regex.some(reg => reg.test(address))) throw new ArisError('Invalid email format!', 400)
     }
 
@@ -98,8 +98,6 @@ export class EmailSubService {
       const [main_email] = await this.EmailModel.find({ user_id: email_data.user_id, main: true })
 
       await this.EmailModel.createTrx()
-
-      // await this.EmailModel.update(main_email, { main: false }) test if works
       await this.EmailModel.update({ id: main_email.id, user_id: main_email.user_id }, { main: false })
     }
 

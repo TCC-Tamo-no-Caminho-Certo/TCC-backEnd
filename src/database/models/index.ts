@@ -119,15 +119,17 @@ export class Model<
   async update(primary: RecordIDs<Data>, data: ParseKeys<Update>) {
     const trx = Model.trx || db
 
-    await trx<ParseKeys<Data>>(this._name)
-      .update(data as any)
-      .where(primary)
+    if (Object.values(data).length) {
+      await trx<ParseKeys<Data>>(this._name)
+        .update(data as any)
+        .where(primary)
 
-    if (this.has_cache)
-      this._cache = this._cache.map(value => {
-        const should_update = !this._primary.some(key => value[key] !== primary[key])
-        return should_update ? { ...value, ...data } : value
-      })
+      if (this.has_cache)
+        this._cache = this._cache.map(value => {
+          const should_update = !this._primary.some(key => value[key] !== primary[key])
+          return should_update ? { ...value, ...data } : value
+        })
+    }
   }
 
   /**
