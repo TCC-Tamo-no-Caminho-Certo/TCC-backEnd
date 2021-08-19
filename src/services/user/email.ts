@@ -49,7 +49,7 @@ export class EmailSubService {
   async update(primary: any, update_data: any) {
     new ValSchema({
       primary: P.joi.object({
-        email_id: P.joi.number().integer().positive().required(),
+        id: P.joi.number().integer().positive().required(),
         user_id: P.joi.number().integer().positive().required()
       }),
       update_data: P.joi.object({
@@ -75,6 +75,11 @@ export class EmailSubService {
   }
 
   async remove(primary: any) {
+    new ValSchema({
+      id: P.joi.number().integer().positive().required(),
+      user_id: P.joi.number().integer().positive().required()
+    }).validate(primary)
+
     const [email] = await this.EmailModel.find(primary)
     if (email.main) throw new ArisError('Can not delete main email', 400)
 

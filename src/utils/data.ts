@@ -101,7 +101,7 @@ export default class Data {
   } // move to proposal utils!
 
   // Client data
-  static validate(data: any, type: keyof typeof schema_list) {
+  static validate(data: any, type: keyof any) {
     const primitive = {
       auth: {
         token: joi.string(),
@@ -237,7 +237,7 @@ export default class Data {
       })
     }
 
-    const validation = schema_list[type].validate(data, { abortEarly: false })
+    const validation = (<any>schema_list)[type].validate(data, { abortEarly: false })
 
     if (validation.error) throw validation.error
   }
