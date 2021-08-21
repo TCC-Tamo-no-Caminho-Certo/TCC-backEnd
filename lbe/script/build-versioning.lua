@@ -23,7 +23,7 @@ build = build + 1
 config.set("Build", build)
 config.save()
 
-templateFile = File.open("./lbe/script/template/version.ts", FileMode.Open)
+templateFile = File.open("./lbe/script/template/version.tpl", FileMode.Open)
 reader = StreamReader.New(templateFile)
 templateData = reader.readToEnd()
 reader.close();
