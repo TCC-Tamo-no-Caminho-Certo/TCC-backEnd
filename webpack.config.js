@@ -14,7 +14,7 @@ module.exports = {
     ],
   },
   externals: [nodeExternals()],
-  devtool: "source-map",
+  devtool: 'inline-source-map',
   resolve: {
     extensions: [".ts", ".js"],
   },
