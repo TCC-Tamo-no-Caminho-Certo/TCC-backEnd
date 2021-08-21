@@ -91,7 +91,7 @@ export class Role_RequestSubService {
 
       if (!user_roles.some((role: string) => role === 'student')) {
         const index = user_roles.findIndex((role: string) => role === 'guest')
-        index ? (user_roles[index] = 'student') : user_roles.push('student')
+        index !== -1 ? (user_roles[index] = 'student') : user_roles.push('student')
 
         await this.RoleModel.update({ user_id }, { guest: false, student: true })
         await this.StudentModel.insert({ user_id, lattes: null, linkedin: null })
@@ -141,7 +141,7 @@ export class Role_RequestSubService {
 
       if (!user_roles.some((role: string) => role === 'professor')) {
         const index = user_roles.findIndex((role: string) => role === 'guest')
-        index ? (user_roles[index] = 'professor') : user_roles.push('professor')
+        index !== -1 ? (user_roles[index] = 'professor') : user_roles.push('professor')
 
         await this.RoleModel.update({ user_id }, { guest: false, professor: true })
         await this.ProfessorModel.insert({ user_id, postgraduate: null, lattes: null, linkedin: null, orcid: null })
@@ -304,6 +304,7 @@ export class Role_RequestSubService {
         const { university_id, campus_id, course_id, semester, register } = request.data
         await this.StudentModel.insert({ user_id, linkedin: null, lattes: null })
         await this.Student_UniversityModel.insert({ user_id, university_id, campus_id, course_id, semester, register })
+        break
       }
 
       case 'moderator': {
