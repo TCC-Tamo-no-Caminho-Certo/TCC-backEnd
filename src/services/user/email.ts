@@ -99,17 +99,21 @@ export class EmailSubService {
 
     const email_data = JSON.parse(reply)
 
+    let email
     if (email_data.main) {
       const [main_email] = await this.EmailModel.find({ user_id: email_data.user_id, main: true })
 
       await this.EmailModel.createTrx()
       await this.EmailModel.update({ id: main_email.id, user_id: main_email.user_id }, { main: false })
+
+      email_data.options = JSON.stringify(email_data.options)
+      email = await this.EmailModel.insert(email_data)
+
+      await this.EmailModel.commitTrx()
+    } else {
+      email_data.options = JSON.stringify(email_data.options)
+      email = await this.EmailModel.insert(email_data)
     }
-
-    email_data.options = JSON.stringify(email_data.options)
-    const email = await this.EmailModel.insert(email_data)
-
-    email_data.main && (await this.EmailModel.commitTrx())
 
     await Redis.client.delAsync(`email:${token}`)
 

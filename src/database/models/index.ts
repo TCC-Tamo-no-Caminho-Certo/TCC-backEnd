@@ -217,7 +217,7 @@ export class Model<
    * Creates a database transaction.
    */
   async createTrx() {
-    if (Model.trx) throw new ArisError('Transaction already was created!', 500)
+    if (Model.trx) await Model.trx.rollback()
     Model.has_trx = true
     Model.trx = await db.transaction()
   }
