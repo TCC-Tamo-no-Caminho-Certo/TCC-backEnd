@@ -28,7 +28,7 @@ export class EmailSubService {
 
     const { address, university_id } = email_data
 
-    const [has_email] = await this.EmailModel.find({ user_id, address })
+    const [has_email] = await this.EmailModel.find({ address })
     if (has_email) throw new ArisError('Email already in use!', 400)
 
     if (university_id) {
