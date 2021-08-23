@@ -56,13 +56,13 @@ Router.route('/users/roles(/administrator|/moderator|/professor|/student)')
   .patch(auth, async (req: Request, res: Response) => {
     const {
       auth: { user_id },
-      data
+      data: { password, ...data }
     } = req.body
     const path = req.path.split('/')
     const title = path[path.length - 1]
 
     try {
-      await UserService.role.update(user_id, title, data)
+      await UserService.role.update(user_id, title, data, password)
 
       return res.status(200).send({ success: true, message: 'Role Updated!' })
     } catch (error) {

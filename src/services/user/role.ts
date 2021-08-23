@@ -6,12 +6,14 @@ import { UniversityModel, IUniversityModel } from '../../database/models/univers
 import { ProfessorModel, IProfessorModel } from '../../database/models/user/professor'
 import { StudentModel, IStudentModel } from '../../database/models/user/student'
 import { RoleModel, IRoleModel } from '../../database/models/user/role'
+import { UserModel, IUserModel } from '../../database/models/user/user'
 import Role_RequestSubService from './role_request'
 import Redis from '../redis'
 
 import ValSchema, { P } from '../../utils/validation'
 import ArisError from '../../utils/arisError'
 import { emitter } from '../../subscribers'
+import argon from 'argon2'
 
 import { Pagination, RoleTypes } from '../../@types/types'
 
@@ -24,10 +26,12 @@ export class RoleSubService {
   private ProfessorModel: IProfessorModel
   private StudentModel: IStudentModel
   private RoleModel: IRoleModel
+  private UserModel: IUserModel
 
   public request: typeof Role_RequestSubService
 
   constructor(
+    User: IUserModel,
     Role: IRoleModel,
     Student: IStudentModel,
     Professor: IProfessorModel,
@@ -46,13 +50,14 @@ export class RoleSubService {
     this.ProfessorModel = Professor
     this.StudentModel = Student
     this.RoleModel = Role
+    this.UserModel = User
 
     this.request = request_sub
   }
 
-  async update(user_id: any, role: string, role_data: any) {
+  async update(user_id: any, role: string, role_data: any, password: string) {
     new ValSchema({
-      user_id: P.joi.number().positive().required(),
+      user_id: P.joi.number().integer().positive().required(),
       role: P.joi.string().equal('developer', 'guest', 'student', 'professor', 'customer', 'evaluator', 'moderator', 'administrator').required(),
       role_data: P.joi
         .when('role', { is: 'student', then: P.joi.object({ lattes: P.joi.string().allow(null), linkedin: P.joi.string().allow(null) }).required() })
@@ -66,8 +71,12 @@ export class RoleSubService {
               postgraduate: P.joi.bool().allow(null)
             })
             .required()
-        })
-    }).validate({ user_id, role, role_data })
+        }),
+      password: P.joi.string().required()
+    }).validate({ user_id, role, role_data, password })
+
+    const [user] = await this.UserModel.find({ id: user_id })
+    if (!(await argon.verify(user.password, password))) throw new ArisError('Incorrect password!', 400)
 
     switch (<RoleTypes>role) {
       case 'student':
@@ -220,6 +229,7 @@ export class RoleSubService {
 }
 
 export default new RoleSubService(
+  UserModel,
   RoleModel,
   StudentModel,
   ProfessorModel,

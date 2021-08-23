@@ -1,6 +1,6 @@
 import { EmailModel, IEmailModel } from '../../database/models/user/email'
-import { UserModel, IUserModel } from '../../database/models/user/user'
 import { RoleModel, IRoleModel } from '../../database/models/user/role'
+import { UserModel, IUserModel } from '../../database/models/user/user'
 import EmailSubService from './email'
 import RoleSubService from './role'
 import Lucene from '../lucene'
@@ -19,16 +19,16 @@ import { Pagination, RoleTypes } from '../../@types/types'
 
 export class UserService {
   private EmailModel: IEmailModel
-  private UserModel: IUserModel
   private RoleModel: IRoleModel
+  private UserModel: IUserModel
 
   public email: typeof EmailSubService
   public role: typeof RoleSubService
 
   constructor(User: IUserModel, Email: IEmailModel, Role: IRoleModel, email_sub: typeof EmailSubService, role_sub: typeof RoleSubService) {
     this.EmailModel = Email
-    this.UserModel = User
     this.RoleModel = Role
+    this.UserModel = User
 
     this.email = email_sub
     this.role = role_sub
