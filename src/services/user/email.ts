@@ -41,7 +41,7 @@ export class EmailSubService {
 
     const token = crypto.randomBytes(3).toString('hex')
 
-    await Redis.client.setexAsync(`email:${token}`, 86400, JSON.stringify({ user_id, university_id, address, options: {} }))
+    await Redis.client.setexAsync(`email:${token}`, 86400, JSON.stringify({ user_id, ...email_data }))
 
     emitter.emit('Email_Add', { email_address: address, token })
   }
@@ -60,7 +60,7 @@ export class EmailSubService {
     }).validate({ primary, update_data })
 
     if (update_data.main === true) {
-      const [main_email] = await this.EmailModel.find({ user_id: update_data.user_id, main: true })
+      const [main_email] = await this.EmailModel.find({ user_id: primary.user_id, main: true })
 
       await this.EmailModel.createTrx()
 
