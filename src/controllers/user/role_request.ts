@@ -85,7 +85,9 @@ const Router = express
 
   .patch('/users/roles/requests/:id/reject', auth, permission(['developer'], ['moderator']), async (req: Request, res: Response) => {
     const request_id = parseInt(req.params.id)
-    const { feedback } = req.body
+    const {
+      data: { feedback }
+    } = req.body
 
     try {
       await UserService.role.request.reject(request_id, feedback)
