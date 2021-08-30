@@ -4,7 +4,7 @@ import { RoleRequestModel } from '../models/user/role_request'
 
 class Jobs {
   initialize() {
-    schedule.scheduleJob('* 0 * * *', async function () {
+    schedule.scheduleJob('update_season', '* 0 * * *', async function () {
       try {
         const now = new Date()
         await SeasonModel.createTrx()

@@ -54,7 +54,7 @@ export class SeasonSubService {
       return day_diff < 0 ? day_diff + season.periods.dispatch <= 0 : day_diff - season_data.periods.dispatch >= 0
     })
 
-    if (!is_valid && seasons.length !== 0) throw new ArisError('Season not valid', 400)
+    if (!is_valid && seasons.length !== 0) throw new ArisError('Season not valid!', 400)
 
     const new_season = await this.SeasonModel.insert(season_data)
     return new_season
@@ -86,7 +86,45 @@ export class SeasonSubService {
         .required()
     }).validate({ primary, update_data })
 
-    update_data.periods = JSON.stringify(update_data.periods)
+    const { edict, periods } = update_data
+
+    let old_season_data: any = null
+    if (periods) {
+      const seasons = await this.SeasonModel.find({ university_id: primary.university_id }).then(seasons =>
+        seasons.filter(season => {
+          const is_old_season = season.id === primary.id
+          if (is_old_season) old_season_data = season
+          return !is_old_season
+        })
+      )
+
+      if (!old_season_data) throw new ArisError('Season not found!', 400)
+
+      const new_periods = { ...old_season_data.periods, ...update_data.periods }
+
+      const is_valid = seasons.some(season => {
+        const time_diff = new Date(season.begin).getTime() - new Date(update_data.begin || old_season_data.begin).getTime(),
+          day_diff = Math.floor(time_diff / (1000 * 3600 * 24))
+
+        return day_diff < 0 ? day_diff + season.periods.dispatch <= 0 : day_diff - new_periods.dispatch >= 0
+      })
+
+      if (!is_valid && seasons.length !== 0) throw new ArisError('Season not valid!', 400)
+
+      update_data.periods = JSON.stringify(new_periods)
+    }
+
+    if (edict) {
+      old_season_data ||= await this.SeasonModel.find(primary).then(row => row[0])
+      if (!old_season_data) throw new ArisError('Season not found!', 400)
+
+      const file = new File(edict)
+      if (!file.validateTypes(['data:application/pdf;base64'])) throw new ArisError('Invalid file Type!', 400)
+
+      update_data.edict_uuid = await file.update('edict', old_season_data.edict_uuid)
+
+      delete update_data.edict
+    }
 
     await this.SeasonModel.update(primary, update_data)
   }
