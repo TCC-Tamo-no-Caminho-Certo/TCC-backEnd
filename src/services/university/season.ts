@@ -54,7 +54,7 @@ export class SeasonSubService {
       return day_diff < 0 ? day_diff + season.periods.dispatch <= 0 : day_diff - season_data.periods.dispatch >= 0
     })
 
-    if (!is_valid && seasons.length !== 0) throw new ArisError('Season not valid!', 400)
+    if (!is_valid && seasons.length !== 0) throw new ArisError('Dispatch can not overwrite another dispatch!', 400)
 
     const new_season = await this.SeasonModel.insert(season_data)
     return new_season
@@ -109,7 +109,7 @@ export class SeasonSubService {
         return day_diff < 0 ? day_diff + season.periods.dispatch <= 0 : day_diff - new_periods.dispatch >= 0
       })
 
-      if (!is_valid && seasons.length !== 0) throw new ArisError('Season not valid!', 400)
+      if (!is_valid && seasons.length !== 0) throw new ArisError('Dispatch can not overwrite another dispatch!', 400)
 
       update_data.periods = JSON.stringify(new_periods)
     }
