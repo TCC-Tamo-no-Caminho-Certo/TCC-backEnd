@@ -207,7 +207,10 @@ export class Model<
   }
 
   get query() {
+    const trx = Model.trx || db
+
     if (this.has_cache) throw new ArisError('Can not query a model with cache', 500)
+    
     return db<ParseKeys<Data>, ParseKeys<Data>[]>(this._name)
   }
 
