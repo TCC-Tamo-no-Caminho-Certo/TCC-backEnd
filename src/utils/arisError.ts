@@ -25,7 +25,7 @@ export default class ArisError extends Error {
    * @param error
    * @param message - Response message to be sended
    */
-  static errorHandler(error: ValidationError | ArisError | Error, message: string) {
+  static errorHandler(error: any, message: string) {
     const info = JoiErrorHandler(<ValidationError>error, message) || ArisErrorHandler(<ArisError>error, message) || SystemErrorHandler(error, message)
     Model.has_trx && Model.rollbackTrx()
     return info

@@ -140,7 +140,7 @@ export class SeasonSubService {
 
   async find(filter: any, { page, per_page }: Pagination) {
     const seasons = await this.SeasonModel.find(filter)
-      .select('id', 'university_id', 'title', 'status', 'begin', 'current_period', 'periods', 'description')
+      .select('id', 'university_id', 'title', 'status', 'begin', 'current_period', 'periods', 'edict_uuid', 'description')
       .paginate(page, per_page)
     return seasons
   }
