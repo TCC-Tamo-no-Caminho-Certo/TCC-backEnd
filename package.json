@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "0.1.0",
-  "description": "aris backend",
+  "description": "tcc backend",
   "main": "./src/server.ts",
   "scripts": {
     "build": "webpack --config webpack.config.js",
@@ -17,14 +17,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SteamsLab/dev_backend.git"
+    "url": "git+https://github.com/TCC-Tamo-no-Caminho-Certo/TCC-backEnd.git"
   },
-  "author": "Gabriel Nori",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/SteamsLab/dev_backend/issues"
-  },
-  "homepage": "https://github.com/SteamsLab/dev_backend#readme",
   "dependencies": {
     "argon2": "^0.28.2",
     "axios": "^0.21.1",
